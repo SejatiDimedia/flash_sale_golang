@@ -1,0 +1,43 @@
+# Environment Variables (Secrets)
+.env
+*.env.local
+*.env.*.local
+
+# Binaries & Build Output
+bin/
+dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+__debug_bin*
+
+# OS Specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE & Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# Dependency directories
+vendor/
+node_modules/
+
+# Logs & Database Dumps
+*.log
+*.sql.gz
+*.dump
