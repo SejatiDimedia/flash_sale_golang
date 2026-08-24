@@ -1,0 +1,103 @@
+enum EventStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  CLOSED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+  CANCELLED
+}
+
+type Event {
+  id: ID!
+  name: String!
+  description: String
+  startSaleAt: String!
+  endSaleAt: String!
+  totalStock: Int!
+  availableStock: Int!
+  price: Float!
+  status: EventStatus!
+  maxPerUser: Int!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  role: String!
+  createdAt: String!
+}
+
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
+type Order {
+  id: ID!
+  userId: ID!
+  eventId: ID!
+  quantity: Int!
+  totalPrice: Float!
+  status: OrderStatus!
+  createdAt: String!
+  confirmedAt: String
+}
+
+input RegisterInput {
+  name: String!
+  email: String!
+  password: String!
+  role: String
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input CreateEventInput {
+  name: String!
+  description: String
+  startSaleAt: String!
+  endSaleAt: String!
+  totalStock: Int!
+  price: Float!
+  status: EventStatus
+  maxPerUser: Int
+}
+
+input UpdateEventInput {
+  name: String!
+  description: String
+  startSaleAt: String!
+  endSaleAt: String!
+  totalStock: Int!
+  price: Float!
+  status: EventStatus!
+  maxPerUser: Int!
+}
+
+type Query {
+  healthCheck: String!
+  me: User
+  events(status: EventStatus): [Event!]!
+  event(id: ID!): Event
+  myOrders: [Order!]!
+  order(id: ID!): Order
+}
+
+type Mutation {
+  register(input: RegisterInput!): AuthPayload!
+  login(input: LoginInput!): AuthPayload!
+  createEvent(input: CreateEventInput!): Event!
+  updateEvent(id: ID!, input: UpdateEventInput!): Event!
+  purchaseTicket(eventId: ID!, quantity: Int!): Order!
+}

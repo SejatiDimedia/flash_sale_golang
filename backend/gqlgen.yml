@@ -1,0 +1,39 @@
+# Tempat file skema GraphQL
+schema:
+  - "internal/graph/schema/*.graphqls"
+
+# Tempat generated code eksekusi GraphQL
+exec:
+  filename: internal/graph/generated.go
+  package: graph
+
+# Tempat struct model Go yang di-generate dari skema GraphQL
+model:
+  filename: internal/graph/model/models_gen.go
+  package: model
+
+# Konfigurasi Resolver (implementasi logic query & mutation)
+resolver:
+  layout: follow-schema
+  dir: internal/graph
+  package: graph
+  filename_template: "{name}.resolvers.go"
+
+# Map tipe skema GraphQL ke tipe data Go
+autobind:
+  - "github.com/sejatidimedia/flash_sale_platform/internal/graph/model"
+
+models:
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.ID
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int64
+      - github.com/99designs/gqlgen/graphql.Uint
+      - github.com/99designs/gqlgen/graphql.Uint64
+  Int:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int64
+      - github.com/99designs/gqlgen/graphql.Uint
+      - github.com/99designs/gqlgen/graphql.Uint64
