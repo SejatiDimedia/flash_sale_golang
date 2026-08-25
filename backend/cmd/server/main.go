@@ -1,8 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -11,9 +16,11 @@ import (
 	"github.com/sejatidimedia/flash_sale_platform/internal/graph"
 	"github.com/sejatidimedia/flash_sale_platform/internal/middleware"
 	"github.com/sejatidimedia/flash_sale_platform/internal/pkg/database"
+	"github.com/sejatidimedia/flash_sale_platform/internal/pkg/rabbitmq"
 	"github.com/sejatidimedia/flash_sale_platform/internal/pkg/redisclient"
 	"github.com/sejatidimedia/flash_sale_platform/internal/repository"
 	"github.com/sejatidimedia/flash_sale_platform/internal/service"
+	"github.com/sejatidimedia/flash_sale_platform/internal/worker"
 )
 
 func graphqlHandler(
@@ -67,7 +74,14 @@ func main() {
 		log.Fatalf("Failed to connect to Redis: %v", err)
 	}
 
-	// 4. Inisialisasi Repositories & Services
+	// 4. Inisialisasi RabbitMQ Client
+	rabbitClient, err := rabbitmq.NewRabbitMQClient(cfg)
+	if err != nil {
+		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
+	}
+	defer rabbitClient.Close()
+
+	// 5. Inisialisasi Repositories & Services
 	userRepo := repository.NewUserRepository(dbPool)
 	authService := service.NewAuthService(userRepo, cfg)
 
@@ -75,9 +89,17 @@ func main() {
 	eventService := service.NewEventService(eventRepo)
 
 	orderRepo := repository.NewOrderRepository(dbPool)
-	checkoutService := service.NewCheckoutService(orderRepo, eventRepo, redisClient)
+	checkoutService := service.NewCheckoutService(orderRepo, eventRepo, redisClient, rabbitClient)
 
-	// 5. Setup Router Gin
+	// 6. Start Worker Pool (10 Goroutines yang consume RabbitMQ)
+	workerCtx, workerCancel := context.WithCancel(context.Background())
+	workerPool := worker.NewOrderWorkerPool(rabbitClient, orderRepo, eventRepo, 10)
+
+	if err := workerPool.Start(workerCtx); err != nil {
+		log.Fatalf("Failed to start worker pool: %v", err)
+	}
+
+	// 7. Setup Router Gin
 	if cfg.Environment == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -95,9 +117,37 @@ func main() {
 	r.POST("/query", graphqlHandler(authService, eventService, checkoutService, orderRepo))
 	r.GET("/query", graphqlHandler(authService, eventService, checkoutService, orderRepo))
 
-	log.Printf("🚀 Server ready at http://localhost:%s/", cfg.ServerPort)
-
-	if err := r.Run(":" + cfg.ServerPort); err != nil {
-		log.Fatalf("Failed to run server: %v", err)
+	// 8. Graceful Shutdown Setup
+	srv := &http.Server{
+		Addr:    ":" + cfg.ServerPort,
+		Handler: r,
 	}
+
+	go func() {
+		log.Printf("🚀 Server ready at http://localhost:%s/", cfg.ServerPort)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Failed to run server: %v", err)
+		}
+	}()
+
+	// 9. Menunggu sinyal shutdown OS (Ctrl+C)
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	log.Println("🛑 Shutting down server...")
+
+	// 10. Tunggu HTTP request selesai (timeout max 10s)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer shutdownCancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("Server forced to shutdown: %v", err)
+	}
+
+	// 11. Hentikan Worker Pool cleanly
+	workerCancel()
+	workerPool.Stop()
+
+	log.Println("✅ Server & Workers shut down gracefully. Goodbye!")
 }
