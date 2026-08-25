@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"strconv"
 	"strings"
 	"time"
 
@@ -51,5 +52,19 @@ func mapOrderToGraphQL(o *repository.Order) *model.Order {
 		Status:      status,
 		CreatedAt:   o.CreatedAt.Format(time.RFC3339),
 		ConfirmedAt: confirmedAt,
+	}
+}
+
+func mapOrderLogToGraphQL(l *repository.OrderLog) *model.OrderLog {
+	if l == nil {
+		return nil
+	}
+
+	return &model.OrderLog{
+		ID:        strconv.FormatInt(l.ID, 10),
+		OrderID:   l.OrderID,
+		EventType: l.EventType,
+		Payload:   l.Payload,
+		CreatedAt: l.CreatedAt.Format(time.RFC3339),
 	}
 }

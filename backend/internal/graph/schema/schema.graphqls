@@ -51,6 +51,14 @@ type Order {
   confirmedAt: String
 }
 
+type OrderLog {
+  id: ID!
+  orderId: ID!
+  eventType: String!
+  payload: String!
+  createdAt: String!
+}
+
 input RegisterInput {
   name: String!
   email: String!
@@ -92,6 +100,8 @@ type Query {
   event(id: ID!): Event
   myOrders: [Order!]!
   order(id: ID!): Order
+  orders(eventId: ID): [Order!]! # Khusus Admin
+  orderLogs(orderId: ID!): [OrderLog!]! # Khusus Admin: Timeline Audit Log
 }
 
 type Mutation {

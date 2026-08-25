@@ -59,6 +59,14 @@ type Order struct {
 	ConfirmedAt *string     `json:"confirmedAt,omitempty"`
 }
 
+type OrderLog struct {
+	ID        string `json:"id"`
+	OrderID   string `json:"orderId"`
+	EventType string `json:"eventType"`
+	Payload   string `json:"payload"`
+	CreatedAt string `json:"createdAt"`
+}
+
 type Query struct {
 }
 

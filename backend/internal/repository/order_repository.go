@@ -21,12 +21,23 @@ type Order struct {
 	ConfirmedAt *time.Time `json:"confirmed_at"`
 }
 
+type OrderLog struct {
+	ID        int64     `json:"id"`
+	OrderID   string    `json:"order_id"`
+	EventType string    `json:"event_type"` // ORDER_CREATED, STOCK_RESERVED, ORDER_CONFIRMED, ORDER_FAILED
+	Payload   string    `json:"payload"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 type OrderRepository interface {
 	CreateOrder(ctx context.Context, order *Order) (*Order, error)
 	GetOrderByID(ctx context.Context, id string) (*Order, error)
 	GetOrdersByUserID(ctx context.Context, userID string) ([]*Order, error)
+	GetAllOrders(ctx context.Context, eventID *string) ([]*Order, error)
 	UpdateOrderStatus(ctx context.Context, id string, status string) error
 	GetUserPurchasedCount(ctx context.Context, userID, eventID string) (int, error)
+	CreateOrderLog(ctx context.Context, orderID, eventType, payloadJSON string) error
+	GetOrderLogsByOrderID(ctx context.Context, orderID string) ([]*OrderLog, error)
 }
 
 type orderRepository struct {
@@ -107,6 +118,47 @@ func (r *orderRepository) GetOrdersByUserID(ctx context.Context, userID string) 
 	return orders, nil
 }
 
+func (r *orderRepository) GetAllOrders(ctx context.Context, eventID *string) ([]*Order, error) {
+	var rows pgx.Rows
+	var err error
+
+	if eventID != nil && *eventID != "" {
+		query := `
+			SELECT id, user_id, event_id, quantity, total_price, status, created_at, confirmed_at
+			FROM orders
+			WHERE event_id = $1
+			ORDER BY created_at DESC
+		`
+		rows, err = r.db.Query(ctx, query, *eventID)
+	} else {
+		query := `
+			SELECT id, user_id, event_id, quantity, total_price, status, created_at, confirmed_at
+			FROM orders
+			ORDER BY created_at DESC
+		`
+		rows, err = r.db.Query(ctx, query)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all orders: %w", err)
+	}
+	defer rows.Close()
+
+	var orders []*Order
+	for rows.Next() {
+		var o Order
+		if err := rows.Scan(
+			&o.ID, &o.UserID, &o.EventID, &o.Quantity,
+			&o.TotalPrice, &o.Status, &o.CreatedAt, &o.ConfirmedAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan order: %w", err)
+		}
+		orders = append(orders, &o)
+	}
+
+	return orders, nil
+}
+
 func (r *orderRepository) UpdateOrderStatus(ctx context.Context, id string, status string) error {
 	var query string
 	if status == "CONFIRMED" {
@@ -119,7 +171,6 @@ func (r *orderRepository) UpdateOrderStatus(ctx context.Context, id string, stat
 	return err
 }
 
-// GetUserPurchasedCount menghitung berapa tiket yang sudah pernah dibeli user untuk event ini
 func (r *orderRepository) GetUserPurchasedCount(ctx context.Context, userID, eventID string) (int, error) {
 	query := `
 		SELECT COALESCE(SUM(quantity), 0)
@@ -134,4 +185,39 @@ func (r *orderRepository) GetUserPurchasedCount(ctx context.Context, userID, eve
 	}
 
 	return count, nil
+}
+
+func (r *orderRepository) CreateOrderLog(ctx context.Context, orderID, eventType, payloadJSON string) error {
+	query := `
+		INSERT INTO order_logs (order_id, event_type, payload)
+		VALUES ($1, $2, $3::jsonb)
+	`
+	_, err := r.db.Exec(ctx, query, orderID, eventType, payloadJSON)
+	return err
+}
+
+func (r *orderRepository) GetOrderLogsByOrderID(ctx context.Context, orderID string) ([]*OrderLog, error) {
+	query := `
+		SELECT id, order_id, event_type, payload::text, created_at
+		FROM order_logs
+		WHERE order_id = $1
+		ORDER BY created_at ASC
+	`
+
+	rows, err := r.db.Query(ctx, query, orderID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get order logs: %w", err)
+	}
+	defer rows.Close()
+
+	var logs []*OrderLog
+	for rows.Next() {
+		var l OrderLog
+		if err := rows.Scan(&l.ID, &l.OrderID, &l.EventType, &l.Payload, &l.CreatedAt); err != nil {
+			return nil, fmt.Errorf("failed to scan order log: %w", err)
+		}
+		logs = append(logs, &l)
+	}
+
+	return logs, nil
 }

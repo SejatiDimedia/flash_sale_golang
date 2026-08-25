@@ -106,7 +106,15 @@ func (s *checkoutService) PurchaseTicket(ctx context.Context, userID, eventID st
 	// 7. Update available stock di DB
 	_ = s.eventRepo.UpdateAvailableStock(ctx, eventID, remainingStock)
 
-	// 8. PUBLISH EVENT KE RABBITMQ (Async Worker Pipeline)
+	// 8. Catat Audit Logs: ORDER_CREATED & STOCK_RESERVED
+	createdPayload := fmt.Sprintf(`{"event_id":"%s","quantity":%d,"total_price":%.2f,"user_id":"%s"}`,
+		eventID, quantity, totalPrice, userID)
+	_ = s.orderRepo.CreateOrderLog(ctx, createdOrder.ID, "ORDER_CREATED", createdPayload)
+
+	stockPayload := fmt.Sprintf(`{"remaining_stock":%d,"quantity_deducted":%d}`, remainingStock, quantity)
+	_ = s.orderRepo.CreateOrderLog(ctx, createdOrder.ID, "STOCK_RESERVED", stockPayload)
+
+	// 9. PUBLISH EVENT KE RABBITMQ
 	payload := worker.OrderMessagePayload{
 		OrderID:    createdOrder.ID,
 		UserID:     userID,
@@ -119,7 +127,6 @@ func (s *checkoutService) PurchaseTicket(ctx context.Context, userID, eventID st
 		fmt.Printf("⚠️ WARNING: Failed to publish to RabbitMQ: %v (Order %s will remain PENDING)\n", err, createdOrder.ID)
 	}
 
-	// 9. Return respon cepat (< 5ms) berstatus PENDING
 	return createdOrder, nil
 }
 

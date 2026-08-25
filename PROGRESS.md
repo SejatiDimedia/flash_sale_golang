@@ -1,20 +1,20 @@
 # 📌 Flash Sale Platform — Master Progress Tracker & Full Roadmap
 
 **Terakhir Diperbarui:** 25 Agustus 2026  
-**Status Keseluruhan:** Fase 1 — Step 6 Selesai & Terverifikasi (6/20 Steps Terlaksana)
+**Status Keseluruhan:** 🎉 FASE 1 (Core MVP) SELESAI 100% (7/20 Steps Terlaksana)
 
 ---
 
 ## 🗺️ Roadmap Lengkap Seluruh Fase Project
 
 ```
-[ Fase 1: Core MVP ] ──► [ Fase 2: Real-time UX ] ──► [ Fase 3: Hardening & Load Test ] ──► [ Fase 4: Frontend & CI/CD ]
- (Step 1 - 7)                 (Step 8 - 11)                 (Step 12 - 15)                       (Step 16 - 20)
+[ Fase 1: Core MVP (SELESAI) ] ──► [ Fase 2: Real-time UX ] ──► [ Fase 3: Hardening & Load Test ] ──► [ Fase 4: Frontend & CI/CD ]
+ (Step 1 - 7)                            (Step 8 - 11)                 (Step 12 - 15)                       (Step 16 - 20)
 ```
 
 ---
 
-## 🚀 FASE 1: Core MVP Backend (Backend Inti & Async Pipeline)
+## 🚀 FASE 1: Core MVP Backend (SELESAI 100% 🏆)
 
 ### ✅ Step 1: Scaffolding & Containerized Infrastructure (SELESAI)
 - [x] Go module initialized: `github.com/sejatidimedia/flash_sale_platform`
@@ -55,27 +55,28 @@
 - [x] **Graceful Shutdown** di `backend/cmd/server/main.go` menggunakan `signal.Notify` & `http.Server.Shutdown`
 - [x] **Verifikasi:** Log Worker berhasil memproses order `PENDING` ➡️ `CONFIRMED` di background via Postman!
 
-### 🔜 Step 7: Order Query & Admin Overview (SEDANG BERJALAN)
-- [x] Tambah method `GetAllOrders` & `CreateOrderLog` di `order_repository.go`
+### ✅ Step 7: Order Query & Admin Overview (SELESAI & TERVERIFIKASI)
+- [x] Method `GetAllOrders` & `CreateOrderLog` di `order_repository.go`
 - [x] Worker otomatis mencatat audit trail log ke tabel `order_logs`
-- [ ] Query `orders(eventId: ID)` khusus admin untuk memantau seluruh transaksi
-- [ ] Uji coba query `orders` via Postman
+- [x] Query `orders(eventId: ID)` khusus admin untuk memantau seluruh transaksi
+- [x] **Verifikasi:** Admin berhasil melihat seluruh daftar pesanan via Postman!
 
 ---
 
 ## ⚡ FASE 2: Real-Time UX & Concurrency (WebSockets & Waiting Room)
 
-### 🔜 Step 8: Setup GraphQL Subscriptions (WebSocket Transport)
+### 🔜 Step 8: Setup GraphQL Subscriptions (WebSocket Transport) (UP NEXT)
 - [ ] Pasang transport WebSocket di Gin & gqlgen (`transport.Websocket`)
-- [ ] Hubungkan Redis Pub/Sub untuk broadcast channel antar-goroutine
+- [ ] Tambah helper Redis Pub/Sub di `internal/pkg/redisclient/redis.go`
+- [ ] Tambah `type Subscription` di `schema.graphqls`
 
 ### 🔜 Step 9: Live Stock Update Broadcast (`stockUpdated`)
-- [ ] Buat GraphQL Subscription: `stockUpdated(eventId: ID!): Event!`
-- [ ] Publish update stok ke Redis Pub/Sub setiap kali terjadi checkout sukses
+- [ ] Implementasi Subscription `stockUpdated(eventId: ID!): Event!`
+- [ ] Broadcast sisa stok via Redis Pub/Sub setiap ada tiket terjual
 
 ### 🔜 Step 10: Live Order Status Push (`orderStatusChanged`)
-- [ ] Buat GraphQL Subscription: `orderStatusChanged(orderId: ID!): Order!`
-- [ ] Worker RabbitMQ me-relay notifikasi saat status berubah dari `PENDING` ➡️ `CONFIRMED`
+- [ ] Implementasi Subscription `orderStatusChanged(orderId: ID!): Order!`
+- [ ] Worker RabbitMQ me-relay notifikasi real-time saat status berubah dari `PENDING` ➡️ `CONFIRMED`
 
 ### 🔜 Step 11: Waiting Room & Virtual Queue (Anti-Thundering Herd)
 - [ ] Implementasi Redis Sorted Set (`ZADD` / `ZRANK`) untuk antrian user sebelum flash sale dimulai

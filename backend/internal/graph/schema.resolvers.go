@@ -237,6 +237,44 @@ func (r *queryResolver) Order(ctx context.Context, id string) (*model.Order, err
 	return mapOrderToGraphQL(o), nil
 }
 
+// Orders is the resolver for the orders field (Admin Only).
+func (r *queryResolver) Orders(ctx context.Context, eventID *string) ([]*model.Order, error) {
+	currentUser := middleware.GetUserFromContext(ctx)
+	if currentUser == nil || currentUser.Role != "admin" {
+		return nil, errors.New("forbidden: only admin can view all orders")
+	}
+
+	orders, err := r.OrderRepo.GetAllOrders(ctx, eventID)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []*model.Order
+	for _, o := range orders {
+		results = append(results, mapOrderToGraphQL(o))
+	}
+	return results, nil
+}
+
+// OrderLogs is the resolver for the orderLogs field (Admin Only: Audit Trail).
+func (r *queryResolver) OrderLogs(ctx context.Context, orderID string) ([]*model.OrderLog, error) {
+	currentUser := middleware.GetUserFromContext(ctx)
+	if currentUser == nil || currentUser.Role != "admin" {
+		return nil, errors.New("forbidden: only admin can view order logs")
+	}
+
+	logs, err := r.OrderRepo.GetOrderLogsByOrderID(ctx, orderID)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []*model.OrderLog
+	for _, l := range logs {
+		results = append(results, mapOrderLogToGraphQL(l))
+	}
+	return results, nil
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 

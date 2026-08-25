@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -12,7 +13,6 @@ import (
 	"github.com/sejatidimedia/flash_sale_platform/internal/repository"
 )
 
-// OrderMessagePayload adalah struktur data yang dikirim lewat RabbitMQ
 type OrderMessagePayload struct {
 	OrderID    string  `json:"order_id"`
 	UserID     string  `json:"user_id"`
@@ -46,11 +46,9 @@ func NewOrderWorkerPool(
 	}
 }
 
-// Start menyalakan Goroutines worker pool
 func (p *OrderWorkerPool) Start(ctx context.Context) error {
-	// Fair dispatch: batasi antrian per worker
 	err := p.rabbitClient.Channel.Qos(
-		p.numWorkers*2, // prefetch count
+		p.numWorkers*2,
 		0,
 		false,
 	)
@@ -60,8 +58,8 @@ func (p *OrderWorkerPool) Start(ctx context.Context) error {
 
 	msgs, err := p.rabbitClient.Channel.Consume(
 		rabbitmq.OrderPendingQueue,
-		"",    // consumer tag
-		false, // autoAck = FALSE (Kita wajib Manual ACK demi keandalan)
+		"",
+		false, // manual ACK
 		false,
 		false,
 		false,
@@ -111,23 +109,30 @@ func (p *OrderWorkerPool) processMessage(workerID int, msg amqp.Delivery) {
 	log.Printf("🔄 [Worker %d] Processing Order %s (UserID: %s, EventID: %s, Qty: %d)",
 		workerID, payload.OrderID, payload.UserID, payload.EventID, payload.Quantity)
 
-	// Simulasi pemrosesan async
 	time.Sleep(30 * time.Millisecond)
 
-	// Update status order di PostgreSQL menjadi CONFIRMED
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	// 1. Update status order menjadi CONFIRMED
 	err := p.orderRepo.UpdateOrderStatus(ctx, payload.OrderID, "CONFIRMED")
 	if err != nil {
 		log.Printf("❌ [Worker %d] Failed to confirm order %s: %v. Requeuing...", workerID, payload.OrderID, err)
-		_ = msg.Nack(false, true) // Requeue jika DB error sementara
+		// Catat log ORDER_FAILED sebelum requeue
+		failPayload := fmt.Sprintf(`{"error":"%s","worker_id":%d}`, err.Error(), workerID)
+		_ = p.orderRepo.CreateOrderLog(ctx, payload.OrderID, "ORDER_FAILED", failPayload)
+		_ = msg.Nack(false, true)
 		return
 	}
 
-	// Manual ACK: konfirmasi bahwa order sukses diproses
+	// 2. Catat Audit Log: ORDER_CONFIRMED
+	logPayload := fmt.Sprintf(`{"status":"CONFIRMED","worker_id":%d,"quantity":%d,"total_price":%.2f}`,
+		workerID, payload.Quantity, payload.TotalPrice)
+	_ = p.orderRepo.CreateOrderLog(ctx, payload.OrderID, "ORDER_CONFIRMED", logPayload)
+
+	// 3. Manual ACK
 	_ = msg.Ack(false)
-	log.Printf("✅ [Worker %d] Order %s CONFIRMED successfully!", workerID, payload.OrderID)
+	log.Printf("✅ [Worker %d] Order %s CONFIRMED & Logged successfully!", workerID, payload.OrderID)
 }
 
 func (p *OrderWorkerPool) Stop() {
