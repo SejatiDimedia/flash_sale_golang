@@ -6,12 +6,16 @@ package graph
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"log"
 	"strings"
 	"time"
 
 	"github.com/sejatidimedia/flash_sale_platform/internal/graph/model"
 	"github.com/sejatidimedia/flash_sale_platform/internal/middleware"
+	"github.com/sejatidimedia/flash_sale_platform/internal/repository"
 	"github.com/sejatidimedia/flash_sale_platform/internal/service"
 )
 
@@ -275,11 +279,102 @@ func (r *queryResolver) OrderLogs(ctx context.Context, orderID string) ([]*model
 	return results, nil
 }
 
+// StockUpdated is the subscription resolver for live stock updates.
+func (r *subscriptionResolver) StockUpdated(ctx context.Context, eventID string) (<-chan *model.Event, error) {
+	ch := make(chan *model.Event, 10)
+
+	// 1. Kirim data stok awal saat connect
+	currentEvent, err := r.EventRepo.GetEventByID(ctx, eventID)
+	if err == nil && currentEvent != nil {
+		cachedStock, _ := r.RedisClient.GetStock(ctx, eventID)
+		if cachedStock > 0 {
+			currentEvent.AvailableStock = cachedStock
+		}
+		ch <- mapEventToGraphQL(currentEvent)
+	}
+
+	// 2. Gunakan context.Background() agar langganan Redis Pub/Sub tetap hidup selama WebSocket connect!
+	pubsub := r.RedisClient.SubscribeChannel(context.Background(), fmt.Sprintf("stock_updated:%s", eventID))
+	log.Printf("📡 [WebSocket] Client subscribed to stock_updated:%s", eventID)
+
+	go func() {
+		defer pubsub.Close()
+		defer close(ch)
+		defer log.Printf("🔌 [WebSocket] Client disconnected from stock_updated:%s", eventID)
+
+		redisChannel := pubsub.Channel()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case msg, ok := <-redisChannel:
+				if !ok {
+					return
+				}
+
+				var updatedEvent repository.Event
+				if err := json.Unmarshal([]byte(msg.Payload), &updatedEvent); err == nil {
+					select {
+					case ch <- mapEventToGraphQL(&updatedEvent):
+						log.Printf("✨ [WebSocket] Pushed stock update (New Stock: %d) to client", updatedEvent.AvailableStock)
+					case <-ctx.Done():
+						return
+					}
+				}
+			}
+		}
+	}()
+
+	return ch, nil
+}
+
+// OrderStatusChanged is the subscription resolver for live order status updates.
+func (r *subscriptionResolver) OrderStatusChanged(ctx context.Context, orderID string) (<-chan *model.Order, error) {
+	ch := make(chan *model.Order, 10)
+
+	pubsub := r.RedisClient.SubscribeChannel(context.Background(), fmt.Sprintf("order_status:%s", orderID))
+	log.Printf("📡 [WebSocket] Client subscribed to order_status:%s", orderID)
+
+	go func() {
+		defer pubsub.Close()
+		defer close(ch)
+		defer log.Printf("🔌 [WebSocket] Client disconnected from order_status:%s", orderID)
+
+		redisChannel := pubsub.Channel()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case msg, ok := <-redisChannel:
+				if !ok {
+					return
+				}
+
+				var updatedOrder repository.Order
+				if err := json.Unmarshal([]byte(msg.Payload), &updatedOrder); err == nil {
+					select {
+					case ch <- mapOrderToGraphQL(&updatedOrder):
+						log.Printf("✨ [WebSocket] Pushed order status update (%s) to client", updatedOrder.Status)
+					case <-ctx.Done():
+						return
+					}
+				}
+			}
+		}
+	}()
+
+	return ch, nil
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
+// Subscription returns SubscriptionResolver implementation.
+func (r *Resolver) Subscription() SubscriptionResolver { return &subscriptionResolver{r} }
+
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type subscriptionResolver struct{ *Resolver }

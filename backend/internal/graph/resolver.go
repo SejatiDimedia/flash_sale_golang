@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"github.com/sejatidimedia/flash_sale_platform/internal/pkg/redisclient"
 	"github.com/sejatidimedia/flash_sale_platform/internal/repository"
 	"github.com/sejatidimedia/flash_sale_platform/internal/service"
 )
@@ -10,4 +11,6 @@ type Resolver struct {
 	EventService    service.EventService
 	CheckoutService service.CheckoutService
 	OrderRepo       repository.OrderRepository
+	EventRepo       repository.EventRepository
+	RedisClient     *redisclient.RedisClient
 }

@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
 	"github.com/sejatidimedia/flash_sale_platform/internal/config"
@@ -28,8 +30,10 @@ func graphqlHandler(
 	eventService service.EventService,
 	checkoutService service.CheckoutService,
 	orderRepo repository.OrderRepository,
+	eventRepo repository.EventRepository,
+	redisClient *redisclient.RedisClient,
 ) gin.HandlerFunc {
-	srv := handler.NewDefaultServer(
+	srv := handler.New(
 		graph.NewExecutableSchema(
 			graph.Config{
 				Resolvers: &graph.Resolver{
@@ -37,10 +41,20 @@ func graphqlHandler(
 					EventService:    eventService,
 					CheckoutService: checkoutService,
 					OrderRepo:       orderRepo,
+					EventRepo:       eventRepo,
+					RedisClient:     redisClient,
 				},
 			},
 		),
 	)
+
+	// 🔴 AKTIFKAN TRANSPORTS: POST, GET & WEBSOCKET SUBSCRIPTION
+	srv.AddTransport(transport.POST{})
+	srv.AddTransport(transport.GET{})
+	srv.AddTransport(transport.Websocket{
+		KeepAlivePingInterval: 10 * time.Second,
+	})
+	srv.Use(extension.Introspection{})
 
 	return func(c *gin.Context) {
 		srv.ServeHTTP(c.Writer, c.Request)
@@ -91,9 +105,9 @@ func main() {
 	orderRepo := repository.NewOrderRepository(dbPool)
 	checkoutService := service.NewCheckoutService(orderRepo, eventRepo, redisClient, rabbitClient)
 
-	// 6. Start Worker Pool (10 Goroutines yang consume RabbitMQ)
+	// 6. Start Worker Pool
 	workerCtx, workerCancel := context.WithCancel(context.Background())
-	workerPool := worker.NewOrderWorkerPool(rabbitClient, orderRepo, eventRepo, 10)
+	workerPool := worker.NewOrderWorkerPool(rabbitClient, redisClient, orderRepo, eventRepo, 10)
 
 	if err := workerPool.Start(workerCtx); err != nil {
 		log.Fatalf("Failed to start worker pool: %v", err)
@@ -114,8 +128,8 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 	r.GET("/", playgroundHandler())
-	r.POST("/query", graphqlHandler(authService, eventService, checkoutService, orderRepo))
-	r.GET("/query", graphqlHandler(authService, eventService, checkoutService, orderRepo))
+	r.POST("/query", graphqlHandler(authService, eventService, checkoutService, orderRepo, eventRepo, redisClient))
+	r.GET("/query", graphqlHandler(authService, eventService, checkoutService, orderRepo, eventRepo, redisClient))
 
 	// 8. Graceful Shutdown Setup
 	srv := &http.Server{
@@ -130,14 +144,12 @@ func main() {
 		}
 	}()
 
-	// 9. Menunggu sinyal shutdown OS (Ctrl+C)
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
 	log.Println("🛑 Shutting down server...")
 
-	// 10. Tunggu HTTP request selesai (timeout max 10s)
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer shutdownCancel()
 
@@ -145,7 +157,6 @@ func main() {
 		log.Printf("Server forced to shutdown: %v", err)
 	}
 
-	// 11. Hentikan Worker Pool cleanly
 	workerCancel()
 	workerPool.Stop()
 

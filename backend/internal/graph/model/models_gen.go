@@ -77,6 +77,9 @@ type RegisterInput struct {
 	Role     *string `json:"role,omitempty"`
 }
 
+type Subscription struct {
+}
+
 type UpdateEventInput struct {
 	Name        string      `json:"name"`
 	Description *string     `json:"description,omitempty"`

@@ -100,8 +100,8 @@ type Query {
   event(id: ID!): Event
   myOrders: [Order!]!
   order(id: ID!): Order
-  orders(eventId: ID): [Order!]! # Khusus Admin
-  orderLogs(orderId: ID!): [OrderLog!]! # Khusus Admin: Timeline Audit Log
+  orders(eventId: ID): [Order!]!
+  orderLogs(orderId: ID!): [OrderLog!]!
 }
 
 type Mutation {
@@ -110,4 +110,13 @@ type Mutation {
   createEvent(input: CreateEventInput!): Event!
   updateEvent(id: ID!, input: UpdateEventInput!): Event!
   purchaseTicket(eventId: ID!, quantity: Int!): Order!
+}
+
+# 🔴 REAL-TIME SUBSCRIPTIONS (WebSocket)
+type Subscription {
+  # Menerima push sisa stok secara real-time saat ada yang membeli
+  stockUpdated(eventId: ID!): Event!
+
+  # Menerima push status order saat berubah dari PENDING -> CONFIRMED
+  orderStatusChanged(orderId: ID!): Order!
 }

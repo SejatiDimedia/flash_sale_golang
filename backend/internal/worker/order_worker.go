@@ -10,6 +10,7 @@ import (
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sejatidimedia/flash_sale_platform/internal/pkg/rabbitmq"
+	"github.com/sejatidimedia/flash_sale_platform/internal/pkg/redisclient"
 	"github.com/sejatidimedia/flash_sale_platform/internal/repository"
 )
 
@@ -23,6 +24,7 @@ type OrderMessagePayload struct {
 
 type OrderWorkerPool struct {
 	rabbitClient *rabbitmq.RabbitMQClient
+	redisClient  *redisclient.RedisClient
 	orderRepo    repository.OrderRepository
 	eventRepo    repository.EventRepository
 	numWorkers   int
@@ -31,6 +33,7 @@ type OrderWorkerPool struct {
 
 func NewOrderWorkerPool(
 	rabbitClient *rabbitmq.RabbitMQClient,
+	redisClient *redisclient.RedisClient,
 	orderRepo repository.OrderRepository,
 	eventRepo repository.EventRepository,
 	numWorkers int,
@@ -40,6 +43,7 @@ func NewOrderWorkerPool(
 	}
 	return &OrderWorkerPool{
 		rabbitClient: rabbitClient,
+		redisClient:  redisClient,
 		orderRepo:    orderRepo,
 		eventRepo:    eventRepo,
 		numWorkers:   numWorkers,
@@ -59,7 +63,7 @@ func (p *OrderWorkerPool) Start(ctx context.Context) error {
 	msgs, err := p.rabbitClient.Channel.Consume(
 		rabbitmq.OrderPendingQueue,
 		"",
-		false, // manual ACK
+		false,
 		false,
 		false,
 		false,
@@ -118,21 +122,28 @@ func (p *OrderWorkerPool) processMessage(workerID int, msg amqp.Delivery) {
 	err := p.orderRepo.UpdateOrderStatus(ctx, payload.OrderID, "CONFIRMED")
 	if err != nil {
 		log.Printf("❌ [Worker %d] Failed to confirm order %s: %v. Requeuing...", workerID, payload.OrderID, err)
-		// Catat log ORDER_FAILED sebelum requeue
 		failPayload := fmt.Sprintf(`{"error":"%s","worker_id":%d}`, err.Error(), workerID)
 		_ = p.orderRepo.CreateOrderLog(ctx, payload.OrderID, "ORDER_FAILED", failPayload)
 		_ = msg.Nack(false, true)
 		return
 	}
 
-	// 2. Catat Audit Log: ORDER_CONFIRMED
+	// 2. Catat Audit Log
 	logPayload := fmt.Sprintf(`{"status":"CONFIRMED","worker_id":%d,"quantity":%d,"total_price":%.2f}`,
 		workerID, payload.Quantity, payload.TotalPrice)
 	_ = p.orderRepo.CreateOrderLog(ctx, payload.OrderID, "ORDER_CONFIRMED", logPayload)
 
-	// 3. Manual ACK
+	// 3. 🔴 REAL-TIME BROADCAST: Beritahu subscriber WebSocket bahwa order ini sudah CONFIRMED!
+	order, _ := p.orderRepo.GetOrderByID(ctx, payload.OrderID)
+	if order != nil {
+		if orderBytes, err := json.Marshal(order); err == nil {
+			_ = p.redisClient.PublishMessage(ctx, fmt.Sprintf("order_status:%s", payload.OrderID), string(orderBytes))
+		}
+	}
+
+	// 4. Manual ACK
 	_ = msg.Ack(false)
-	log.Printf("✅ [Worker %d] Order %s CONFIRMED & Logged successfully!", workerID, payload.OrderID)
+	log.Printf("✅ [Worker %d] Order %s CONFIRMED, Logged & Broadcasted successfully!", workerID, payload.OrderID)
 }
 
 func (p *OrderWorkerPool) Stop() {

@@ -115,3 +115,13 @@ func (r *RedisClient) CheckRateLimit(ctx context.Context, userID, eventID string
 
 	return true, nil // Allowed
 }
+
+// PublishMessage mengirim pesan JSON ke Redis Pub/Sub channel
+func (r *RedisClient) PublishMessage(ctx context.Context, channel string, message interface{}) error {
+	return r.Client.Publish(ctx, channel, message).Err()
+}
+
+// SubscribeChannel membuka langganan ke Redis Pub/Sub channel
+func (r *RedisClient) SubscribeChannel(ctx context.Context, channel string) *redis.PubSub {
+	return r.Client.Subscribe(ctx, channel)
+}
