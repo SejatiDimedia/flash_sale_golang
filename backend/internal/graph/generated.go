@@ -59,11 +59,13 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateEvent    func(childComplexity int, input model.CreateEventInput) int
-		Login          func(childComplexity int, input model.LoginInput) int
-		PurchaseTicket func(childComplexity int, eventID string, quantity int) int
-		Register       func(childComplexity int, input model.RegisterInput) int
-		UpdateEvent    func(childComplexity int, id string, input model.UpdateEventInput) int
+		AdmitUsers      func(childComplexity int, eventID string, batchSize int) int
+		CreateEvent     func(childComplexity int, input model.CreateEventInput) int
+		JoinWaitingRoom func(childComplexity int, eventID string) int
+		Login           func(childComplexity int, input model.LoginInput) int
+		PurchaseTicket  func(childComplexity int, eventID string, quantity int) int
+		Register        func(childComplexity int, input model.RegisterInput) int
+		UpdateEvent     func(childComplexity int, id string, input model.UpdateEventInput) int
 	}
 
 	Order struct {
@@ -86,14 +88,24 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Event       func(childComplexity int, id string) int
-		Events      func(childComplexity int, status *model.EventStatus) int
-		HealthCheck func(childComplexity int) int
-		Me          func(childComplexity int) int
-		MyOrders    func(childComplexity int) int
-		Order       func(childComplexity int, id string) int
-		OrderLogs   func(childComplexity int, orderID string) int
-		Orders      func(childComplexity int, eventID *string) int
+		Event          func(childComplexity int, id string) int
+		Events         func(childComplexity int, status *model.EventStatus) int
+		GetQueueStatus func(childComplexity int, eventID string) int
+		HealthCheck    func(childComplexity int) int
+		Me             func(childComplexity int) int
+		MyOrders       func(childComplexity int) int
+		Order          func(childComplexity int, id string) int
+		OrderLogs      func(childComplexity int, orderID string) int
+		Orders         func(childComplexity int, eventID *string) int
+	}
+
+	QueueStatus struct {
+		EstimatedWaitSeconds func(childComplexity int) int
+		EventID              func(childComplexity int) int
+		IsAllowedToPurchase  func(childComplexity int) int
+		Position             func(childComplexity int) int
+		TotalInQueue         func(childComplexity int) int
+		UserID               func(childComplexity int) int
 	}
 
 	Subscription struct {
@@ -120,6 +132,8 @@ type MutationResolver interface {
 	CreateEvent(ctx context.Context, input model.CreateEventInput) (*model.Event, error)
 	UpdateEvent(ctx context.Context, id string, input model.UpdateEventInput) (*model.Event, error)
 	PurchaseTicket(ctx context.Context, eventID string, quantity int) (*model.Order, error)
+	JoinWaitingRoom(ctx context.Context, eventID string) (*model.QueueStatus, error)
+	AdmitUsers(ctx context.Context, eventID string, batchSize int) ([]string, error)
 }
 type QueryResolver interface {
 	HealthCheck(ctx context.Context) (string, error)
@@ -130,6 +144,7 @@ type QueryResolver interface {
 	Order(ctx context.Context, id string) (*model.Order, error)
 	Orders(ctx context.Context, eventID *string) ([]*model.Order, error)
 	OrderLogs(ctx context.Context, orderID string) ([]*model.OrderLog, error)
+	GetQueueStatus(ctx context.Context, eventID string) (*model.QueueStatus, error)
 }
 type SubscriptionResolver interface {
 	StockUpdated(ctx context.Context, eventID string) (<-chan *model.Event, error)
@@ -240,6 +255,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.Event.UpdatedAt(childComplexity), true
 
+	case "Mutation.admitUsers":
+		if e.ComplexityRoot.Mutation.AdmitUsers == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_admitUsers_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.AdmitUsers(childComplexity, args["eventId"].(string), args["batchSize"].(int)), true
 	case "Mutation.createEvent":
 		if e.ComplexityRoot.Mutation.CreateEvent == nil {
 			break
@@ -251,6 +277,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.CreateEvent(childComplexity, args["input"].(model.CreateEventInput)), true
+	case "Mutation.joinWaitingRoom":
+		if e.ComplexityRoot.Mutation.JoinWaitingRoom == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_joinWaitingRoom_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.JoinWaitingRoom(childComplexity, args["eventId"].(string)), true
 	case "Mutation.login":
 		if e.ComplexityRoot.Mutation.Login == nil {
 			break
@@ -398,6 +435,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.Events(childComplexity, args["status"].(*model.EventStatus)), true
+	case "Query.getQueueStatus":
+		if e.ComplexityRoot.Query.GetQueueStatus == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getQueueStatus_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.GetQueueStatus(childComplexity, args["eventId"].(string)), true
 	case "Query.healthCheck":
 		if e.ComplexityRoot.Query.HealthCheck == nil {
 			break
@@ -450,6 +498,43 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.Orders(childComplexity, args["eventId"].(*string)), true
+
+	case "QueueStatus.estimatedWaitSeconds":
+		if e.ComplexityRoot.QueueStatus.EstimatedWaitSeconds == nil {
+			break
+		}
+
+		return e.ComplexityRoot.QueueStatus.EstimatedWaitSeconds(childComplexity), true
+	case "QueueStatus.eventId":
+		if e.ComplexityRoot.QueueStatus.EventID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.QueueStatus.EventID(childComplexity), true
+	case "QueueStatus.isAllowedToPurchase":
+		if e.ComplexityRoot.QueueStatus.IsAllowedToPurchase == nil {
+			break
+		}
+
+		return e.ComplexityRoot.QueueStatus.IsAllowedToPurchase(childComplexity), true
+	case "QueueStatus.position":
+		if e.ComplexityRoot.QueueStatus.Position == nil {
+			break
+		}
+
+		return e.ComplexityRoot.QueueStatus.Position(childComplexity), true
+	case "QueueStatus.totalInQueue":
+		if e.ComplexityRoot.QueueStatus.TotalInQueue == nil {
+			break
+		}
+
+		return e.ComplexityRoot.QueueStatus.TotalInQueue(childComplexity), true
+	case "QueueStatus.userId":
+		if e.ComplexityRoot.QueueStatus.UserID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.QueueStatus.UserID(childComplexity), true
 
 	case "Subscription.orderStatusChanged":
 		if e.ComplexityRoot.Subscription.OrderStatusChanged == nil {
@@ -706,6 +791,24 @@ func (ec *executionContext) childFields_OrderLog(ctx context.Context, field grap
 	return nil, fmt.Errorf("no field named %q was found under type OrderLog", field.Name)
 }
 
+func (ec *executionContext) childFields_QueueStatus(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "eventId":
+		return ec.fieldContext_QueueStatus_eventId(ctx, field)
+	case "userId":
+		return ec.fieldContext_QueueStatus_userId(ctx, field)
+	case "position":
+		return ec.fieldContext_QueueStatus_position(ctx, field)
+	case "totalInQueue":
+		return ec.fieldContext_QueueStatus_totalInQueue(ctx, field)
+	case "isAllowedToPurchase":
+		return ec.fieldContext_QueueStatus_isAllowedToPurchase(ctx, field)
+	case "estimatedWaitSeconds":
+		return ec.fieldContext_QueueStatus_estimatedWaitSeconds(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type QueueStatus", field.Name)
+}
+
 func (ec *executionContext) childFields_User(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "id":
@@ -838,6 +941,28 @@ func (ec *executionContext) childFields___Type(ctx context.Context, field graphq
 
 // region    ***************************** args.gotpl *****************************
 
+func (ec *executionContext) field_Mutation_admitUsers_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "eventId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNID2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["eventId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "batchSize",
+		func(ctx context.Context, v any) (int, error) {
+			return ec.unmarshalNInt2int(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["batchSize"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createEvent_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -849,6 +974,20 @@ func (ec *executionContext) field_Mutation_createEvent_args(ctx context.Context,
 		return nil, err
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_joinWaitingRoom_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "eventId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNID2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["eventId"] = arg0
 	return args, nil
 }
 
@@ -963,6 +1102,20 @@ func (ec *executionContext) field_Query_events_args(ctx context.Context, rawArgs
 		return nil, err
 	}
 	args["status"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getQueueStatus_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "eventId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNID2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["eventId"] = arg0
 	return args, nil
 }
 
@@ -1647,6 +1800,94 @@ func (ec *executionContext) fieldContext_Mutation_purchaseTicket(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_joinWaitingRoom(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_joinWaitingRoom(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().JoinWaitingRoom(ctx, fc.Args["eventId"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.QueueStatus) graphql.Marshaler {
+			return ec.marshalNQueueStatus2ᚖgithubᚗcomᚋsejatidimediaᚋflash_sale_platformᚋinternalᚋgraphᚋmodelᚐQueueStatus(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_joinWaitingRoom(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_QueueStatus(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_joinWaitingRoom_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_admitUsers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_admitUsers(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().AdmitUsers(ctx, fc.Args["eventId"].(string), fc.Args["batchSize"].(int))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []string) graphql.Marshaler {
+			return ec.marshalNID2ᚕstringᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_admitUsers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_admitUsers_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Order_id(ctx context.Context, field graphql.CollectedField, obj *model.Order) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -2253,6 +2494,50 @@ func (ec *executionContext) fieldContext_Query_orderLogs(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_getQueueStatus(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_getQueueStatus(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().GetQueueStatus(ctx, fc.Args["eventId"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.QueueStatus) graphql.Marshaler {
+			return ec.marshalNQueueStatus2ᚖgithubᚗcomᚋsejatidimediaᚋflash_sale_platformᚋinternalᚋgraphᚋmodelᚐQueueStatus(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Query_getQueueStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_QueueStatus(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getQueueStatus_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -2327,6 +2612,144 @@ func (ec *executionContext) fieldContext_Query___schema(_ context.Context, field
 		},
 	}
 	return fc, nil
+}
+
+func (ec *executionContext) _QueueStatus_eventId(ctx context.Context, field graphql.CollectedField, obj *model.QueueStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_QueueStatus_eventId(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.EventID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_QueueStatus_eventId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("QueueStatus", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _QueueStatus_userId(ctx context.Context, field graphql.CollectedField, obj *model.QueueStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_QueueStatus_userId(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.UserID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_QueueStatus_userId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("QueueStatus", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _QueueStatus_position(ctx context.Context, field graphql.CollectedField, obj *model.QueueStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_QueueStatus_position(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Position, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_QueueStatus_position(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("QueueStatus", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _QueueStatus_totalInQueue(ctx context.Context, field graphql.CollectedField, obj *model.QueueStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_QueueStatus_totalInQueue(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.TotalInQueue, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_QueueStatus_totalInQueue(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("QueueStatus", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _QueueStatus_isAllowedToPurchase(ctx context.Context, field graphql.CollectedField, obj *model.QueueStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_QueueStatus_isAllowedToPurchase(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.IsAllowedToPurchase, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_QueueStatus_isAllowedToPurchase(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("QueueStatus", field, false, false, errors.New("field of type Boolean does not have child fields"))
+}
+
+func (ec *executionContext) _QueueStatus_estimatedWaitSeconds(ctx context.Context, field graphql.CollectedField, obj *model.QueueStatus) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_QueueStatus_estimatedWaitSeconds(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.EstimatedWaitSeconds, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_QueueStatus_estimatedWaitSeconds(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("QueueStatus", field, false, false, errors.New("field of type Int does not have child fields"))
 }
 
 func (ec *executionContext) _Subscription_stockUpdated(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
@@ -4036,6 +4459,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "joinWaitingRoom":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_joinWaitingRoom(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "admitUsers":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_admitUsers(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4384,6 +4821,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "getQueueStatus":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getQueueStatus(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "__type":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -4397,6 +4856,69 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			})
 			if out.Values[i] == graphql.RequiredNull {
 				atomic.AddUint32(&out.Invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferLabelToView), math.MaxInt32)))
+
+	ec.ProcessDeferredGroup(graphql.DeferredGroup{
+		Defers:   deferLabelToView,
+		Path:     graphql.GetPath(ctx),
+		FieldSet: deferredFieldSet,
+		Context:  ctx,
+	})
+
+	return out
+}
+
+var queueStatusImplementors = []string{"QueueStatus"}
+
+func (ec *executionContext) _QueueStatus(ctx context.Context, sel ast.SelectionSet, obj *model.QueueStatus) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, queueStatusImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferredFieldSet := graphql.NewFieldSet(nil)
+	deferLabelToView := make(map[string]*graphql.FieldSetView)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("QueueStatus")
+		case "eventId":
+			out.Values[i] = ec._QueueStatus_eventId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "userId":
+			out.Values[i] = ec._QueueStatus_userId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "position":
+			out.Values[i] = ec._QueueStatus_position(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totalInQueue":
+			out.Values[i] = ec._QueueStatus_totalInQueue(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "isAllowedToPurchase":
+			out.Values[i] = ec._QueueStatus_isAllowedToPurchase(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "estimatedWaitSeconds":
+			out.Values[i] = ec._QueueStatus_estimatedWaitSeconds(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -4998,6 +5520,35 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
+func (ec *executionContext) unmarshalNID2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
+	vSlice := graphql.CoerceList(v)
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNID2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNID2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v any) (int, error) {
 	res, err := graphql.UnmarshalInt(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5083,6 +5634,20 @@ func (ec *executionContext) unmarshalNOrderStatus2githubᚗcomᚋsejatidimedia�
 
 func (ec *executionContext) marshalNOrderStatus2githubᚗcomᚋsejatidimediaᚋflash_sale_platformᚋinternalᚋgraphᚋmodelᚐOrderStatus(ctx context.Context, sel ast.SelectionSet, v model.OrderStatus) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNQueueStatus2githubᚗcomᚋsejatidimediaᚋflash_sale_platformᚋinternalᚋgraphᚋmodelᚐQueueStatus(ctx context.Context, sel ast.SelectionSet, v model.QueueStatus) graphql.Marshaler {
+	return ec._QueueStatus(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNQueueStatus2ᚖgithubᚗcomᚋsejatidimediaᚋflash_sale_platformᚋinternalᚋgraphᚋmodelᚐQueueStatus(ctx context.Context, sel ast.SelectionSet, v *model.QueueStatus) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._QueueStatus(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNRegisterInput2githubᚗcomᚋsejatidimediaᚋflash_sale_platformᚋinternalᚋgraphᚋmodelᚐRegisterInput(ctx context.Context, v any) (model.RegisterInput, error) {

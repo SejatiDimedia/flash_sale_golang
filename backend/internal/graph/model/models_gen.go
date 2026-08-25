@@ -70,6 +70,15 @@ type OrderLog struct {
 type Query struct {
 }
 
+type QueueStatus struct {
+	EventID              string `json:"eventId"`
+	UserID               string `json:"userId"`
+	Position             int    `json:"position"`
+	TotalInQueue         int    `json:"totalInQueue"`
+	IsAllowedToPurchase  bool   `json:"isAllowedToPurchase"`
+	EstimatedWaitSeconds int    `json:"estimatedWaitSeconds"`
+}
+
 type RegisterInput struct {
 	Name     string  `json:"name"`
 	Email    string  `json:"email"`

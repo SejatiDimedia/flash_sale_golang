@@ -160,6 +160,67 @@ func (r *mutationResolver) PurchaseTicket(ctx context.Context, eventID string, q
 	return mapOrderToGraphQL(order), nil
 }
 
+// JoinWaitingRoom is the resolver for the joinWaitingRoom field (User Antre).
+func (r *mutationResolver) JoinWaitingRoom(ctx context.Context, eventID string) (*model.QueueStatus, error) {
+	currentUser := middleware.GetUserFromContext(ctx)
+	if currentUser == nil {
+		return nil, errors.New("unauthorized: please login to join the waiting room")
+	}
+
+	// 1. Cek apakah user sudah punya pass
+	hasPass, err := r.RedisClient.HasCheckoutPass(ctx, eventID, currentUser.UserID)
+	if err == nil && hasPass {
+		return &model.QueueStatus{
+			EventID:              eventID,
+			UserID:               currentUser.UserID,
+			Position:             0,
+			TotalInQueue:         0,
+			IsAllowedToPurchase:  true,
+			EstimatedWaitSeconds: 0,
+		}, nil
+	}
+
+	// 2. Masukkan user ke antrian
+	rank, err := r.RedisClient.JoinWaitingRoom(ctx, eventID, currentUser.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to join waiting room: %w", err)
+	}
+
+	_, total, _ := r.RedisClient.GetQueuePosition(ctx, eventID, currentUser.UserID)
+
+	// Estimasi waktu tunggu: urutan * 2 detik
+	estSeconds := int(rank * 2)
+
+	return &model.QueueStatus{
+		EventID:              eventID,
+		UserID:               currentUser.UserID,
+		Position:             int(rank),
+		TotalInQueue:         int(total),
+		IsAllowedToPurchase:  false,
+		EstimatedWaitSeconds: estSeconds,
+	}, nil
+}
+
+// AdmitUsers is the resolver for the admitUsers field (Admin meloloskan antrian).
+func (r *mutationResolver) AdmitUsers(ctx context.Context, eventID string, batchSize int) ([]string, error) {
+	currentUser := middleware.GetUserFromContext(ctx)
+	if currentUser == nil || currentUser.Role != "admin" {
+		return nil, errors.New("forbidden: only admin can admit users from waiting room")
+	}
+
+	if batchSize <= 0 {
+		batchSize = 50
+	}
+
+	admittedUsers, err := r.RedisClient.AdmitNextBatch(ctx, eventID, int64(batchSize), 5*time.Minute)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("🎟️ [Waiting Room] Admitted %d users for event %s", len(admittedUsers), eventID)
+	return admittedUsers, nil
+}
+
 // HealthCheck is the resolver for the healthCheck field.
 func (r *queryResolver) HealthCheck(ctx context.Context) (string, error) {
 	return "GraphQL Server is running smoothly! 🚀", nil
@@ -279,11 +340,44 @@ func (r *queryResolver) OrderLogs(ctx context.Context, orderID string) ([]*model
 	return results, nil
 }
 
+// GetQueueStatus is the resolver for the getQueueStatus field.
+func (r *queryResolver) GetQueueStatus(ctx context.Context, eventID string) (*model.QueueStatus, error) {
+	currentUser := middleware.GetUserFromContext(ctx)
+	if currentUser == nil {
+		return nil, errors.New("unauthorized: please login to check queue status")
+	}
+
+	hasPass, err := r.RedisClient.HasCheckoutPass(ctx, eventID, currentUser.UserID)
+	if err == nil && hasPass {
+		return &model.QueueStatus{
+			EventID:              eventID,
+			UserID:               currentUser.UserID,
+			Position:             0,
+			TotalInQueue:         0,
+			IsAllowedToPurchase:  true,
+			EstimatedWaitSeconds: 0,
+		}, nil
+	}
+
+	rank, total, err := r.RedisClient.GetQueuePosition(ctx, eventID, currentUser.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.QueueStatus{
+		EventID:              eventID,
+		UserID:               currentUser.UserID,
+		Position:             int(rank),
+		TotalInQueue:         int(total),
+		IsAllowedToPurchase:  false,
+		EstimatedWaitSeconds: int(rank * 2),
+	}, nil
+}
+
 // StockUpdated is the subscription resolver for live stock updates.
 func (r *subscriptionResolver) StockUpdated(ctx context.Context, eventID string) (<-chan *model.Event, error) {
 	ch := make(chan *model.Event, 10)
 
-	// 1. Kirim data stok awal saat connect
 	currentEvent, err := r.EventRepo.GetEventByID(ctx, eventID)
 	if err == nil && currentEvent != nil {
 		cachedStock, _ := r.RedisClient.GetStock(ctx, eventID)
@@ -293,7 +387,6 @@ func (r *subscriptionResolver) StockUpdated(ctx context.Context, eventID string)
 		ch <- mapEventToGraphQL(currentEvent)
 	}
 
-	// 2. Gunakan context.Background() agar langganan Redis Pub/Sub tetap hidup selama WebSocket connect!
 	pubsub := r.RedisClient.SubscribeChannel(context.Background(), fmt.Sprintf("stock_updated:%s", eventID))
 	log.Printf("📡 [WebSocket] Client subscribed to stock_updated:%s", eventID)
 

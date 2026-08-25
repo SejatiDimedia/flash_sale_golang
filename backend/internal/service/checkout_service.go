@@ -45,6 +45,7 @@ func (s *checkoutService) PurchaseTicket(ctx context.Context, userID, eventID st
 		return nil, errors.New("quantity must be at least 1")
 	}
 
+	// 1. Ambil detail event
 	event, err := s.eventRepo.GetEventByID(ctx, eventID)
 	if err != nil {
 		return nil, err
@@ -57,6 +58,15 @@ func (s *checkoutService) PurchaseTicket(ctx context.Context, userID, eventID st
 		return nil, fmt.Errorf("event is not active (current status: %s)", event.Status)
 	}
 
+	// 2. 🎟️ VALIDASI VIRTUAL WAITING ROOM (Jika ada antrian aktif, cek apakah user punya Checkout Pass)
+	totalInQueue, _ := s.redisClient.GetTotalInQueue(ctx, eventID)
+	hasPass, _ := s.redisClient.HasCheckoutPass(ctx, eventID, userID)
+
+	if totalInQueue > 0 && !hasPass {
+		return nil, errors.New("waiting room is active: please join the waiting room and wait for your turn to checkout")
+	}
+
+	// 3. Cek anti-spam / Rate Limiting (Maks 5 request / 10 detik per user)
 	allowed, err := s.redisClient.CheckRateLimit(ctx, userID, eventID, 5, 10*time.Second)
 	if err != nil {
 		return nil, fmt.Errorf("rate limit check failed: %w", err)
@@ -65,6 +75,7 @@ func (s *checkoutService) PurchaseTicket(ctx context.Context, userID, eventID st
 		return nil, errors.New("too many requests: please slow down")
 	}
 
+	// 4. Validasi Max Ticket Per User (Anti-Scalping)
 	purchasedCount, err := s.orderRepo.GetUserPurchasedCount(ctx, userID, eventID)
 	if err != nil {
 		return nil, err
@@ -73,7 +84,7 @@ func (s *checkoutService) PurchaseTicket(ctx context.Context, userID, eventID st
 		return nil, fmt.Errorf("purchase exceeds max ticket limit (%d allowed per user, you already have %d)", event.MaxPerUser, purchasedCount)
 	}
 
-	// ATOMIC DECREMENT STOK DI REDIS
+	// 5. ATOMIC DECREMENT STOK DI REDIS (Zero-Oversell)
 	cachedStock, _ := s.redisClient.GetStock(ctx, eventID)
 	if cachedStock == 0 && event.AvailableStock > 0 {
 		_ = s.redisClient.InitStock(ctx, eventID, event.AvailableStock)
@@ -86,7 +97,7 @@ func (s *checkoutService) PurchaseTicket(ctx context.Context, userID, eventID st
 
 	totalPrice := event.Price * float64(quantity)
 
-	// Simpan Order PENDING
+	// 6. Simpan Order PENDING
 	order := &repository.Order{
 		UserID:     userID,
 		EventID:    eventID,
@@ -101,10 +112,10 @@ func (s *checkoutService) PurchaseTicket(ctx context.Context, userID, eventID st
 		return nil, fmt.Errorf("failed to save order: %w", err)
 	}
 
-	// Update available stock di DB
+	// 7. Update available stock di DB
 	_ = s.eventRepo.UpdateAvailableStock(ctx, eventID, remainingStock)
 
-	// Audit Logs
+	// 8. Audit Logs
 	createdPayload := fmt.Sprintf(`{"event_id":"%s","quantity":%d,"total_price":%.2f,"user_id":"%s"}`,
 		eventID, quantity, totalPrice, userID)
 	_ = s.orderRepo.CreateOrderLog(ctx, createdOrder.ID, "ORDER_CREATED", createdPayload)
@@ -112,7 +123,7 @@ func (s *checkoutService) PurchaseTicket(ctx context.Context, userID, eventID st
 	stockPayload := fmt.Sprintf(`{"remaining_stock":%d,"quantity_deducted":%d}`, remainingStock, quantity)
 	_ = s.orderRepo.CreateOrderLog(ctx, createdOrder.ID, "STOCK_RESERVED", stockPayload)
 
-	// 🔴 REAL-TIME BROADCAST: Broadcast sisa stok ke Redis Pub/Sub
+	// 9. 🔴 REAL-TIME BROADCAST: Broadcast sisa stok ke Redis Pub/Sub
 	event.AvailableStock = remainingStock
 	if eventBytes, err := json.Marshal(event); err == nil {
 		pubCtx, pubCancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -124,7 +135,7 @@ func (s *checkoutService) PurchaseTicket(ctx context.Context, userID, eventID st
 		}
 	}
 
-	// Publish ke RabbitMQ
+	// 10. Publish ke RabbitMQ
 	payload := worker.OrderMessagePayload{
 		OrderID:    createdOrder.ID,
 		UserID:     userID,

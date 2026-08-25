@@ -59,6 +59,15 @@ type OrderLog {
   createdAt: String!
 }
 
+type QueueStatus {
+  eventId: ID!
+  userId: ID!
+  position: Int!
+  totalInQueue: Int!
+  isAllowedToPurchase: Boolean!
+  estimatedWaitSeconds: Int!
+}
+
 input RegisterInput {
   name: String!
   email: String!
@@ -102,6 +111,9 @@ type Query {
   order(id: ID!): Order
   orders(eventId: ID): [Order!]!
   orderLogs(orderId: ID!): [OrderLog!]!
+
+  # 🎟️ Cek status nomor antrian user saat ini
+  getQueueStatus(eventId: ID!): QueueStatus!
 }
 
 type Mutation {
@@ -110,13 +122,15 @@ type Mutation {
   createEvent(input: CreateEventInput!): Event!
   updateEvent(id: ID!, input: UpdateEventInput!): Event!
   purchaseTicket(eventId: ID!, quantity: Int!): Order!
+
+  # 🎟️ User bergabung ke ruang antrian
+  joinWaitingRoom(eventId: ID!): QueueStatus!
+
+  # 🎟️ Admin / Cron meloloskan N user dari antrian ke checkout
+  admitUsers(eventId: ID!, batchSize: Int!): [ID!]!
 }
 
-# 🔴 REAL-TIME SUBSCRIPTIONS (WebSocket)
 type Subscription {
-  # Menerima push sisa stok secara real-time saat ada yang membeli
   stockUpdated(eventId: ID!): Event!
-
-  # Menerima push status order saat berubah dari PENDING -> CONFIRMED
   orderStatusChanged(orderId: ID!): Order!
 }

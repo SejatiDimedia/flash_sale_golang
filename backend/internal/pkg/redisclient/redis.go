@@ -125,3 +125,101 @@ func (r *RedisClient) PublishMessage(ctx context.Context, channel string, messag
 func (r *RedisClient) SubscribeChannel(ctx context.Context, channel string) *redis.PubSub {
 	return r.Client.Subscribe(ctx, channel)
 }
+
+// ==========================================
+// 🎟️ VIRTUAL WAITING ROOM (REDIS SORTED SET)
+// ==========================================
+
+// JoinWaitingRoom memasukkan user ke antrian (FIFO berdasarkan timestamp milidetik)
+func (r *RedisClient) JoinWaitingRoom(ctx context.Context, eventID, userID string) (int64, error) {
+	queueKey := fmt.Sprintf("waiting_room:%s", eventID)
+	nowScore := float64(time.Now().UnixMilli())
+
+	// ZADD: Masukkan user dengan score waktu sekarang
+	err := r.Client.ZAdd(ctx, queueKey, redis.Z{
+		Score:  nowScore,
+		Member: userID,
+	}).Err()
+	if err != nil {
+		return 0, fmt.Errorf("failed to join waiting room: %w", err)
+	}
+
+	// ZRANK: Ambil posisi urutan user di antrian (0-indexed, jadi kita +1)
+	rank, err := r.Client.ZRank(ctx, queueKey, userID).Result()
+	if err != nil {
+		return 0, fmt.Errorf("failed to get queue rank: %w", err)
+	}
+
+	return rank + 1, nil // Urutan antrian dimulai dari 1
+}
+
+// GetTotalInQueue menghitung berapa total orang yang sedang mengantre di waiting room
+func (r *RedisClient) GetTotalInQueue(ctx context.Context, eventID string) (int64, error) {
+	queueKey := fmt.Sprintf("waiting_room:%s", eventID)
+	return r.Client.ZCard(ctx, queueKey).Result()
+}
+
+// GetQueuePosition memeriksa nomor antrian dan total orang di antrian
+func (r *RedisClient) GetQueuePosition(ctx context.Context, eventID, userID string) (int64, int64, error) {
+	queueKey := fmt.Sprintf("waiting_room:%s", eventID)
+
+	// Hitung total orang di antrian terlebih dahulu
+	totalInQueue, err := r.Client.ZCard(ctx, queueKey).Result()
+	if err != nil {
+		return 0, 0, err
+	}
+
+	rank, err := r.Client.ZRank(ctx, queueKey, userID).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return 0, totalInQueue, nil // User belum antre, tapi total antrian diketahui!
+		}
+		return 0, totalInQueue, err
+	}
+
+	return rank + 1, totalInQueue, nil
+}
+
+// GrantCheckoutPass memberikan izin checkout untuk user yang sudah lolos antrian (berlaku 5 menit)
+func (r *RedisClient) GrantCheckoutPass(ctx context.Context, eventID, userID string, ttl time.Duration) error {
+	passKey := fmt.Sprintf("checkout_pass:%s:%s", eventID, userID)
+	queueKey := fmt.Sprintf("waiting_room:%s", eventID)
+
+	// Simpan pass token di Redis
+	if err := r.Client.Set(ctx, passKey, "ALLOWED", ttl).Err(); err != nil {
+		return err
+	}
+
+	// Hapus user dari antrian karena sudah lolos ke meja checkout
+	return r.Client.ZRem(ctx, queueKey, userID).Err()
+}
+
+// HasCheckoutPass memeriksa apakah user memiliki izin sah untuk checkout
+func (r *RedisClient) HasCheckoutPass(ctx context.Context, eventID, userID string) (bool, error) {
+	passKey := fmt.Sprintf("checkout_pass:%s:%s", eventID, userID)
+	val, err := r.Client.Get(ctx, passKey).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return false, nil // Tidak punya pass
+		}
+		return false, err
+	}
+	return val == "ALLOWED", nil
+}
+
+// AdmitNextBatch meloloskan N user terdepan dari antrian
+func (r *RedisClient) AdmitNextBatch(ctx context.Context, eventID string, batchSize int64, passTTL time.Duration) ([]string, error) {
+	queueKey := fmt.Sprintf("waiting_room:%s", eventID)
+
+	// Ambil batchSize user dengan score terlama (terdepan)
+	userIDs, err := r.Client.ZRange(ctx, queueKey, 0, batchSize-1).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, uID := range userIDs {
+		_ = r.GrantCheckoutPass(ctx, eventID, uID, passTTL)
+	}
+
+	return userIDs, nil
+}
