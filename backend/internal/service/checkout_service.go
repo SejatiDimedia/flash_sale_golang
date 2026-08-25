@@ -84,15 +84,19 @@ func (s *checkoutService) PurchaseTicket(ctx context.Context, userID, eventID st
 		return nil, fmt.Errorf("purchase exceeds max ticket limit (%d allowed per user, you already have %d)", event.MaxPerUser, purchasedCount)
 	}
 
-	// 5. ATOMIC DECREMENT STOK DI REDIS (Zero-Oversell)
-	cachedStock, _ := s.redisClient.GetStock(ctx, eventID)
-	if cachedStock == 0 && event.AvailableStock > 0 {
-		_ = s.redisClient.InitStock(ctx, eventID, event.AvailableStock)
-	}
-
+	// 5. ATOMIC DECREMENT STOK DI REDIS (Zero-Oversell Guaranteed)
 	remainingStock, err := s.redisClient.DecrStockAtomic(ctx, eventID, quantity)
 	if err != nil {
-		return nil, err
+		// Jika error karena key belum diinisialisasi di Redis, inisialisasi SEKALI dari DB lalu coba lagi
+		if err.Error() == "event stock is not initialized in cache" {
+			_ = s.redisClient.InitStock(ctx, eventID, event.AvailableStock)
+			remainingStock, err = s.redisClient.DecrStockAtomic(ctx, eventID, quantity)
+		}
+
+		// Jika tetap error (misal "sold out"), tolak langsung!
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	totalPrice := event.Price * float64(quantity)

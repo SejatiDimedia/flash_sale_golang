@@ -228,13 +228,13 @@ func (r *orderRepository) GetConfirmedTicketCount(ctx context.Context, eventID s
 	query := `
 		SELECT COALESCE(SUM(quantity), 0)
 		FROM orders
-		WHERE event_id = $1 AND status = 'CONFIRMED'
+		WHERE event_id = $1 AND status IN ('PENDING', 'CONFIRMED')
 	`
 
 	var totalConfirmed int
 	err := r.db.QueryRow(ctx, query, eventID).Scan(&totalConfirmed)
 	if err != nil {
-		return 0, fmt.Errorf("failed to calculate confirmed tickets: %w", err)
+		return 0, fmt.Errorf("failed to calculate reserved tickets: %w", err)
 	}
 
 	return totalConfirmed, nil

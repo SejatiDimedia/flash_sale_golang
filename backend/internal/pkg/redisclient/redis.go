@@ -34,10 +34,10 @@ func NewRedisClient(cfg *config.Config) (*RedisClient, error) {
 	return &RedisClient{Client: rdb}, nil
 }
 
-// InitStock menginisialisasi jumlah stok di Redis saat event aktif
+// InitStock menginisialisasi jumlah stok di Redis HANYA JIKA key belum ada (Atomic SETNX)
 func (r *RedisClient) InitStock(ctx context.Context, eventID string, stock int) error {
 	key := fmt.Sprintf("stock:%s", eventID)
-	return r.Client.Set(ctx, key, stock, 0).Err() // 0 = no expiration
+	return r.Client.SetNX(ctx, key, stock, 0).Err() // SetNX menjamin tidak ada overwrite!
 }
 
 // GetStock mengambil sisa stok terkini dari Redis

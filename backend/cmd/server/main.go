@@ -124,7 +124,8 @@ func main() {
 
 	r := gin.Default()
 
-	// Pasang Auth Middleware ke semua request
+	// 🔍 Pasang Request ID (Trace ID) & Auth Middleware
+	r.Use(middleware.RequestIDMiddleware())
 	r.Use(middleware.AuthMiddleware(authService))
 
 	// Endpoints
