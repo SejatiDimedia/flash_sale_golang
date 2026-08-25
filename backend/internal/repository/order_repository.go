@@ -38,6 +38,7 @@ type OrderRepository interface {
 	GetUserPurchasedCount(ctx context.Context, userID, eventID string) (int, error)
 	CreateOrderLog(ctx context.Context, orderID, eventType, payloadJSON string) error
 	GetOrderLogsByOrderID(ctx context.Context, orderID string) ([]*OrderLog, error)
+	GetConfirmedTicketCount(ctx context.Context, eventID string) (int, error) // 👈 Tambahkan ini
 }
 
 type orderRepository struct {
@@ -220,4 +221,21 @@ func (r *orderRepository) GetOrderLogsByOrderID(ctx context.Context, orderID str
 	}
 
 	return logs, nil
+}
+
+// GetConfirmedTicketCount menghitung jumlah total tiket yang sah CONFIRMED untuk sebuah event
+func (r *orderRepository) GetConfirmedTicketCount(ctx context.Context, eventID string) (int, error) {
+	query := `
+		SELECT COALESCE(SUM(quantity), 0)
+		FROM orders
+		WHERE event_id = $1 AND status = 'CONFIRMED'
+	`
+
+	var totalConfirmed int
+	err := r.db.QueryRow(ctx, query, eventID).Scan(&totalConfirmed)
+	if err != nil {
+		return 0, fmt.Errorf("failed to calculate confirmed tickets: %w", err)
+	}
+
+	return totalConfirmed, nil
 }

@@ -113,6 +113,10 @@ func main() {
 		log.Fatalf("Failed to start worker pool: %v", err)
 	}
 
+	// ⚖️ Start Reconciliation Worker (Audit konsistensi setiap 1 menit)
+	reconciliationWorker := worker.NewReconciliationWorker(eventRepo, orderRepo, redisClient, 1*time.Minute)
+	reconciliationWorker.Start(workerCtx)
+
 	// 7. Setup Router Gin
 	if cfg.Environment == "production" {
 		gin.SetMode(gin.ReleaseMode)

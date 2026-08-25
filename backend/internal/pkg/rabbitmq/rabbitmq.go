@@ -16,6 +16,11 @@ const (
 	OrderPendingQueue = "order_processing"
 	OrderPendingKey   = "order.pending"
 	OrderConfirmedKey = "order.confirmed"
+
+	// 💀 Dead-Letter Queue (DLQ) Constants
+	OrderDLXExchange = "order_events_dlx"
+	OrderDLQQueue    = "order_processing_dlq"
+	OrderDLQKey      = "order.dlq"
 )
 
 type RabbitMQClient struct {
@@ -35,34 +40,78 @@ func NewRabbitMQClient(cfg *config.Config) (*RabbitMQClient, error) {
 		return nil, fmt.Errorf("failed to open rabbitmq channel: %w", err)
 	}
 
-	// 1. Declare Topic Exchange (Durable)
+	// 1. Declare Topic Exchange Utama
 	err = ch.ExchangeDeclare(
-		OrderExchange, // name
-		"topic",       // type
-		true,          // durable
-		false,         // auto-deleted
-		false,         // internal
-		false,         // no-wait
-		nil,           // arguments
+		OrderExchange,
+		"topic",
+		true,
+		false,
+		false,
+		false,
+		nil,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to declare exchange: %w", err)
 	}
 
-	// 2. Declare Queue untuk Order Processing
+	// 2. Declare Dead-Letter Exchange (DLX)
+	err = ch.ExchangeDeclare(
+		OrderDLXExchange,
+		"direct",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to declare DLX exchange: %w", err)
+	}
+
+	// 3. Declare Dead-Letter Queue (DLQ)
+	dlq, err := ch.QueueDeclare(
+		OrderDLQQueue,
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to declare DLQ queue: %w", err)
+	}
+
+	// 4. Bind DLQ ke DLX
+	err = ch.QueueBind(
+		dlq.Name,
+		OrderDLQKey,
+		OrderDLXExchange,
+		false,
+		nil,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to bind DLQ: %w", err)
+	}
+
+	// 5. Declare Queue Utama dengan konfigurasi Dead-Letter Routing
+	queueArgs := amqp.Table{
+		"x-dead-letter-exchange":    OrderDLXExchange,
+		"x-dead-letter-routing-key": OrderDLQKey,
+	}
+
 	q, err := ch.QueueDeclare(
-		OrderPendingQueue, // name
-		true,              // durable
-		false,             // delete when unused
-		false,             // exclusive
-		false,             // no-wait
-		nil,               // arguments
+		OrderPendingQueue,
+		true,
+		false,
+		false,
+		false,
+		queueArgs,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to declare queue: %w", err)
 	}
 
-	// 3. Bind Queue ke Exchange dengan Routing Key "order.pending"
+	// 6. Bind Queue Utama ke Exchange Utama
 	err = ch.QueueBind(
 		q.Name,
 		OrderPendingKey,
@@ -71,14 +120,14 @@ func NewRabbitMQClient(cfg *config.Config) (*RabbitMQClient, error) {
 		nil,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to bind queue: %w", err)
+		return nil, fmt.Errorf("failed to bind main queue: %w", err)
 	}
 
-	log.Println("🐰 Connected to RabbitMQ successfully with Exchange & Queue declared!")
+	log.Println("🐰 Connected to RabbitMQ successfully with Main Queue & DLQ declared!")
 	return &RabbitMQClient{Conn: conn, Channel: ch}, nil
 }
 
-// PublishEvent mengirim pesan ke RabbitMQ Exchange
+// PublishEvent mengirim pesan ke Exchange utama
 func (r *RabbitMQClient) PublishEvent(ctx context.Context, routingKey string, payload interface{}) error {
 	body, err := json.Marshal(payload)
 	if err != nil {
@@ -92,13 +141,42 @@ func (r *RabbitMQClient) PublishEvent(ctx context.Context, routingKey string, pa
 		ctxTimeout,
 		OrderExchange,
 		routingKey,
-		false, // mandatory
-		false, // immediate
+		false,
+		false,
 		amqp.Publishing{
 			ContentType:  "application/json",
-			DeliveryMode: amqp.Persistent, // Pesan disimpan di disk agar tahan crash
+			DeliveryMode: amqp.Persistent,
 			Timestamp:    time.Now(),
 			Body:         body,
+		},
+	)
+}
+
+// PublishToDLQ mengirim pesan gagal ke DLQ
+func (r *RabbitMQClient) PublishToDLQ(ctx context.Context, payload interface{}, reason string) error {
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	ctxTimeout, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	return r.Channel.PublishWithContext(
+		ctxTimeout,
+		OrderDLXExchange,
+		OrderDLQKey,
+		false,
+		false,
+		amqp.Publishing{
+			ContentType:  "application/json",
+			DeliveryMode: amqp.Persistent,
+			Timestamp:    time.Now(),
+			Headers: amqp.Table{
+				"x-failure-reason": reason,
+				"x-failed-at":      time.Now().Format(time.RFC3339),
+			},
+			Body: body,
 		},
 	)
 }
