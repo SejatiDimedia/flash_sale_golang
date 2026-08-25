@@ -168,8 +168,17 @@ func (r *orderRepository) UpdateOrderStatus(ctx context.Context, id string, stat
 		query = `UPDATE orders SET status = $1 WHERE id = $2`
 	}
 
-	_, err := r.db.Exec(ctx, query, status, id)
-	return err
+	res, err := r.db.Exec(ctx, query, status, id)
+	if err != nil {
+		return err
+	}
+
+	// ⚠️ Jika tidak ada baris yang ter-update (Order ID tidak ada di DB), lempar error!
+	if res.RowsAffected() == 0 {
+		return fmt.Errorf("order with id %s not found in database", id)
+	}
+
+	return nil
 }
 
 func (r *orderRepository) GetUserPurchasedCount(ctx context.Context, userID, eventID string) (int, error) {
