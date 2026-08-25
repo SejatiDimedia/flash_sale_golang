@@ -16,6 +16,7 @@ type CreateEventRequest struct {
 	TotalStock  int
 	Price       float64
 	Status      string
+	Category    string
 	MaxPerUser  int
 }
 
@@ -28,6 +29,7 @@ type UpdateEventRequest struct {
 	TotalStock  int
 	Price       float64
 	Status      string
+	Category    string
 	MaxPerUser  int
 }
 
@@ -71,6 +73,9 @@ func (s *eventService) CreateEvent(ctx context.Context, actorRole string, req Cr
 	if req.Status == "" {
 		req.Status = "draft"
 	}
+	if req.Category == "" {
+		req.Category = "concerts"
+	}
 
 	event := &repository.Event{
 		Name:        req.Name,
@@ -80,6 +85,7 @@ func (s *eventService) CreateEvent(ctx context.Context, actorRole string, req Cr
 		TotalStock:  req.TotalStock,
 		Price:       req.Price,
 		Status:      req.Status,
+		Category:    req.Category,
 		MaxPerUser:  req.MaxPerUser,
 	}
 
@@ -101,6 +107,13 @@ func (s *eventService) UpdateEvent(ctx context.Context, actorRole string, req Up
 		return nil, errors.New("event not found")
 	}
 
+	if req.Category == "" {
+		req.Category = existing.Category
+	}
+	if req.Category == "" {
+		req.Category = "concerts"
+	}
+
 	event := &repository.Event{
 		ID:          req.ID,
 		Name:        req.Name,
@@ -110,6 +123,7 @@ func (s *eventService) UpdateEvent(ctx context.Context, actorRole string, req Up
 		TotalStock:  req.TotalStock,
 		Price:       req.Price,
 		Status:      req.Status,
+		Category:    req.Category,
 		MaxPerUser:  req.MaxPerUser,
 	}
 

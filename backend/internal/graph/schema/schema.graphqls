@@ -22,6 +22,7 @@ type Event {
   availableStock: Int!
   price: Float!
   status: EventStatus!
+  category: String
   maxPerUser: Int!
   createdAt: String!
   updatedAt: String!
@@ -80,6 +81,12 @@ input LoginInput {
   password: String!
 }
 
+input UpdateProfileInput {
+  name: String!
+  email: String!
+  password: String
+}
+
 input CreateEventInput {
   name: String!
   description: String
@@ -88,6 +95,7 @@ input CreateEventInput {
   totalStock: Int!
   price: Float!
   status: EventStatus
+  category: String
   maxPerUser: Int
 }
 
@@ -99,6 +107,7 @@ input UpdateEventInput {
   totalStock: Int!
   price: Float!
   status: EventStatus!
+  category: String
   maxPerUser: Int!
 }
 
@@ -119,6 +128,7 @@ type Query {
 type Mutation {
   register(input: RegisterInput!): AuthPayload!
   login(input: LoginInput!): AuthPayload!
+  updateProfile(input: UpdateProfileInput!): User!
   createEvent(input: CreateEventInput!): Event!
   updateEvent(id: ID!, input: UpdateEventInput!): Event!
   purchaseTicket(eventId: ID!, quantity: Int!): Order!

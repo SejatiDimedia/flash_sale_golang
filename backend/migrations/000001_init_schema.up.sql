@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS events (
     available_stock INT NOT NULL CHECK (available_stock >= 0),
     price NUMERIC(15, 2) NOT NULL CHECK (price >= 0),
     status VARCHAR(50) NOT NULL DEFAULT 'draft', -- 'draft', 'scheduled', 'active', 'closed'
+    category VARCHAR(100) NOT NULL DEFAULT 'concerts', -- 'concerts', 'festivals', 'cinema', 'sports', 'social'
     max_per_user INT NOT NULL DEFAULT 1 CHECK (max_per_user > 0),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP

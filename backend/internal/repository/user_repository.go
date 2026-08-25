@@ -25,6 +25,7 @@ type UserRepository interface {
 	CreateUser(ctx context.Context, name, email, passwordHash, role string) (*User, error)
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	GetUserByID(ctx context.Context, id string) (*User, error)
+	UpdateUser(ctx context.Context, id, name, email string, passwordHash *string) (*User, error)
 }
 
 type userRepository struct {
@@ -107,6 +108,49 @@ func (r *userRepository) GetUserByID(ctx context.Context, id string) (*User, err
 			return nil, nil
 		}
 		return nil, fmt.Errorf("failed to get user by id: %w", err)
+	}
+
+	return &user, nil
+}
+
+func (r *userRepository) UpdateUser(ctx context.Context, id, name, email string, passwordHash *string) (*User, error) {
+	var user User
+	if passwordHash != nil && *passwordHash != "" {
+		query := `
+			UPDATE users
+			SET name = $1, email = $2, password_hash = $3, updated_at = NOW()
+			WHERE id = $4
+			RETURNING id, name, email, role, created_at, updated_at
+		`
+		err := r.db.QueryRow(ctx, query, name, email, *passwordHash, id).Scan(
+			&user.ID,
+			&user.Name,
+			&user.Email,
+			&user.Role,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to update user with password: %w", err)
+		}
+	} else {
+		query := `
+			UPDATE users
+			SET name = $1, email = $2, updated_at = NOW()
+			WHERE id = $3
+			RETURNING id, name, email, role, created_at, updated_at
+		`
+		err := r.db.QueryRow(ctx, query, name, email, id).Scan(
+			&user.ID,
+			&user.Name,
+			&user.Email,
+			&user.Role,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to update user: %w", err)
+		}
 	}
 
 	return &user, nil

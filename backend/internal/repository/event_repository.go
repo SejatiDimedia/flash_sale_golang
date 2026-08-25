@@ -20,6 +20,7 @@ type Event struct {
 	AvailableStock int       `json:"available_stock"`
 	Price          float64   `json:"price"`
 	Status         string    `json:"status"` // draft, scheduled, active, closed
+	Category       string    `json:"category"` // concerts, festivals, cinema, sports, social
 	MaxPerUser     int       `json:"max_per_user"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
@@ -42,19 +43,23 @@ func NewEventRepository(db *pgxpool.Pool) EventRepository {
 }
 
 func (r *eventRepository) CreateEvent(ctx context.Context, e *Event) (*Event, error) {
+	if e.Category == "" {
+		e.Category = "concerts"
+	}
+
 	query := `
-		INSERT INTO events (name, description, start_sale_at, end_sale_at, total_stock, available_stock, price, status, max_per_user)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-		RETURNING id, name, description, start_sale_at, end_sale_at, total_stock, available_stock, price, status, max_per_user, created_at, updated_at
+		INSERT INTO events (name, description, start_sale_at, end_sale_at, total_stock, available_stock, price, status, max_per_user, category)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		RETURNING id, name, description, start_sale_at, end_sale_at, total_stock, available_stock, price, status, max_per_user, category, created_at, updated_at
 	`
 
 	var created Event
 	err := r.db.QueryRow(ctx, query,
-		e.Name, e.Description, e.StartSaleAt, e.EndSaleAt, e.TotalStock, e.TotalStock, e.Price, e.Status, e.MaxPerUser,
+		e.Name, e.Description, e.StartSaleAt, e.EndSaleAt, e.TotalStock, e.TotalStock, e.Price, e.Status, e.MaxPerUser, e.Category,
 	).Scan(
 		&created.ID, &created.Name, &created.Description, &created.StartSaleAt, &created.EndSaleAt,
 		&created.TotalStock, &created.AvailableStock, &created.Price, &created.Status, &created.MaxPerUser,
-		&created.CreatedAt, &created.UpdatedAt,
+		&created.Category, &created.CreatedAt, &created.UpdatedAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create event: %w", err)
@@ -64,21 +69,25 @@ func (r *eventRepository) CreateEvent(ctx context.Context, e *Event) (*Event, er
 }
 
 func (r *eventRepository) UpdateEvent(ctx context.Context, e *Event) (*Event, error) {
+	if e.Category == "" {
+		e.Category = "concerts"
+	}
+
 	query := `
 		UPDATE events
 		SET name = $1, description = $2, start_sale_at = $3, end_sale_at = $4,
-		    total_stock = $5, price = $6, status = $7, max_per_user = $8, updated_at = NOW()
-		WHERE id = $9
-		RETURNING id, name, description, start_sale_at, end_sale_at, total_stock, available_stock, price, status, max_per_user, created_at, updated_at
+		    total_stock = $5, price = $6, status = $7, max_per_user = $8, category = $9, updated_at = NOW()
+		WHERE id = $10
+		RETURNING id, name, description, start_sale_at, end_sale_at, total_stock, available_stock, price, status, max_per_user, category, created_at, updated_at
 	`
 
 	var updated Event
 	err := r.db.QueryRow(ctx, query,
-		e.Name, e.Description, e.StartSaleAt, e.EndSaleAt, e.TotalStock, e.Price, e.Status, e.MaxPerUser, e.ID,
+		e.Name, e.Description, e.StartSaleAt, e.EndSaleAt, e.TotalStock, e.Price, e.Status, e.MaxPerUser, e.Category, e.ID,
 	).Scan(
 		&updated.ID, &updated.Name, &updated.Description, &updated.StartSaleAt, &updated.EndSaleAt,
 		&updated.TotalStock, &updated.AvailableStock, &updated.Price, &updated.Status, &updated.MaxPerUser,
-		&updated.CreatedAt, &updated.UpdatedAt,
+		&updated.Category, &updated.CreatedAt, &updated.UpdatedAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update event: %w", err)
@@ -89,7 +98,7 @@ func (r *eventRepository) UpdateEvent(ctx context.Context, e *Event) (*Event, er
 
 func (r *eventRepository) GetEventByID(ctx context.Context, id string) (*Event, error) {
 	query := `
-		SELECT id, name, description, start_sale_at, end_sale_at, total_stock, available_stock, price, status, max_per_user, created_at, updated_at
+		SELECT id, name, description, start_sale_at, end_sale_at, total_stock, available_stock, price, status, max_per_user, category, created_at, updated_at
 		FROM events
 		WHERE id = $1
 	`
@@ -98,7 +107,7 @@ func (r *eventRepository) GetEventByID(ctx context.Context, id string) (*Event, 
 	err := r.db.QueryRow(ctx, query, id).Scan(
 		&e.ID, &e.Name, &e.Description, &e.StartSaleAt, &e.EndSaleAt,
 		&e.TotalStock, &e.AvailableStock, &e.Price, &e.Status, &e.MaxPerUser,
-		&e.CreatedAt, &e.UpdatedAt,
+		&e.Category, &e.CreatedAt, &e.UpdatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -116,7 +125,7 @@ func (r *eventRepository) ListEvents(ctx context.Context, status *string) ([]*Ev
 
 	if status != nil && *status != "" {
 		query := `
-			SELECT id, name, description, start_sale_at, end_sale_at, total_stock, available_stock, price, status, max_per_user, created_at, updated_at
+			SELECT id, name, description, start_sale_at, end_sale_at, total_stock, available_stock, price, status, max_per_user, category, created_at, updated_at
 			FROM events
 			WHERE status = $1
 			ORDER BY start_sale_at ASC
@@ -124,7 +133,7 @@ func (r *eventRepository) ListEvents(ctx context.Context, status *string) ([]*Ev
 		rows, err = r.db.Query(ctx, query, *status)
 	} else {
 		query := `
-			SELECT id, name, description, start_sale_at, end_sale_at, total_stock, available_stock, price, status, max_per_user, created_at, updated_at
+			SELECT id, name, description, start_sale_at, end_sale_at, total_stock, available_stock, price, status, max_per_user, category, created_at, updated_at
 			FROM events
 			ORDER BY start_sale_at ASC
 		`
@@ -142,7 +151,7 @@ func (r *eventRepository) ListEvents(ctx context.Context, status *string) ([]*Ev
 		if err := rows.Scan(
 			&e.ID, &e.Name, &e.Description, &e.StartSaleAt, &e.EndSaleAt,
 			&e.TotalStock, &e.AvailableStock, &e.Price, &e.Status, &e.MaxPerUser,
-			&e.CreatedAt, &e.UpdatedAt,
+			&e.Category, &e.CreatedAt, &e.UpdatedAt,
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan event row: %w", err)
 		}

@@ -15,6 +15,11 @@ func mapEventToGraphQL(e *repository.Event) *model.Event {
 	}
 	status := model.EventStatus(strings.ToUpper(e.Status))
 
+	cat := e.Category
+	if cat == "" {
+		cat = "concerts"
+	}
+
 	return &model.Event{
 		ID:             e.ID,
 		Name:           e.Name,
@@ -25,6 +30,7 @@ func mapEventToGraphQL(e *repository.Event) *model.Event {
 		AvailableStock: e.AvailableStock,
 		Price:          e.Price,
 		Status:         status,
+		Category:       &cat,
 		MaxPerUser:     e.MaxPerUser,
 		CreatedAt:      e.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:      e.UpdatedAt.Format(time.RFC3339),

@@ -22,6 +22,7 @@ type CreateEventInput struct {
 	TotalStock  int          `json:"totalStock"`
 	Price       float64      `json:"price"`
 	Status      *EventStatus `json:"status,omitempty"`
+	Category    *string      `json:"category,omitempty"`
 	MaxPerUser  *int         `json:"maxPerUser,omitempty"`
 }
 
@@ -35,6 +36,7 @@ type Event struct {
 	AvailableStock int         `json:"availableStock"`
 	Price          float64     `json:"price"`
 	Status         EventStatus `json:"status"`
+	Category       *string     `json:"category,omitempty"`
 	MaxPerUser     int         `json:"maxPerUser"`
 	CreatedAt      string      `json:"createdAt"`
 	UpdatedAt      string      `json:"updatedAt"`
@@ -97,7 +99,14 @@ type UpdateEventInput struct {
 	TotalStock  int         `json:"totalStock"`
 	Price       float64     `json:"price"`
 	Status      EventStatus `json:"status"`
+	Category    *string     `json:"category,omitempty"`
 	MaxPerUser  int         `json:"maxPerUser"`
+}
+
+type UpdateProfileInput struct {
+	Name     string  `json:"name"`
+	Email    string  `json:"email"`
+	Password *string `json:"password,omitempty"`
 }
 
 type User struct {

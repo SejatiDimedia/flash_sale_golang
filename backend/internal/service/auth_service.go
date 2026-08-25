@@ -24,6 +24,7 @@ type AuthService interface {
 	Register(ctx context.Context, name, email, password, role string) (*repository.User, string, error)
 	Login(ctx context.Context, email, password string) (*repository.User, string, error)
 	ValidateToken(tokenString string) (*JWTClaims, error)
+	UpdateProfile(ctx context.Context, userID, name, email string, password *string) (*repository.User, error)
 }
 
 type authService struct {
@@ -144,3 +145,34 @@ func (s *authService) ValidateToken(tokenString string) (*JWTClaims, error) {
 
 	return claims, nil
 }
+
+func (s *authService) UpdateProfile(ctx context.Context, userID, name, email string, password *string) (*repository.User, error) {
+	if name == "" {
+		return nil, errors.New("name cannot be empty")
+	}
+	if email == "" {
+		return nil, errors.New("email cannot be empty")
+	}
+
+	// 1. Cek duplikasi email pada akun lain
+	existing, err := s.userRepo.GetUserByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+	if existing != nil && existing.ID != userID {
+		return nil, errors.New("email is already registered by another user")
+	}
+
+	var passHash *string
+	if password != nil && *password != "" {
+		hash, err := bcrypt.GenerateFromPassword([]byte(*password), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, fmt.Errorf("failed to hash password: %w", err)
+		}
+		strHash := string(hash)
+		passHash = &strHash
+	}
+
+	return s.userRepo.UpdateUser(ctx, userID, name, email, passHash)
+}
+

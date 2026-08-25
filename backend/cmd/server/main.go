@@ -82,6 +82,9 @@ func main() {
 	}
 	defer dbPool.Close()
 
+	// 🛠️ Auto-Migration: Pastikan kolom category ada di tabel events
+	_, _ = dbPool.Exec(context.Background(), "ALTER TABLE events ADD COLUMN IF NOT EXISTS category VARCHAR(100) NOT NULL DEFAULT 'concerts'")
+
 	// 3. Inisialisasi Redis Client
 	redisClient, err := redisclient.NewRedisClient(cfg)
 	if err != nil {
@@ -98,6 +101,14 @@ func main() {
 	// 5. Inisialisasi Repositories & Services
 	userRepo := repository.NewUserRepository(dbPool)
 	authService := service.NewAuthService(userRepo, cfg)
+
+	// 🌱 Auto-Seed Default Admin Account (admin@example.com / admin123)
+	go func() {
+		_, _, err := authService.Register(context.Background(), "Administrator", "admin@example.com", "admin123", "admin")
+		if err == nil {
+			log.Println("🌱 Default Admin seeded successfully: admin@example.com / admin123")
+		}
+	}()
 
 	eventRepo := repository.NewEventRepository(dbPool)
 	eventService := service.NewEventService(eventRepo)
@@ -123,6 +134,21 @@ func main() {
 	}
 
 	r := gin.Default()
+
+	// 🌐 CORS Middleware
+	r.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, X-Request-ID")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	})
 
 	// 🔍 Pasang Request ID (Trace ID) & Auth Middleware
 	r.Use(middleware.RequestIDMiddleware())
