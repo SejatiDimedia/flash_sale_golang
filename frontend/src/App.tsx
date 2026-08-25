@@ -294,6 +294,14 @@ export function App() {
               onBack={() => setCurrentView('home')}
               onExplore={() => setCurrentView('home')}
               events={events}
+              onOpenCheckout={(ev) => {
+                setSelectedEvent(ev);
+                setIsCheckoutOpen(true);
+              }}
+              onOpenWaitingRoom={(ev) => {
+                setSelectedEvent(ev);
+                setIsWaitingRoomOpen(true);
+              }}
             />
           ) : currentView === 'create_event' ? (
             /* 3. ➕ FULL PAGE: TAMBAH EVENT FLASH SALE BARU */
