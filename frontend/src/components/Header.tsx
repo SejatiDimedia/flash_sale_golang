@@ -11,6 +11,8 @@ interface HeaderProps {
   onToggleAdmin: () => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  onOpenNotifications?: () => void;
+  unreadCount?: number;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -21,6 +23,8 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleAdmin,
   searchQuery,
   setSearchQuery,
+  onOpenNotifications,
+  unreadCount = 0,
 }) => {
   const isAdmin = user?.role?.toLowerCase() === 'admin';
 
@@ -98,9 +102,19 @@ export const Header: React.FC<HeaderProps> = ({
           )}
 
           {/* Notification Bell */}
-          <button className="w-9 h-9 glass-circle rounded-full flex items-center justify-center text-white relative shadow-sm hover:bg-white/40 transition-colors">
+          <button
+            onClick={onOpenNotifications}
+            className="w-9 h-9 glass-circle rounded-full flex items-center justify-center text-white relative shadow-sm hover:bg-white/40 transition-colors"
+            title="Notifications"
+          >
             <HiOutlineBell className="w-4 h-4" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-pink-400 rounded-full ring-2 ring-purple-600"></span>
+            {unreadCount > 0 ? (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-pink-500 text-white rounded-full text-[9px] font-black flex items-center justify-center border-2 border-purple-600 animate-pulse">
+                {unreadCount}
+              </span>
+            ) : (
+              <span className="absolute top-2 right-2 w-2 h-2 bg-pink-400/80 rounded-full ring-2 ring-purple-600"></span>
+            )}
           </button>
         </div>
       </div>

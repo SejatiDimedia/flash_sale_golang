@@ -198,6 +198,24 @@ export const api = {
     return data.admitUsers.length;
   },
 
+  getGateMode: async (eventId: string) => {
+    const data = await graphqlFetch<{ getGateMode: string }>(`
+      query GetGateMode($eventId: ID!) {
+        getGateMode(eventId: $eventId)
+      }
+    `, { eventId });
+    return data.getGateMode as 'AUTO' | 'MANUAL';
+  },
+
+  setGateMode: async (eventId: string, mode: 'AUTO' | 'MANUAL') => {
+    const data = await graphqlFetch<{ setGateMode: string }>(`
+      mutation SetGateMode($eventId: ID!, $mode: String!) {
+        setGateMode(eventId: $eventId, mode: $mode)
+      }
+    `, { eventId, mode });
+    return data.setGateMode as 'AUTO' | 'MANUAL';
+  },
+
   getAllOrders: async (eventId?: string) => {
     const data = await graphqlFetch<{ orders: Order[] }>(`
       query GetAllOrders($eventId: ID) {

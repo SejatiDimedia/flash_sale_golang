@@ -58,12 +58,17 @@ func (s *checkoutService) PurchaseTicket(ctx context.Context, userID, eventID st
 		return nil, fmt.Errorf("event is not active (current status: %s)", event.Status)
 	}
 
-	// 2. 🎟️ VALIDASI VIRTUAL WAITING ROOM (Jika ada antrian aktif, cek apakah user punya Checkout Pass)
-	totalInQueue, _ := s.redisClient.GetTotalInQueue(ctx, eventID)
+	// 2. 🎟️ VALIDASI VIRTUAL WAITING ROOM (Jika mode Surge Queue Gate aktif, user WAJIB memiliki pass)
+	gateMode, _ := s.redisClient.GetGateMode(ctx, eventID)
 	hasPass, _ := s.redisClient.HasCheckoutPass(ctx, eventID, userID)
 
-	if totalInQueue > 0 && !hasPass {
-		return nil, errors.New("waiting room is active: please join the waiting room and wait for your turn to checkout")
+	if gateMode == "MANUAL" && !hasPass {
+		return nil, errors.New("surge queue is active: you must wait in the virtual waiting room and be admitted before checking out")
+	}
+
+	// Jika mode AUTO, pastikan pass tersedia atau buatkan pass instan
+	if gateMode == "AUTO" && !hasPass {
+		_ = s.redisClient.GrantCheckoutPass(ctx, eventID, userID, 5*time.Minute)
 	}
 
 	// 3. Cek anti-spam / Rate Limiting (Maks 5 request / 10 detik per user)
@@ -126,6 +131,9 @@ func (s *checkoutService) PurchaseTicket(ctx context.Context, userID, eventID st
 
 	stockPayload := fmt.Sprintf(`{"remaining_stock":%d,"quantity_deducted":%d}`, remainingStock, quantity)
 	_ = s.orderRepo.CreateOrderLog(ctx, createdOrder.ID, "STOCK_RESERVED", stockPayload)
+
+	// 🎟️ KONSUMSI CHECKOUT PASS (Single-Use Token)
+	_ = s.redisClient.DeleteCheckoutPass(ctx, eventID, userID)
 
 	// 9. 🔴 REAL-TIME BROADCAST: Broadcast sisa stok ke Redis Pub/Sub
 	event.AvailableStock = remainingStock

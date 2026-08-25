@@ -9,7 +9,7 @@ interface WaitingRoomModalProps {
   isOpen: boolean;
   onClose: () => void;
   event: Event | null;
-  onAdmitted: () => void;
+  onAdmitted: (wasWaiting?: boolean) => void;
 }
 
 export const WaitingRoomModal: React.FC<WaitingRoomModalProps> = ({
@@ -31,13 +31,16 @@ export const WaitingRoomModal: React.FC<WaitingRoomModalProps> = ({
 
     const initQueue = async () => {
       try {
+        localStorage.setItem('activeQueueEventId', event.id);
         const res = await api.joinWaitingRoom(event.id);
         if (isMounted) {
           setQueueStatus(res);
           setIsLoading(false);
 
           if (res.isAllowedToPurchase) {
-            onAdmitted();
+            // Instant Pass: User is admitted immediately without waiting (NO NOTIFICATION SPAM)
+            onAdmitted(false);
+            return;
           }
         }
       } catch (err: any) {
@@ -57,6 +60,8 @@ export const WaitingRoomModal: React.FC<WaitingRoomModalProps> = ({
           setQueueStatus(status);
           if (status.isAllowedToPurchase) {
             clearInterval(interval);
+            // Delayed Admission: User was actually waiting in the queue and just got admitted (SEND NOTIFICATION)
+            onAdmitted(true);
           }
         }
       } catch (e) {
@@ -163,7 +168,7 @@ export const WaitingRoomModal: React.FC<WaitingRoomModalProps> = ({
 
           {isAdmitted ? (
             <button
-              onClick={onAdmitted}
+              onClick={() => onAdmitted(true)}
               className="w-2/3 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-full text-xs font-black shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-1.5 animate-pulse"
             >
               Proceed to Checkout <FiArrowRight className="w-4 h-4" />

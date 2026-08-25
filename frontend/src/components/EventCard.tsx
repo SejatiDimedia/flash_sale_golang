@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiMapPin, FiBookmark, FiArrowUpRight, FiClock } from 'react-icons/fi';
 import { IoFlash, IoFlame } from 'react-icons/io5';
+import { getEventImage } from '../lib/images';
 import type { Event } from '../lib/api';
 
 interface EventCardProps {
@@ -44,7 +45,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onWarTicket, onView
       {/* 🖼️ Card Hero Image matching Reference Screen 1 */}
       <div className="relative w-full h-64 rounded-[26px] overflow-hidden mb-3.5 shadow-sm">
         <img
-          src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=1000&auto=format&fit=crop"
+          src={getEventImage(event.category)}
           alt={event.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />

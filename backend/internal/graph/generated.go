@@ -66,6 +66,7 @@ type ComplexityRoot struct {
 		Login           func(childComplexity int, input model.LoginInput) int
 		PurchaseTicket  func(childComplexity int, eventID string, quantity int) int
 		Register        func(childComplexity int, input model.RegisterInput) int
+		SetGateMode     func(childComplexity int, eventID string, mode string) int
 		UpdateEvent     func(childComplexity int, id string, input model.UpdateEventInput) int
 		UpdateProfile   func(childComplexity int, input model.UpdateProfileInput) int
 	}
@@ -92,6 +93,7 @@ type ComplexityRoot struct {
 	Query struct {
 		Event          func(childComplexity int, id string) int
 		Events         func(childComplexity int, status *model.EventStatus) int
+		GetGateMode    func(childComplexity int, eventID string) int
 		GetQueueStatus func(childComplexity int, eventID string) int
 		HealthCheck    func(childComplexity int) int
 		Me             func(childComplexity int) int
@@ -137,6 +139,7 @@ type MutationResolver interface {
 	PurchaseTicket(ctx context.Context, eventID string, quantity int) (*model.Order, error)
 	JoinWaitingRoom(ctx context.Context, eventID string) (*model.QueueStatus, error)
 	AdmitUsers(ctx context.Context, eventID string, batchSize int) ([]string, error)
+	SetGateMode(ctx context.Context, eventID string, mode string) (string, error)
 }
 type QueryResolver interface {
 	HealthCheck(ctx context.Context) (string, error)
@@ -148,6 +151,7 @@ type QueryResolver interface {
 	Orders(ctx context.Context, eventID *string) ([]*model.Order, error)
 	OrderLogs(ctx context.Context, orderID string) ([]*model.OrderLog, error)
 	GetQueueStatus(ctx context.Context, eventID string) (*model.QueueStatus, error)
+	GetGateMode(ctx context.Context, eventID string) (string, error)
 }
 type SubscriptionResolver interface {
 	StockUpdated(ctx context.Context, eventID string) (<-chan *model.Event, error)
@@ -330,6 +334,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.Register(childComplexity, args["input"].(model.RegisterInput)), true
+	case "Mutation.setGateMode":
+		if e.ComplexityRoot.Mutation.SetGateMode == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setGateMode_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.SetGateMode(childComplexity, args["eventId"].(string), args["mode"].(string)), true
 	case "Mutation.updateEvent":
 		if e.ComplexityRoot.Mutation.UpdateEvent == nil {
 			break
@@ -455,6 +470,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.Events(childComplexity, args["status"].(*model.EventStatus)), true
+	case "Query.getGateMode":
+		if e.ComplexityRoot.Query.GetGateMode == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getGateMode_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.GetGateMode(childComplexity, args["eventId"].(string)), true
 	case "Query.getQueueStatus":
 		if e.ComplexityRoot.Query.GetQueueStatus == nil {
 			break
@@ -1064,6 +1090,28 @@ func (ec *executionContext) field_Mutation_register_args(ctx context.Context, ra
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_setGateMode_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "eventId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNID2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["eventId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "mode",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["mode"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateEvent_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -1139,6 +1187,20 @@ func (ec *executionContext) field_Query_events_args(ctx context.Context, rawArgs
 		return nil, err
 	}
 	args["status"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getGateMode_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "eventId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNID2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["eventId"] = arg0
 	return args, nil
 }
 
@@ -1992,6 +2054,50 @@ func (ec *executionContext) fieldContext_Mutation_admitUsers(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_setGateMode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_setGateMode(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().SetGateMode(ctx, fc.Args["eventId"].(string), fc.Args["mode"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_setGateMode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_setGateMode_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Order_id(ctx context.Context, field graphql.CollectedField, obj *model.Order) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -2636,6 +2742,50 @@ func (ec *executionContext) fieldContext_Query_getQueueStatus(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getQueueStatus_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getGateMode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_getGateMode(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().GetGateMode(ctx, fc.Args["eventId"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Query_getGateMode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getGateMode_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -4647,6 +4797,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "setGateMode":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_setGateMode(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5005,6 +5162,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getQueueStatus(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "getGateMode":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getGateMode(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

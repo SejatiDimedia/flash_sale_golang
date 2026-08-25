@@ -223,3 +223,42 @@ func (r *RedisClient) AdmitNextBatch(ctx context.Context, eventID string, batchS
 
 	return userIDs, nil
 }
+
+// SetGateMode menyimpan mode Waiting Room untuk suatu event ("AUTO" atau "MANUAL")
+func (r *RedisClient) SetGateMode(ctx context.Context, eventID, mode string) error {
+	key := fmt.Sprintf("waiting_room:gate_mode:%s", eventID)
+	// Jika beralih ke MANUAL, bersihkan pass lama agar antrian benar-benar tertahan
+	if mode == "MANUAL" {
+		_ = r.ClearCheckoutPasses(ctx, eventID)
+	}
+	return r.Client.Set(ctx, key, mode, 0).Err()
+}
+
+// DeleteCheckoutPass menghapus pass checkout user setelah berhasil transaksi (Single-Use Token)
+func (r *RedisClient) DeleteCheckoutPass(ctx context.Context, eventID, userID string) error {
+	passKey := fmt.Sprintf("checkout_pass:%s:%s", eventID, userID)
+	return r.Client.Del(ctx, passKey).Err()
+}
+
+// ClearCheckoutPasses menghapus semua checkout pass aktif untuk event tertentu
+func (r *RedisClient) ClearCheckoutPasses(ctx context.Context, eventID string) error {
+	pattern := fmt.Sprintf("checkout_pass:%s:*", eventID)
+	iter := r.Client.Scan(ctx, 0, pattern, 0).Iterator()
+	for iter.Next(ctx) {
+		_ = r.Client.Del(ctx, iter.Val()).Err()
+	}
+	return iter.Err()
+}
+
+// GetGateMode mengambil mode Waiting Room untuk suatu event (Default: "AUTO")
+func (r *RedisClient) GetGateMode(ctx context.Context, eventID string) (string, error) {
+	key := fmt.Sprintf("waiting_room:gate_mode:%s", eventID)
+	val, err := r.Client.Get(ctx, key).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return "AUTO", nil // Default ke AUTO agar pengalaman booking lancar
+		}
+		return "AUTO", err
+	}
+	return val, nil
+}

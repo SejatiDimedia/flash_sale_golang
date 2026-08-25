@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Header } from './components/Header';
 import { CategoryFilter } from './components/CategoryFilter';
 import { EventCard } from './components/EventCard';
@@ -10,6 +10,7 @@ import { ProfilePage } from './components/ProfilePage';
 import { TicketsPage } from './components/TicketsPage';
 import { CreateEventPage } from './components/CreateEventPage';
 import { AdminDashboard } from './components/AdminDashboard';
+import { NotificationModal, type AppNotification } from './components/NotificationModal';
 import { api, type Event, type User } from './lib/api';
 import { subscribeStock } from './lib/ws';
 import { RiHome5Fill, RiUser3Line } from 'react-icons/ri';
@@ -34,7 +35,38 @@ export function App() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
+  // 🔔 Notifications State (Persisted in localStorage)
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<AppNotification[]>(() => {
+    const saved = localStorage.getItem('flash_sale_notifs');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return parsed.map((n: any) => ({ ...n, timestamp: new Date(n.timestamp) }));
+      } catch (e) {
+        // Fallback
+      }
+    }
+    return [
+      {
+        id: 'welcome-notif',
+        title: 'Welcome to Flash Sale! 🎉',
+        message: 'Explore upcoming live concert tickets and join flash sale waiting rooms.',
+        timestamp: new Date(Date.now() - 1000 * 60 * 5),
+        type: 'stock_alert',
+        read: false,
+      },
+    ];
+  });
+
+  // Ref to guarantee strictly 1-time execution per admission pass
+  const alertedPassesRef = useRef<Set<string>>(new Set());
+
   const isAdmin = user?.role?.toLowerCase() === 'admin';
+
+  useEffect(() => {
+    localStorage.setItem('flash_sale_notifs', JSON.stringify(notifications));
+  }, [notifications]);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
@@ -91,6 +123,99 @@ export function App() {
     };
   }, [events.length]);
 
+  const playChime = () => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc1 = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+      osc1.frequency.setValueAtTime(880, ctx.currentTime + 0.15); // A5
+
+      gain.gain.setValueAtTime(0.18, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+
+      osc1.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc1.start();
+      osc1.stop(ctx.currentTime + 0.6);
+    } catch (e) {
+      // Ignore if audio permissions blocked
+    }
+  };
+
+  const addNotification = (notif: Omit<AppNotification, 'id' | 'timestamp' | 'read'>) => {
+    const newNotif: AppNotification = {
+      ...notif,
+      id: Math.random().toString(36).substring(2, 9),
+      timestamp: new Date(),
+      read: false,
+    };
+    setNotifications((prev) => [newNotif, ...prev]);
+
+    // Optional browser desktop notification
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(newNotif.title, { body: newNotif.message });
+      } catch (e) {
+        // Silently catch
+      }
+    }
+  };
+
+  // 🔔 SINGLE-SHOT ADMISSION DISPATCHER (Strictly 1x per pass)
+  const notifyAdmission = (eventId: string, eventName?: string) => {
+    const dedupeKey = `${user?.id || 'user'}_${eventId}`;
+    if (alertedPassesRef.current.has(dedupeKey)) {
+      return; // Already notified once!
+    }
+    alertedPassesRef.current.add(dedupeKey);
+
+    // Clear active queued item
+    localStorage.removeItem('activeQueueEventId');
+
+    const name = eventName || 'the flash sale event';
+    playChime();
+
+    addNotification({
+      title: "It's Your Turn! 🎉",
+      message: `You've been admitted from the queue for ${name}! Your 5-minute checkout session is active.`,
+      type: 'admitted',
+      eventId,
+    });
+  };
+
+  // 🔄 GLOBAL BACKGROUND QUEUE MONITOR
+  useEffect(() => {
+    if (!user) return;
+
+    const checkQueue = async () => {
+      const queuedId = localStorage.getItem('activeQueueEventId');
+      if (!queuedId) return;
+
+      const dedupeKey = `${user.id}_${queuedId}`;
+      if (alertedPassesRef.current.has(dedupeKey)) {
+        localStorage.removeItem('activeQueueEventId');
+        return;
+      }
+
+      try {
+        const status = await api.getQueueStatus(queuedId);
+        if (status.isAllowedToPurchase) {
+          const foundEvent = events.find((e) => e.id === queuedId);
+          notifyAdmission(queuedId, foundEvent?.name);
+        }
+      } catch (e) {
+        // Silently catch
+      }
+    };
+
+    const interval = setInterval(checkQueue, 2500);
+    return () => clearInterval(interval);
+  }, [user, events]);
+
   const handleLoginSuccess = (loggedInUser: User, token: string) => {
     setUser(loggedInUser);
     localStorage.setItem('user', JSON.stringify(loggedInUser));
@@ -102,6 +227,8 @@ export function App() {
     setCurrentView('home');
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    localStorage.removeItem('activeQueueEventId');
+    alertedPassesRef.current.clear();
   };
 
   const handleWarTicket = (event: Event) => {
@@ -109,7 +236,12 @@ export function App() {
       setIsAuthOpen(true);
       return;
     }
+    // Reset deduplication for this new queue entry
+    const dedupeKey = `${user.id}_${event.id}`;
+    alertedPassesRef.current.delete(dedupeKey);
+
     setSelectedEvent(event);
+    localStorage.setItem('activeQueueEventId', event.id);
     setIsDetailOpen(false);
     setIsWaitingRoomOpen(true);
   };
@@ -119,9 +251,14 @@ export function App() {
     setIsDetailOpen(true);
   };
 
-  const handleAdmitted = () => {
+  const handleAdmitted = (wasWaiting: boolean = false) => {
     setIsWaitingRoomOpen(false);
     setIsCheckoutOpen(true);
+    // ONLY send notification if the user was ACTUALLY waiting in queue!
+    // Instant direct checkout pass does NOT spam notifications.
+    if (wasWaiting && selectedEvent) {
+      notifyAdmission(selectedEvent.id, selectedEvent.name);
+    }
   };
 
   const filteredEvents = events.filter((e) => {
@@ -131,6 +268,8 @@ export function App() {
     const matchesCategory = selectedCategory === 'all' || eventCategory === selectedCategory.toLowerCase();
     return matchesSearch && matchesCategory;
   });
+
+  const unreadNotifsCount = notifications.filter((n) => !n.read).length;
 
   return (
     <div className="min-h-screen bg-[#EFE5FB] text-slate-900 font-sans">
@@ -176,6 +315,8 @@ export function App() {
                 onToggleAdmin={() => setCurrentView(currentView === 'admin' ? 'home' : 'admin')}
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
+                onOpenNotifications={() => setIsNotificationsOpen(true)}
+                unreadCount={unreadNotifsCount}
               />
 
               {isAdmin && currentView === 'admin' ? (
@@ -314,6 +455,31 @@ export function App() {
         </nav>
       </div>
 
+      {/* 🔔 Notification Bell Modal */}
+      <NotificationModal
+        isOpen={isNotificationsOpen}
+        onClose={() => setIsNotificationsOpen(false)}
+        notifications={notifications}
+        onMarkAllAsRead={() => {
+          setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+        }}
+        onClearAll={() => setNotifications([])}
+        onSelectNotification={(notif) => {
+          setNotifications((prev) => prev.map((n) => (n.id === notif.id ? { ...n, read: true } : n)));
+          if (notif.type === 'admitted') {
+            const foundEvent = events.find((e) => e.id === notif.eventId) || events[0];
+            if (foundEvent) {
+              setSelectedEvent(foundEvent);
+              setIsNotificationsOpen(false);
+              setIsCheckoutOpen(true);
+            }
+          } else if (notif.type === 'order_confirmed') {
+            setIsNotificationsOpen(false);
+            setCurrentView('tickets');
+          }
+        }}
+      />
+
       {/* Modals for War Ticket Flow */}
       <AuthModal
         isOpen={isAuthOpen}
@@ -341,6 +507,12 @@ export function App() {
         event={selectedEvent}
         onSuccess={() => {
           fetchEvents();
+          addNotification({
+            title: 'Booking Confirmed! 🎫',
+            message: `Your tickets for ${selectedEvent?.name || 'the event'} have been successfully confirmed and stored in your profile.`,
+            type: 'order_confirmed',
+            eventId: selectedEvent?.id,
+          });
         }}
       />
     </div>

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { FiX, FiLock, FiMail, FiUser, FiEye, FiEyeOff, FiShield } from 'react-icons/fi';
-import { IoSparkles } from 'react-icons/io5';
 import { CgSpinner } from 'react-icons/cg';
 import { api, type User } from '../lib/api';
 
@@ -72,7 +71,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
         <div className="text-center mb-5">
           <div className="w-12 h-12 rounded-2xl bg-header-gradient flex items-center justify-center mx-auto mb-2 text-white shadow-btn">
-            <IoSparkles className="w-6 h-6" />
+            <FiUser className="w-6 h-6" />
           </div>
           <h3 className="text-xl font-extrabold text-slate-900">
             {isLogin ? 'Sign In to Account' : 'Create New Account'}

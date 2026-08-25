@@ -201,7 +201,7 @@ func (r *mutationResolver) JoinWaitingRoom(ctx context.Context, eventID string) 
 		return nil, errors.New("unauthorized: please login to join the waiting room")
 	}
 
-	// 1. Cek apakah user sudah punya pass
+	// 1. Cek apakah user sudah punya pass aktif
 	hasPass, err := r.RedisClient.HasCheckoutPass(ctx, eventID, currentUser.UserID)
 	if err == nil && hasPass {
 		return &model.QueueStatus{
@@ -214,7 +214,22 @@ func (r *mutationResolver) JoinWaitingRoom(ctx context.Context, eventID string) 
 		}, nil
 	}
 
-	// 2. Masukkan user ke antrian
+	// 2. Cek Gate Mode (AUTO vs MANUAL)
+	gateMode, _ := r.RedisClient.GetGateMode(ctx, eventID)
+	if gateMode == "AUTO" {
+		// 🟢 Mode Auto-Admit: Langsung berikan pass checkout tanpa perlu menunggu antri
+		_ = r.RedisClient.GrantCheckoutPass(ctx, eventID, currentUser.UserID, 5*time.Minute)
+		return &model.QueueStatus{
+			EventID:              eventID,
+			UserID:               currentUser.UserID,
+			Position:             0,
+			TotalInQueue:         0,
+			IsAllowedToPurchase:  true,
+			EstimatedWaitSeconds: 0,
+		}, nil
+	}
+
+	// 3. 🔴 Mode Manual/Surge: Masukkan user ke antrian ZSET Redis
 	rank, err := r.RedisClient.JoinWaitingRoom(ctx, eventID, currentUser.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to join waiting room: %w", err)
@@ -253,6 +268,26 @@ func (r *mutationResolver) AdmitUsers(ctx context.Context, eventID string, batch
 
 	log.Printf("🎟️ [Waiting Room] Admitted %d users for event %s", len(admittedUsers), eventID)
 	return admittedUsers, nil
+}
+
+// SetGateMode is the resolver for the setGateMode field.
+func (r *mutationResolver) SetGateMode(ctx context.Context, eventID string, mode string) (string, error) {
+	currentUser := middleware.GetUserFromContext(ctx)
+	if currentUser == nil || currentUser.Role != "admin" {
+		return "", errors.New("forbidden: only admin can change waiting room gate mode")
+	}
+
+	cleanMode := strings.ToUpper(strings.TrimSpace(mode))
+	if cleanMode != "AUTO" && cleanMode != "MANUAL" {
+		cleanMode = "AUTO"
+	}
+
+	if err := r.RedisClient.SetGateMode(ctx, eventID, cleanMode); err != nil {
+		return "", err
+	}
+
+	log.Printf("⚙️ [Waiting Room] Gate mode updated to %s for event %s", cleanMode, eventID)
+	return cleanMode, nil
 }
 
 // HealthCheck is the resolver for the healthCheck field.
@@ -406,6 +441,15 @@ func (r *queryResolver) GetQueueStatus(ctx context.Context, eventID string) (*mo
 		IsAllowedToPurchase:  false,
 		EstimatedWaitSeconds: int(rank * 2),
 	}, nil
+}
+
+// GetGateMode is the resolver for the getGateMode field.
+func (r *queryResolver) GetGateMode(ctx context.Context, eventID string) (string, error) {
+	mode, err := r.RedisClient.GetGateMode(ctx, eventID)
+	if err != nil {
+		return "AUTO", nil
+	}
+	return mode, nil
 }
 
 // StockUpdated is the subscription resolver for live stock updates.

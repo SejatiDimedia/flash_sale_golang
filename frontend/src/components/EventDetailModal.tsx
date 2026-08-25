@@ -2,6 +2,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { FiArrowLeft, FiBookmark, FiCalendar, FiMapPin } from 'react-icons/fi';
 import { IoFlash } from 'react-icons/io5';
+import { getEventImage } from '../lib/images';
 import type { Event } from '../lib/api';
 
 interface EventDetailModalProps {
@@ -34,7 +35,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
           {/* Top Photo Banner */}
           <div className="relative w-full h-72 overflow-hidden">
             <img
-              src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=1000&auto=format&fit=crop"
+              src={getEventImage(event.category)}
               alt={event.name}
               className="w-full h-full object-cover"
             />

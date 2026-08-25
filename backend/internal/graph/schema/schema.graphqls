@@ -123,6 +123,7 @@ type Query {
 
   # 🎟️ Cek status nomor antrian user saat ini
   getQueueStatus(eventId: ID!): QueueStatus!
+  getGateMode(eventId: ID!): String!
 }
 
 type Mutation {
@@ -138,6 +139,9 @@ type Mutation {
 
   # 🎟️ Admin / Cron meloloskan N user dari antrian ke checkout
   admitUsers(eventId: ID!, batchSize: Int!): [ID!]!
+
+  # ⚙️ Admin Toggle Mode Waiting Room: "AUTO" (Direct Pass) vs "MANUAL" (Traffic Surge Gate)
+  setGateMode(eventId: ID!, mode: String!): String!
 }
 
 type Subscription {
