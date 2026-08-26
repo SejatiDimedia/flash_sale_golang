@@ -19,7 +19,7 @@ type Event struct {
 	TotalStock     int       `json:"total_stock"`
 	AvailableStock int       `json:"available_stock"`
 	Price          float64   `json:"price"`
-	Status         string    `json:"status"` // draft, scheduled, active, closed
+	Status         string    `json:"status"`   // draft, scheduled, active, closed
 	Category       string    `json:"category"` // concerts, festivals, cinema, sports, social
 	MaxPerUser     int       `json:"max_per_user"`
 	CreatedAt      time.Time `json:"created_at"`

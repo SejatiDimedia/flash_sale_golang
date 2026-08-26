@@ -175,4 +175,3 @@ func (s *authService) UpdateProfile(ctx context.Context, userID, name, email str
 
 	return s.userRepo.UpdateUser(ctx, userID, name, email, passHash)
 }
-
