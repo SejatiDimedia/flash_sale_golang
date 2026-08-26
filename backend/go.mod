@@ -1,6 +1,6 @@
 module github.com/sejatidimedia/flash_sale_platform
 
-go 1.26.1
+go 1.25.0
 
 require (
 	github.com/99designs/gqlgen v0.17.94
