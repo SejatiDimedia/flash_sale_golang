@@ -1,9 +1,12 @@
 # ==============================================================================
 # Stage 1: Build the Go binary
 # ==============================================================================
-FROM golang:1.23-alpine AS builder
+FROM golang:alpine AS builder
 
 WORKDIR /app
+
+# Enable automatic Go toolchain resolution if required
+ENV GOTOOLCHAIN=auto
 
 # Install build dependencies
 RUN apk add --no-cache git ca-certificates
