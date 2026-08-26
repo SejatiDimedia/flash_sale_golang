@@ -1,0 +1,136 @@
+name: Continuous Integration (CI)
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  # ============================================================================
+  # JOB 1: Backend Testing & Race Condition Detection
+  # ============================================================================
+  backend-test:
+    name: Go Tests & Race Detector
+    runs-on: ubuntu-latest
+
+    # Service container pendukung agar backend bisa terkoneksi ke DB, Cache & Queue
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: flash_sale_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      rabbitmq:
+        image: rabbitmq:3-alpine
+        ports:
+          - 5672:5672
+        options: >-
+          --health-cmd "rabbitmq-diagnostics check_running"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🐹 Setup Go Environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache-dependency-path: backend/go.sum
+
+      - name: 📦 Download Dependencies
+        run: go mod download
+
+      - name: 🧪 Run Unit & Race Condition Tests
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: postgres
+          DB_PASSWORD: password
+          DB_NAME: flash_sale_db
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          RABBITMQ_URL: amqp://guest:guest@localhost:5672/
+        run: |
+          go test -race -v ./...
+
+      - name: 🏗️ Build Backend Binary Check
+        run: go build -v ./cmd/server
+
+  # ============================================================================
+  # JOB 2: Backend Code Quality & Linter
+  # ============================================================================
+  backend-lint:
+    name: Go Code Quality (Vet)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🐹 Setup Go Environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache-dependency-path: backend/go.sum
+
+      - name: 🔍 Run Go Vet & Format Check
+        run: |
+          go vet ./...
+          test -z "$(gofmt -l .)" || (echo "Code is not formatted according to gofmt:" && gofmt -l . && exit 1)
+
+  # ============================================================================
+  # JOB 3: Frontend TypeScript & Production Build Verification
+  # ============================================================================
+  frontend-build:
+    name: Frontend TypeScript & Build Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: ⚡ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 📦 Install Frontend Dependencies
+        run: npm ci
+
+      - name: 🏗️ Build Frontend (TypeScript & Vite)
+        run: npm run build
