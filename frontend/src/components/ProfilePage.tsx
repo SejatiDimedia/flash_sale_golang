@@ -68,40 +68,40 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   };
 
   return (
-    <div className="space-y-4 animate-fadeIn">
+    <div className="space-y-4 animate-fadeIn pb-6">
       {/* Top Header Bar for Profile Page */}
-      <div className="w-full bg-slate-900 p-4 border-b border-slate-800 text-white shadow-sm">
+      <div className="w-full bg-dark-900 p-4 border-b border-dark-700 text-white">
         <div className="flex items-center justify-between mb-3">
           <button
             onClick={onBack}
-            className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition-colors border border-slate-700"
+            className="w-9 h-9 rounded-full bg-dark-800 hover:bg-dark-750 flex items-center justify-center text-zinc-300 hover:text-white transition-colors border border-dark-700"
             title="Back"
           >
             <FiArrowLeft className="w-4 h-4" />
           </button>
-          <span className="text-xs font-bold tracking-wide uppercase text-slate-400">User Profile</span>
-          <div className="w-8"></div>
+          <span className="text-xs font-bold tracking-wide uppercase text-zinc-400">User Profile</span>
+          <div className="w-9"></div>
         </div>
 
         <div className="flex items-center gap-3.5 pt-1 pb-1">
           <div className="relative shrink-0">
-            <div className="w-14 h-14 rounded-2xl bg-indigo-600 border border-indigo-500 shadow-sm flex items-center justify-center text-white text-lg font-bold tracking-wider">
+            <div className="w-14 h-14 rounded-2xl bg-coral flex items-center justify-center text-white text-base font-black tracking-wider shadow-coral-sm">
               {getInitials(user.name)}
             </div>
-            <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-900 rounded-full"></span>
+            <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-dark-900 rounded-full"></span>
           </div>
 
           <div className="space-y-0.5 overflow-hidden">
             <h2 className="text-base font-bold text-white leading-tight truncate">
               {user.name}
             </h2>
-            <div className="flex items-center gap-1.5 text-xs text-slate-400 truncate">
-              <FiMail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <div className="flex items-center gap-1.5 text-xs text-zinc-400 truncate">
+              <FiMail className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
               <span className="truncate">{user.email}</span>
             </div>
             <div className="pt-1">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-800 text-slate-300 rounded-md text-[10px] font-bold uppercase tracking-wider border border-slate-700">
-                <FiShield className="w-3 h-3 text-indigo-400" />
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-dark-800 text-zinc-300 rounded-full text-[10px] font-bold uppercase tracking-wider border border-dark-700">
+                <FiShield className="w-3 h-3 text-coral" />
                 {user.role}
               </span>
             </div>
@@ -114,18 +114,18 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         {/* Quick Shortcut Card to My Tickets */}
         <div
           onClick={onNavigateTickets}
-          className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center justify-between gap-3 cursor-pointer hover:border-indigo-400 transition-all group"
+          className="bg-dark-800 rounded-3xl p-4 border border-dark-700 shadow-dark-card flex items-center justify-between gap-3 cursor-pointer hover:border-dark-600 transition-all group"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white flex items-center justify-center transition-colors">
+            <div className="w-10 h-10 rounded-2xl bg-dark-750 text-coral group-hover:bg-coral group-hover:text-white flex items-center justify-center transition-colors">
               <HiTicket className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-slate-800">My Tickets</h4>
-              <p className="text-[11px] text-slate-500">View purchased tickets and order history</p>
+              <h4 className="text-xs font-bold text-white">My Tickets</h4>
+              <p className="text-[11px] text-zinc-400">View purchased tickets and order history</p>
             </div>
           </div>
-          <span className="text-xs font-bold text-indigo-600 group-hover:translate-x-1 transition-transform">
+          <span className="text-xs font-bold text-coral group-hover:translate-x-1 transition-transform">
             View →
           </span>
         </div>
@@ -133,78 +133,78 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         {/* 📝 EDIT PROFILE FORM */}
         <form
           onSubmit={handleSaveProfile}
-          className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3.5"
+          className="bg-dark-800 rounded-3xl p-5 border border-dark-700 shadow-dark-card space-y-3.5"
         >
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
-              <FiUser className="w-4 h-4 text-indigo-600" />
+          <div className="flex items-center justify-between pb-2 border-b border-dark-700">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+              <FiUser className="w-4 h-4 text-coral" />
               <span>Profile Settings</span>
             </div>
-            <span className="text-[10px] font-semibold text-slate-500">Role: {user.role.toUpperCase()}</span>
+            <span className="text-[10px] font-semibold text-zinc-400">Role: {user.role.toUpperCase()}</span>
           </div>
 
           {saveSuccess && (
-            <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-medium border border-emerald-200 flex items-center gap-2">
-              <FiCheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+            <div className="p-3 bg-emerald-950/60 text-emerald-300 rounded-2xl text-xs font-medium border border-emerald-500/40 flex items-center gap-2">
+              <FiCheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>{saveSuccess}</span>
             </div>
           )}
 
           {saveError && (
-            <div className="p-3 bg-rose-50 text-rose-700 rounded-xl text-xs font-medium border border-rose-200">
+            <div className="p-3 bg-rose-950/60 text-rose-300 rounded-2xl text-xs font-medium border border-rose-500/40">
               {saveError}
             </div>
           )}
 
           {/* Edit Name */}
           <div>
-            <label className="block text-[11px] font-bold text-slate-700 mb-1">
+            <label className="block text-[11px] font-bold text-zinc-300 mb-1">
               Full Name
             </label>
             <div className="relative">
-              <FiUser className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+              <FiUser className="absolute left-3.5 top-3 w-4 h-4 text-zinc-500" />
               <input
                 type="text"
                 required
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
                 placeholder="Full Name"
-                className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors"
+                className="w-full pl-10 pr-3 py-2.5 bg-dark-750 border border-dark-700 rounded-xl text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-coral transition-colors"
               />
             </div>
           </div>
 
           {/* Edit Email */}
           <div>
-            <label className="block text-[11px] font-bold text-slate-700 mb-1">
+            <label className="block text-[11px] font-bold text-zinc-300 mb-1">
               Email Address
             </label>
             <div className="relative">
-              <FiMail className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+              <FiMail className="absolute left-3.5 top-3 w-4 h-4 text-zinc-500" />
               <input
                 type="email"
                 required
                 value={editEmail}
                 onChange={(e) => setEditEmail(e.target.value)}
                 placeholder="name@example.com"
-                className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors"
+                className="w-full pl-10 pr-3 py-2.5 bg-dark-750 border border-dark-700 rounded-xl text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-coral transition-colors"
               />
             </div>
           </div>
 
           {/* Edit Password */}
           <div>
-            <label className="block text-[11px] font-bold text-slate-700 mb-1">
-              New Password <span className="text-slate-400 font-normal">(Leave blank to keep unchanged)</span>
+            <label className="block text-[11px] font-bold text-zinc-300 mb-1">
+              New Password <span className="text-zinc-500 font-normal">(Leave blank to keep unchanged)</span>
             </label>
             <div className="relative">
-              <FiLock className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+              <FiLock className="absolute left-3.5 top-3 w-4 h-4 text-zinc-500" />
               <input
                 type="password"
                 value={editPassword}
                 onChange={(e) => setEditPassword(e.target.value)}
                 placeholder="New password (min. 6 characters)"
-                className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors"
+                className="w-full pl-10 pr-3 py-2.5 bg-dark-750 border border-dark-700 rounded-xl text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-coral transition-colors"
               />
             </div>
           </div>
@@ -214,7 +214,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             <button
               type="submit"
               disabled={isSaving}
-              className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3 bg-coral hover:bg-coral-hover text-white rounded-full text-xs font-bold shadow-coral transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {isSaving ? (
                 <>
@@ -233,23 +233,23 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 
         {/* Security & Account Badges */}
         <div className="grid grid-cols-2 gap-2.5">
-          <div className="bg-white rounded-xl p-3 border border-slate-200 shadow-sm flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+          <div className="bg-dark-800 rounded-2xl p-3.5 border border-dark-700 shadow-dark-card flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-dark-750 text-emerald-400 flex items-center justify-center shrink-0">
               <FiAward className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-800 block">Verified Account</span>
-              <span className="text-[10px] text-slate-500">Active Login Session</span>
+              <span className="text-xs font-bold text-white block">Verified Account</span>
+              <span className="text-[10px] text-zinc-400">Active Login Session</span>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-3 border border-slate-200 shadow-sm flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+          <div className="bg-dark-800 rounded-2xl p-3.5 border border-dark-700 shadow-dark-card flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-dark-750 text-coral flex items-center justify-center shrink-0">
               <FiKey className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-800 block">JWT Security</span>
-              <span className="text-[10px] text-slate-500">Valid Bearer Token</span>
+              <span className="text-xs font-bold text-white block">JWT Security</span>
+              <span className="text-[10px] text-zinc-400">Valid Bearer Token</span>
             </div>
           </div>
         </div>
@@ -258,7 +258,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         <div className="pt-1">
           <button
             onClick={onLogout}
-            className="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-rose-200"
+            className="w-full py-3 bg-dark-800 hover:bg-rose-950/40 text-rose-400 rounded-full text-xs font-bold transition-all flex items-center justify-center gap-2 border border-dark-700"
           >
             <FiLogOut className="w-4 h-4" />
             <span>Sign Out (Logout)</span>

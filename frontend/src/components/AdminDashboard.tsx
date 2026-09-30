@@ -178,12 +178,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   return (
-    <div className="space-y-4 animate-fadeIn">
+    <div className="space-y-4 animate-fadeIn pb-6">
       {/* Event Selector & Quick Action Card */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+      <div className="bg-dark-800 rounded-3xl p-4 shadow-dark-card border border-dark-700">
         <div className="flex items-center justify-between gap-2 mb-2">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-            <FiShield className="w-4 h-4 text-indigo-600" />
+          <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+            <FiShield className="w-4 h-4 text-coral" />
             <span>Select Flash Sale Event</span>
           </div>
           <button
@@ -191,7 +191,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               fetchOrders();
               onRefreshEvents();
             }}
-            className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 transition-colors"
+            className="p-2 bg-dark-750 hover:bg-dark-700 rounded-full text-zinc-400 hover:text-white transition-colors border border-dark-700"
             title="Reload Data"
           >
             <FiRefreshCw className={`w-3.5 h-3.5 ${isLoadingOrders ? 'animate-spin' : ''}`} />
@@ -201,10 +201,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <select
           value={selectedEventId}
           onChange={(e) => setSelectedEventId(e.target.value)}
-          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 cursor-pointer mb-2.5"
+          className="w-full px-3 py-2.5 bg-dark-750 border border-dark-700 rounded-xl text-xs font-semibold text-white outline-none focus:border-coral cursor-pointer mb-3"
         >
           {events.map((e) => (
-            <option key={e.id} value={e.id}>
+            <option key={e.id} value={e.id} className="bg-dark-800 text-white">
               {e.name} (Stock: {e.availableStock}/{e.totalStock})
             </option>
           ))}
@@ -213,7 +213,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         {/* ➕ Navigate to Create Event Page */}
         <button
           onClick={onNavigateCreateEvent}
-          className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-colors flex items-center justify-center gap-1.5"
+          className="w-full py-2.5 bg-coral hover:bg-coral-hover text-white rounded-full text-xs font-bold shadow-coral transition-colors flex items-center justify-center gap-1.5"
         >
           <FiPlus className="w-3.5 h-3.5" />
           <span>Create New Flash Sale Event</span>
@@ -223,72 +223,72 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* 2x2 Mobile KPI Grid */}
       <div className="grid grid-cols-2 gap-2.5">
         {/* Card 1: Tickets Sold */}
-        <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div className="bg-dark-800 rounded-3xl p-3.5 border border-dark-700 shadow-dark-card flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tickets Sold</span>
-            <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Tickets Sold</span>
+            <div className="w-7 h-7 rounded-xl bg-dark-750 text-coral flex items-center justify-center">
               <HiTicket className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <div className="text-xl font-extrabold text-slate-900 leading-none mb-1">
-              {totalSold} <span className="text-[11px] text-slate-400 font-semibold">/ {currentEvent?.totalStock || 0}</span>
+            <div className="text-xl font-black text-white leading-none mb-1">
+              {totalSold} <span className="text-[11px] text-zinc-500 font-semibold">/ {currentEvent?.totalStock || 0}</span>
             </div>
-            <span className="text-[10px] font-semibold text-emerald-700 flex items-center gap-1">
+            <span className="text-[10px] font-semibold text-emerald-400 flex items-center gap-1">
               <FiCheckCircle className="w-3 h-3" /> Stock Controlled
             </span>
           </div>
         </div>
 
         {/* Card 2: Total Revenue */}
-        <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div className="bg-dark-800 rounded-3xl p-3.5 border border-dark-700 shadow-dark-card flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Revenue</span>
-            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Total Revenue</span>
+            <div className="w-7 h-7 rounded-xl bg-dark-750 text-emerald-400 flex items-center justify-center">
               <FiDollarSign className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <div className="text-base font-extrabold text-slate-900 leading-none mb-1 truncate">
+            <div className="text-base font-black text-coral leading-none mb-1 truncate">
               {formatPrice(totalRevenue)}
             </div>
-            <span className="text-[10px] font-medium text-slate-500 block">
+            <span className="text-[10px] font-medium text-zinc-500 block">
               Recorded in PostgreSQL
             </span>
           </div>
         </div>
 
         {/* Card 3: Redis Live Stock */}
-        <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div className="bg-dark-800 rounded-3xl p-3.5 border border-dark-700 shadow-dark-card flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Redis In-Memory Stock</span>
-            <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Redis In-Memory Stock</span>
+            <div className="w-7 h-7 rounded-xl bg-dark-750 text-coral flex items-center justify-center">
               <FiActivity className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <div className="text-xl font-extrabold text-slate-900 leading-none mb-1">
-              {currentEvent?.availableStock || 0} <span className="text-[11px] text-slate-400 font-semibold">Tickets</span>
+            <div className="text-xl font-black text-white leading-none mb-1">
+              {currentEvent?.availableStock || 0} <span className="text-[11px] text-zinc-500 font-semibold">Tickets</span>
             </div>
-            <span className="text-[10px] font-semibold text-slate-500 block">
+            <span className="text-[10px] font-semibold text-zinc-400 block">
               Atomic Lua Quota
             </span>
           </div>
         </div>
 
         {/* Card 4: DB Queue */}
-        <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div className="bg-dark-800 rounded-3xl p-3.5 border border-dark-700 shadow-dark-card flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Worker Queue</span>
-            <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Worker Queue</span>
+            <div className="w-7 h-7 rounded-xl bg-dark-750 text-blue-400 flex items-center justify-center">
               <FiUsers className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <div className="text-xl font-extrabold text-slate-900 leading-none mb-1">
-              {pendingOrders} <span className="text-[11px] text-slate-400 font-semibold">Pending</span>
+            <div className="text-xl font-black text-white leading-none mb-1">
+              {pendingOrders} <span className="text-[11px] text-zinc-500 font-semibold">Pending</span>
             </div>
-            <span className="text-[10px] font-semibold text-blue-700 block">
+            <span className="text-[10px] font-semibold text-blue-400 block">
               10 RabbitMQ Consumers
             </span>
           </div>
@@ -296,18 +296,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       {/* 🎟️ WAITING ROOM ADMISSION GATEKEEPER & MODE SWITCH CARD */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
+      <div className="bg-dark-800 rounded-3xl p-4 shadow-dark-card border border-dark-700 space-y-3">
         {/* Header with Live Status Tag */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-              <FiUsers className="w-4 h-4 text-indigo-600" />
+            <div className="w-8 h-8 rounded-xl bg-dark-750 text-coral flex items-center justify-center shrink-0">
+              <FiUsers className="w-4 h-4 text-coral" />
             </div>
             <div>
-              <h3 className="text-xs font-bold text-slate-900 leading-tight">
+              <h3 className="text-xs font-bold text-white leading-tight">
                 Queue Gatekeeper
               </h3>
-              <p className="text-[10px] text-slate-500">
+              <p className="text-[10px] text-zinc-400">
                 Traffic pacing for waiting room & checkout
               </p>
             </div>
@@ -316,13 +316,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <span
             className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${
               gateMode === 'AUTO'
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                : 'bg-amber-50 text-amber-800 border-amber-200'
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
             }`}
           >
             <span
               className={`w-1.5 h-1.5 rounded-full ${
-                gateMode === 'AUTO' ? 'bg-emerald-500' : 'bg-amber-500 animate-ping'
+                gateMode === 'AUTO' ? 'bg-emerald-400' : 'bg-amber-400 animate-ping'
               }`}
             ></span>
             <span>{gateMode === 'AUTO' ? 'Auto-Pass' : 'Surge Queue'}</span>
@@ -330,20 +330,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
 
         {/* 🔄 MODE TOGGLE SWITCH: AUTO-PASS VS SURGE QUEUE */}
-        <div className="bg-slate-100 p-1 rounded-xl flex items-center gap-1">
+        <div className="bg-dark-900 p-1 rounded-xl flex items-center gap-1 border border-dark-700">
           <button
             type="button"
             disabled={isTogglingMode}
             onClick={() => handleToggleGateMode('AUTO')}
             className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
               gateMode === 'AUTO'
-                ? 'bg-white text-emerald-700 shadow-sm border border-slate-200/80'
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'bg-dark-750 text-white shadow-sm border border-dark-600'
+                : 'text-zinc-400 hover:text-white'
             }`}
           >
             <span
               className={`w-2 h-2 rounded-full ${
-                gateMode === 'AUTO' ? 'bg-emerald-500' : 'bg-slate-300'
+                gateMode === 'AUTO' ? 'bg-emerald-400' : 'bg-dark-700'
               }`}
             ></span>
             <span>Auto-Pass (Direct)</span>
@@ -355,13 +355,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             onClick={() => handleToggleGateMode('MANUAL')}
             className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
               gateMode === 'MANUAL'
-                ? 'bg-white text-indigo-700 shadow-sm border border-slate-200/80'
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'bg-coral text-white shadow-coral'
+                : 'text-zinc-400 hover:text-white'
             }`}
           >
             <span
               className={`w-2 h-2 rounded-full ${
-                gateMode === 'MANUAL' ? 'bg-amber-500 animate-pulse' : 'bg-slate-300'
+                gateMode === 'MANUAL' ? 'bg-white animate-pulse' : 'bg-dark-700'
               }`}
             ></span>
             <span>Surge Gate (Paced)</span>
@@ -370,13 +370,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
         {/* 🟢 IF AUTO-PASS IS ACTIVE: Show Status Info */}
         {gateMode === 'AUTO' ? (
-          <div className="p-3 bg-emerald-50/80 rounded-xl border border-emerald-100 flex items-center gap-2.5 animate-fadeIn">
-            <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+          <div className="p-3 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 flex items-center gap-2.5 animate-fadeIn">
+            <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
               <FiCheckCircle className="w-4 h-4" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-emerald-900">Direct Checkout Active</h4>
-              <p className="text-[10px] text-emerald-700 font-medium leading-tight">
+              <h4 className="text-xs font-bold text-emerald-300">Direct Checkout Active</h4>
+              <p className="text-[10px] text-emerald-400/80 font-medium leading-tight">
                 Users enter checkout directly without waiting in the virtual waiting room.
               </p>
             </div>
@@ -386,9 +386,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <div className="space-y-3 pt-1 animate-fadeIn">
             {/* Preset Quick Batch Buttons */}
             <div>
-              <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1.5">
+              <div className="flex items-center justify-between text-[11px] font-bold text-zinc-300 mb-1.5">
                 <span>Select Admission Batch:</span>
-                <span className="text-indigo-600 font-extrabold">{batchSize} Users / Batch</span>
+                <span className="text-coral font-extrabold">{batchSize} Users / Batch</span>
               </div>
 
               <div className="grid grid-cols-5 gap-1.5">
@@ -399,8 +399,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     onClick={() => setBatchSize(preset)}
                     className={`py-1 rounded-lg text-xs font-bold transition-all border text-center ${
                       batchSize === preset
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
+                        ? 'bg-coral text-white border-coral shadow-coral'
+                        : 'bg-dark-750 text-zinc-300 border-dark-700 hover:border-dark-600 hover:text-white'
                     }`}
                   >
                     +{preset}
@@ -411,10 +411,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
             {/* Stepper + Big Action Button */}
             <div className="flex items-center gap-2 pt-0.5">
-              <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-slate-200 shrink-0">
+              <div className="flex items-center gap-1 bg-dark-750 p-1 rounded-xl border border-dark-700 shrink-0">
                 <button
                   onClick={() => setBatchSize(Math.max(1, batchSize - 5))}
-                  className="w-7 h-7 rounded-lg bg-white text-slate-700 font-bold hover:bg-slate-100 flex items-center justify-center text-xs shadow-xs border border-slate-200"
+                  className="w-7 h-7 rounded-lg bg-dark-800 text-zinc-300 font-bold hover:bg-dark-700 hover:text-white flex items-center justify-center text-xs border border-dark-700"
                 >
                   -
                 </button>
@@ -426,11 +426,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   onChange={(e) =>
                     setBatchSize(Math.max(1, Math.min(100, Number(e.target.value))))
                   }
-                  className="w-9 bg-transparent text-xs font-bold text-center text-slate-800 outline-none"
+                  className="w-9 bg-transparent text-xs font-bold text-center text-white outline-none"
                 />
                 <button
                   onClick={() => setBatchSize(Math.min(100, batchSize + 5))}
-                  className="w-7 h-7 rounded-lg bg-white text-slate-700 font-bold hover:bg-slate-100 flex items-center justify-center text-xs shadow-xs border border-slate-200"
+                  className="w-7 h-7 rounded-lg bg-dark-800 text-zinc-300 font-bold hover:bg-dark-700 hover:text-white flex items-center justify-center text-xs border border-dark-700"
                 >
                   +
                 </button>
@@ -439,7 +439,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <button
                 onClick={handleAdmit}
                 disabled={isAdmitting || !selectedEventId}
-                className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="flex-1 py-2 bg-coral hover:bg-coral-hover text-white rounded-xl text-xs font-bold shadow-coral transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {isAdmitting ? (
                   <>
@@ -462,14 +462,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <div
             className={`p-3 rounded-xl text-xs font-medium border flex items-center gap-2 animate-fadeIn ${
               admitMsg.type === 'success'
-                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                : 'bg-rose-50 text-rose-800 border-rose-200'
+                ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+                : 'bg-rose-500/10 text-rose-300 border-rose-500/30'
             }`}
           >
             {admitMsg.type === 'success' ? (
-              <FiCheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+              <FiCheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
             ) : (
-              <FiXCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <FiXCircle className="w-4 h-4 text-rose-400 shrink-0" />
             )}
             <span>{admitMsg.text}</span>
           </div>
@@ -479,7 +479,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* Real-Time Orders List (Mobile Cards) */}
       <div className="space-y-2.5">
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+          <h3 className="text-xs font-bold text-white uppercase tracking-wider">
             Incoming Orders ({filteredOrders.length})
           </h3>
 
@@ -489,10 +489,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <button
                 key={st}
                 onClick={() => setStatusFilter(st)}
-                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-all ${
                   statusFilter === st
-                    ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'
+                    ? 'bg-coral text-white shadow-coral'
+                    : 'bg-dark-800 text-zinc-400 border border-dark-700 hover:border-dark-600 hover:text-white'
                 }`}
               >
                 {st}
@@ -502,47 +502,47 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
 
         {filteredOrders.length === 0 ? (
-          <div className="bg-white rounded-2xl p-6 text-center border border-slate-200 shadow-sm">
-            <p className="text-xs font-medium text-slate-400">No orders found with status {statusFilter}.</p>
+          <div className="bg-dark-800 rounded-3xl p-6 text-center border border-dark-700 shadow-dark-card">
+            <p className="text-xs font-medium text-zinc-500">No orders found with status {statusFilter}.</p>
           </div>
         ) : (
           <div className="space-y-2">
             {filteredOrders.map((o) => (
               <div
                 key={o.id}
-                className="bg-white rounded-xl p-3 border border-slate-200 shadow-sm hover:border-slate-300 transition-all flex items-center justify-between gap-2"
+                className="bg-dark-800 rounded-2xl p-3 border border-dark-700 shadow-dark-card hover:border-dark-600 transition-all flex items-center justify-between gap-2"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-[11px] font-bold text-slate-700 truncate max-w-[120px]">
+                    <span className="font-mono text-[11px] font-bold text-zinc-200 truncate max-w-[120px]">
                       {o.id}
                     </span>
                     <span
                       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
                         o.status === 'CONFIRMED'
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
                           : o.status === 'PENDING'
-                          ? 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse'
-                          : 'bg-rose-50 text-rose-700 border border-rose-200'
+                          ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30 animate-pulse'
+                          : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
                       }`}
                     >
                       <span
                         className={`w-1.5 h-1.5 rounded-full ${
                           o.status === 'CONFIRMED'
-                            ? 'bg-emerald-500'
+                            ? 'bg-emerald-400'
                             : o.status === 'PENDING'
-                            ? 'bg-amber-500'
-                            : 'bg-rose-500'
+                            ? 'bg-amber-400'
+                            : 'bg-rose-400'
                         }`}
                       ></span>
                       {o.status}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                  <div className="flex items-center gap-2 text-[10px] text-zinc-400">
                     <span>{o.quantity} Tickets</span>
                     <span>•</span>
-                    <span className="font-bold text-slate-800">{formatPrice(o.totalPrice)}</span>
+                    <span className="font-bold text-white">{formatPrice(o.totalPrice)}</span>
                     <span>•</span>
                     <span>{new Date(o.createdAt).toLocaleTimeString('en-US')}</span>
                   </div>
@@ -550,9 +550,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                 <button
                   onClick={() => handleViewLogs(o.id)}
-                  className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-semibold border border-slate-200 flex items-center gap-1 shrink-0 transition-colors"
+                  className="px-2.5 py-1 bg-dark-750 hover:bg-dark-700 text-zinc-300 hover:text-white rounded-lg text-[10px] font-semibold border border-dark-700 flex items-center gap-1 shrink-0 transition-colors"
                 >
-                  <FiFileText className="w-3 h-3" />
+                  <FiFileText className="w-3 h-3 text-coral" />
                   <span>Logs</span>
                 </button>
               </div>
@@ -564,23 +564,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* 🔍 SIMPLE & CLEAN AUDIT TRAIL MODAL WITH FULL SCREEN BACKDROP VIA PORTAL */}
       {selectedOrderLogs &&
         createPortal(
-          <div className="fixed inset-0 z-[99999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-            <div className="relative w-full max-w-sm bg-white rounded-2xl p-5 shadow-2xl border border-slate-200 max-h-[85vh] flex flex-col justify-between overflow-hidden">
+          <div className="fixed inset-0 z-[99999] bg-black/70 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+            <div className="relative w-full max-w-sm bg-dark-900 rounded-3xl p-5 shadow-2xl border border-dark-700 max-h-[85vh] flex flex-col justify-between overflow-hidden">
               {/* Header */}
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center justify-between pb-3 border-b border-dark-800">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                    <FiFileText className="w-4 h-4 text-indigo-600" />
+                  <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
+                    <FiFileText className="w-4 h-4 text-coral" />
                     <span>Audit Trail Logs</span>
                   </h3>
-                  <p className="text-[10px] text-slate-500 font-mono mt-0.5 truncate max-w-[220px]">
+                  <p className="text-[10px] text-zinc-400 font-mono mt-0.5 truncate max-w-[220px]">
                     Order ID: {selectedOrderId}
                   </p>
                 </div>
 
                 <button
                   onClick={() => setSelectedOrderLogs(null)}
-                  className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors"
+                  className="w-7 h-7 rounded-lg bg-dark-800 hover:bg-dark-750 text-zinc-400 hover:text-white flex items-center justify-center transition-colors"
                 >
                   <FiX className="w-4 h-4" />
                 </button>
@@ -589,7 +589,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {/* Simple Log Items List */}
               <div className="overflow-y-auto no-scrollbar flex-1 py-3 space-y-2">
                 {selectedOrderLogs.length === 0 ? (
-                  <div className="text-center py-8 text-slate-400 text-xs font-medium">
+                  <div className="text-center py-8 text-zinc-500 text-xs font-medium">
                     No audit logs recorded for this order yet.
                   </div>
                 ) : (
@@ -598,19 +598,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     return (
                       <div
                         key={log.id}
-                        className="bg-slate-50 rounded-xl p-3 border border-slate-200 space-y-1"
+                        className="bg-dark-800 rounded-2xl p-3 border border-dark-700 space-y-1"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-mono font-bold text-[10px] text-indigo-700 bg-white px-2 py-0.5 rounded border border-slate-200">
+                          <span className="font-mono font-bold text-[10px] text-coral bg-coral/10 px-2 py-0.5 rounded-full border border-coral/20">
                             {index + 1}. {log.eventType}
                           </span>
-                          <span className="text-[10px] font-medium text-slate-500 flex items-center gap-0.5">
+                          <span className="text-[10px] font-medium text-zinc-400 flex items-center gap-0.5">
                             <FiClock className="w-2.5 h-2.5" />
                             {new Date(log.createdAt).toLocaleTimeString('en-US')}
                           </span>
                         </div>
 
-                        <p className="text-[11px] text-slate-600 font-normal leading-relaxed pt-0.5">
+                        <p className="text-[11px] text-zinc-300 font-normal leading-relaxed pt-0.5">
                           {meta.desc}
                         </p>
                       </div>
@@ -620,10 +620,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
 
               {/* Footer */}
-              <div className="pt-2 border-t border-slate-100">
+              <div className="pt-3 border-t border-dark-800">
                 <button
                   onClick={() => setSelectedOrderLogs(null)}
-                  className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors"
+                  className="w-full py-2.5 bg-dark-800 hover:bg-dark-750 text-white rounded-xl text-xs font-bold transition-colors border border-dark-700"
                 >
                   Close Audit Trail
                 </button>

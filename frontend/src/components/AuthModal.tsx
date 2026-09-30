@@ -60,56 +60,56 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[99999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-      <div className="relative w-full max-w-sm bg-white rounded-2xl p-6 shadow-2xl border border-slate-200">
+    <div className="fixed inset-0 z-[99999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+      <div className="relative w-full max-w-sm bg-dark-900 rounded-3xl p-6 shadow-2xl border border-dark-700">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors"
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-dark-800 hover:bg-dark-750 text-zinc-400 hover:text-white flex items-center justify-center transition-colors border border-dark-700"
         >
           <FiX className="w-4 h-4" />
         </button>
 
         <div className="text-center mb-5">
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-2.5">
-            <FiUser className="w-5 h-5" />
+          <div className="w-12 h-12 rounded-2xl bg-dark-800 text-coral flex items-center justify-center mx-auto mb-2.5 border border-dark-700 shadow-sm">
+            <FiUser className="w-6 h-6" />
           </div>
-          <h3 className="text-lg font-bold text-slate-900">
+          <h3 className="text-lg font-bold text-white">
             {isLogin ? 'Sign In to Account' : 'Create New Account'}
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-zinc-400 mt-0.5">
             {isLogin ? 'Use your admin or customer account to sign in' : 'Create an account to join flash sales and secure tickets'}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-3.5">
           {!isLogin && (
             <>
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
+                <label className="block text-xs font-bold text-zinc-300 mb-1">Full Name</label>
                 <div className="relative">
-                  <FiUser className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+                  <FiUser className="absolute left-3.5 top-3 w-4 h-4 text-zinc-500" />
                   <input
                     type="text"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Full Name"
-                    className="w-full pl-10 pr-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:bg-white focus:border-indigo-500 outline-none transition-colors"
+                    className="w-full pl-10 pr-3 py-2.5 bg-dark-800 rounded-xl border border-dark-700 text-xs font-medium text-white placeholder-zinc-500 focus:outline-none focus:border-coral transition-colors"
                   />
                 </div>
               </div>
 
               {/* Role Selection */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Account Role</label>
+                <label className="block text-xs font-bold text-zinc-300 mb-1">Account Role</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setRole('user')}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border ${
+                    className={`py-2 px-3 rounded-full text-xs font-bold transition-all border ${
                       role === 'user'
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
+                        ? 'bg-coral text-white border-coral shadow-coral-sm'
+                        : 'bg-dark-800 text-zinc-400 border-dark-700 hover:text-white'
                     }`}
                   >
                     Customer
@@ -117,10 +117,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                   <button
                     type="button"
                     onClick={() => setRole('admin')}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border flex items-center justify-center gap-1 ${
+                    className={`py-2 px-3 rounded-full text-xs font-bold transition-all border flex items-center justify-center gap-1 ${
                       role === 'admin'
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
+                        ? 'bg-coral text-white border-coral shadow-coral-sm'
+                        : 'bg-dark-800 text-zinc-400 border-dark-700 hover:text-white'
                     }`}
                   >
                     <FiShield className="w-3.5 h-3.5" />
@@ -132,37 +132,37 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           )}
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
+            <label className="block text-xs font-bold text-zinc-300 mb-1">Email Address</label>
             <div className="relative">
-              <FiMail className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+              <FiMail className="absolute left-3.5 top-3 w-4 h-4 text-zinc-500" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@example.com"
-                className="w-full pl-10 pr-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:bg-white focus:border-indigo-500 outline-none transition-colors"
+                className="w-full pl-10 pr-3 py-2.5 bg-dark-800 rounded-xl border border-dark-700 text-xs font-medium text-white placeholder-zinc-500 focus:outline-none focus:border-coral transition-colors"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Password</label>
+            <label className="block text-xs font-bold text-zinc-300 mb-1">Password</label>
             <div className="relative">
-              <FiLock className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+              <FiLock className="absolute left-3.5 top-3 w-4 h-4 text-zinc-500" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-10 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:bg-white focus:border-indigo-500 outline-none transition-colors"
+                className="w-full pl-10 pr-10 py-2.5 bg-dark-800 rounded-xl border border-dark-700 text-xs font-medium text-white placeholder-zinc-500 focus:outline-none focus:border-coral transition-colors"
               />
               {/* 👁️ Show / Hide Password Toggle */}
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition-colors"
+                className="absolute right-3 top-3 text-zinc-500 hover:text-white transition-colors"
                 title={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
@@ -171,7 +171,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           </div>
 
           {error && (
-            <div className="p-3 bg-rose-50 text-rose-700 rounded-xl text-xs font-medium border border-rose-200">
+            <div className="p-3 bg-rose-950/60 border border-rose-500/40 text-rose-300 rounded-xl text-xs font-medium">
               {error}
             </div>
           )}
@@ -179,7 +179,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-2.5 rounded-xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full py-3 rounded-full font-bold text-xs text-white bg-coral hover:bg-coral-hover active:bg-coral-active shadow-coral transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {isLoading ? (
               <CgSpinner className="w-4 h-4 animate-spin" />
@@ -197,7 +197,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
               setIsLogin(!isLogin);
               setError(null);
             }}
-            className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
+            className="text-xs font-semibold text-coral hover:text-coral-hover transition-colors"
           >
             {isLogin ? "Don't have an account? Sign up here" : "Already have an account? Sign in here"}
           </button>

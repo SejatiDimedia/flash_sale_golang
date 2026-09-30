@@ -267,9 +267,9 @@ export function App() {
   const unreadNotifsCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="min-h-screen bg-slate-100/90 text-slate-900 font-sans flex justify-center antialiased">
+    <div className="min-h-screen bg-dark-950 text-white font-sans flex justify-center antialiased">
       {/* 📱 MOBILE FRAME CONTAINER (Centering on Desktop & Full View on Mobile) */}
-      <div className="w-full max-w-md min-h-screen bg-white shadow-2xl border-x border-slate-200/90 relative flex flex-col justify-between pb-24">
+      <div className="w-full max-w-md min-h-screen bg-dark-900 shadow-2xl border-x border-dark-700/70 relative flex flex-col justify-between pb-24">
         <div>
           {/* 1. 👤 FULL PAGE: PROFILE & SETTINGS */}
           {currentView === 'profile' ? (
@@ -341,25 +341,25 @@ export function App() {
                   />
 
                   <div className="flex items-center justify-between px-1">
-                    <h2 className="text-sm font-bold text-slate-900 tracking-tight">
+                    <h2 className="text-sm font-bold text-white tracking-tight">
                       Active Flash Sale Events
                     </h2>
                     <button
                       onClick={() => setSelectedCategory('all')}
-                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
+                      className="text-xs font-semibold text-coral hover:text-coral-hover transition-colors"
                     >
                       View All ({filteredEvents.length})
                     </button>
                   </div>
 
                   {isLoadingEvents ? (
-                    <div className="flex flex-col items-center justify-center py-16 gap-3 bg-slate-50 rounded-2xl border border-slate-200">
-                      <CgSpinner className="w-8 h-8 text-indigo-600 animate-spin" />
-                      <span className="text-xs font-semibold text-slate-500">Loading flash sale events...</span>
+                    <div className="flex flex-col items-center justify-center py-16 gap-3 bg-dark-800 rounded-2xl border border-dark-700">
+                      <CgSpinner className="w-8 h-8 text-coral animate-spin" />
+                      <span className="text-xs font-semibold text-zinc-400">Loading flash sale events...</span>
                     </div>
                   ) : filteredEvents.length === 0 ? (
-                    <div className="bg-slate-50 rounded-2xl p-8 text-center border border-slate-200">
-                      <p className="text-xs font-semibold text-slate-500">No active flash sale events found.</p>
+                    <div className="bg-dark-800 rounded-2xl p-8 text-center border border-dark-700">
+                      <p className="text-xs font-semibold text-zinc-400">No active flash sale events found.</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -379,23 +379,24 @@ export function App() {
           )}
         </div>
 
-        {/* 📱 MOBILE BOTTOM NAVIGATION DOCK (Always visible on mobile frame) */}
+        {/* 📱 MOBILE BOTTOM NAVIGATION DOCK (Matches Reference UI Style) */}
         <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-full max-w-md px-4 pointer-events-none">
-          <div className="bg-slate-900/95 backdrop-blur-xl rounded-2xl p-2 shadow-dock border border-slate-700/80 flex items-center justify-around pointer-events-auto">
+          <div className="bg-dark-850/95 backdrop-blur-xl rounded-full p-1.5 shadow-dock border border-dark-700/80 flex items-center justify-around pointer-events-auto">
             {/* 1. Home Tab */}
             <button
               onClick={() => {
                 setCurrentView('home');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+              className={`transition-all flex items-center gap-1.5 ${
                 currentView === 'home'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-coral text-white px-3.5 py-1.5 rounded-full font-bold text-xs shadow-coral-sm'
+                  : 'text-zinc-500 hover:text-zinc-300 p-2 rounded-full'
               }`}
               title="Event Catalog"
             >
-              <RiHome5Fill className="w-5 h-5" />
+              <RiHome5Fill className="w-4 h-4" />
+              {currentView === 'home' && <span>Home</span>}
             </button>
 
             {/* 2. Admin Tab (Only if admin role) */}
@@ -405,14 +406,15 @@ export function App() {
                   setCurrentView('admin');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                className={`transition-all flex items-center gap-1.5 ${
                   currentView === 'admin' || currentView === 'create_event'
-                    ? 'bg-amber-500 text-slate-950 font-bold shadow-sm'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-coral text-white px-3.5 py-1.5 rounded-full font-bold text-xs shadow-coral-sm'
+                    : 'text-zinc-500 hover:text-zinc-300 p-2 rounded-full'
                 }`}
                 title="Admin Dashboard"
               >
-                <FiShield className="w-5 h-5" />
+                <FiShield className="w-4 h-4" />
+                {(currentView === 'admin' || currentView === 'create_event') && <span>Admin</span>}
               </button>
             )}
 
@@ -426,14 +428,15 @@ export function App() {
                   setIsAuthOpen(true);
                 }
               }}
-              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+              className={`transition-all flex items-center gap-1.5 ${
                 currentView === 'tickets'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-coral text-white px-3.5 py-1.5 rounded-full font-bold text-xs shadow-coral-sm'
+                  : 'text-zinc-500 hover:text-zinc-300 p-2 rounded-full'
               }`}
               title="My Tickets"
             >
-              <HiTicket className="w-5 h-5" />
+              <HiTicket className="w-4 h-4" />
+              {currentView === 'tickets' && <span>My Ticket</span>}
             </button>
 
             {/* 4. Profile Tab */}
@@ -446,14 +449,15 @@ export function App() {
                   setIsAuthOpen(true);
                 }
               }}
-              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+              className={`transition-all flex items-center gap-1.5 ${
                 currentView === 'profile'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-coral text-white px-3.5 py-1.5 rounded-full font-bold text-xs shadow-coral-sm'
+                  : 'text-zinc-500 hover:text-zinc-300 p-2 rounded-full'
               }`}
               title={user ? 'My Profile' : 'Sign In / Register'}
             >
-              <RiUser3Line className="w-5 h-5" />
+              <RiUser3Line className="w-4 h-4" />
+              {currentView === 'profile' && <span>Profile</span>}
             </button>
           </div>
         </nav>

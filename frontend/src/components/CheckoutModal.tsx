@@ -92,12 +92,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[99999] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-      <div className="relative w-full max-w-sm bg-white rounded-2xl p-6 shadow-2xl border border-slate-200 overflow-hidden">
+    <div className="fixed inset-0 z-[99999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+      <div className="relative w-full max-w-sm bg-dark-900 rounded-3xl p-6 shadow-2xl border border-dark-700 overflow-hidden">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors"
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-dark-800 hover:bg-dark-750 text-zinc-400 hover:text-white flex items-center justify-center transition-colors border border-dark-700"
           title="Close"
         >
           <FiX className="w-4 h-4" />
@@ -106,63 +106,63 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         {!order ? (
           <div>
             <div className="mb-4 pr-6">
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold mb-1.5 border border-indigo-100">
-                <IoFlash className="w-3.5 h-3.5 text-indigo-600" />
+              <span className="inline-flex items-center gap-1 px-3 py-1 bg-dark-800 text-coral rounded-full text-xs font-bold mb-2 border border-dark-700">
+                <IoFlash className="w-3.5 h-3.5 text-coral" />
                 Express Checkout
               </span>
-              <h2 className="text-lg font-bold text-slate-900 leading-snug">
+              <h2 className="text-lg font-bold text-white leading-snug">
                 {event.name}
               </h2>
-              <p className="text-xs text-slate-500 mt-1">
-                Remaining Quota: <strong className="text-indigo-600 font-bold">{event.availableStock} tickets</strong>
+              <p className="text-xs text-zinc-400 mt-1">
+                Remaining Quota: <strong className="text-coral font-bold">{event.availableStock} tickets</strong>
               </p>
             </div>
 
             {/* Quantity Selector Card */}
-            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-4 space-y-3">
+            <div className="bg-dark-800 rounded-2xl p-4 border border-dark-700 mb-4 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-700">Ticket Quantity (Max. {event.maxPerUser}):</span>
-                <div className="flex items-center gap-3 bg-white rounded-lg p-1 border border-slate-300 shadow-sm">
+                <span className="text-xs font-semibold text-zinc-300">Ticket Quantity (Max. {event.maxPerUser}):</span>
+                <div className="flex items-center gap-3 bg-dark-750 rounded-xl p-1 border border-dark-700 shadow-sm">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-7 h-7 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-sm transition-colors"
+                    className="w-7 h-7 rounded-lg bg-dark-800 hover:bg-dark-700 text-white font-bold flex items-center justify-center text-sm transition-colors border border-dark-700"
                   >
                     -
                   </button>
-                  <span className="font-bold text-sm w-4 text-center text-slate-900">{quantity}</span>
+                  <span className="font-bold text-sm w-4 text-center text-white">{quantity}</span>
                   <button
                     onClick={() => setQuantity(Math.min(event.maxPerUser, quantity + 1))}
-                    className="w-7 h-7 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-sm transition-colors"
+                    className="w-7 h-7 rounded-lg bg-dark-800 hover:bg-dark-700 text-white font-bold flex items-center justify-center text-sm transition-colors border border-dark-700"
                   >
                     +
                   </button>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-slate-200">
-                <span className="text-xs text-slate-500 font-medium">Total Amount:</span>
-                <span className="text-lg font-black text-slate-900 tracking-tight">
+              <div className="flex items-center justify-between pt-2 border-t border-dark-700">
+                <span className="text-xs text-zinc-400 font-medium">Total Amount:</span>
+                <span className="text-lg font-black text-coral tracking-tight">
                   {formatPrice(totalPrice)}
                 </span>
               </div>
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold flex items-center gap-2">
+              <div className="mb-4 p-3 bg-rose-950/60 border border-rose-500/40 text-rose-300 rounded-2xl text-xs font-semibold flex items-center gap-2">
                 <FiAlertCircle className="w-4 h-4 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
-            <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 font-medium mb-4">
-              <FiShield className="w-3.5 h-3.5 text-emerald-600" />
+            <div className="flex items-center justify-center gap-1.5 text-[11px] text-zinc-400 font-medium mb-4">
+              <FiShield className="w-3.5 h-3.5 text-emerald-400" />
               <span>Redis Lua Lock (100% Zero-Oversell Guaranteed)</span>
             </div>
 
             <button
               onClick={handlePurchase}
               disabled={isProcessing || event.availableStock <= 0}
-              className="w-full py-3 rounded-xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 shadow-btn transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3.5 rounded-full font-bold text-xs text-white bg-coral hover:bg-coral-hover active:bg-coral-active shadow-coral transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isProcessing ? (
                 <>
@@ -179,53 +179,53 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           </div>
         ) : (
           <div className="text-center py-2 animate-fadeIn">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-3 border border-emerald-200">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-950/80 text-emerald-400 flex items-center justify-center mx-auto mb-3 border border-emerald-500/40">
               <FiCheckCircle className="w-8 h-8" />
             </div>
 
-            <h3 className="text-lg font-bold text-slate-900 mb-1">
+            <h3 className="text-lg font-bold text-white mb-1">
               Order Confirmed!
             </h3>
-            <p className="text-xs text-slate-500 mb-4">
+            <p className="text-xs text-zinc-400 mb-4">
               Your ticket purchase has been confirmed and quota securely deducted.
             </p>
 
-            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 text-left mb-5">
+            <div className="bg-dark-800 rounded-2xl p-4 border border-dark-700 text-left mb-5">
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div>
-                  <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">
+                  <span className="text-[10px] font-bold text-coral uppercase tracking-wider block">
                     Official E-Ticket
                   </span>
-                  <h4 className="font-bold text-slate-900 text-sm">{event.name}</h4>
+                  <h4 className="font-bold text-white text-sm">{event.name}</h4>
                 </div>
-                <HiTicket className="w-6 h-6 text-indigo-600 shrink-0" />
+                <HiTicket className="w-6 h-6 text-coral shrink-0" />
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200">
+              <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-dark-700">
                 <div>
-                  <span className="text-[10px] text-slate-400 font-medium block">Status</span>
-                  <span className="font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md inline-block">
+                  <span className="text-[10px] text-zinc-500 font-medium block">Status</span>
+                  <span className="font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-500/40 px-2 py-0.5 rounded-md inline-block">
                     {order.status}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 font-medium block">Quantity</span>
-                  <span className="font-bold text-slate-800">{order.quantity} Tickets</span>
+                  <span className="text-[10px] text-zinc-500 font-medium block">Quantity</span>
+                  <span className="font-bold text-white">{order.quantity} Tickets</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 font-medium block">Total Paid</span>
-                  <span className="font-bold text-slate-900">{formatPrice(order.totalPrice)}</span>
+                  <span className="text-[10px] text-zinc-500 font-medium block">Total Paid</span>
+                  <span className="font-bold text-coral">{formatPrice(order.totalPrice)}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 font-medium block">Order ID</span>
-                  <span className="font-mono text-[10px] text-slate-600 truncate block">{order.id}</span>
+                  <span className="text-[10px] text-zinc-500 font-medium block">Order ID</span>
+                  <span className="font-mono text-[10px] text-zinc-400 truncate block">{order.id}</span>
                 </div>
               </div>
             </div>
 
             <button
               onClick={onClose}
-              className="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 transition-colors"
+              className="w-full py-3 rounded-full text-xs font-bold text-white bg-dark-750 hover:bg-dark-700 border border-dark-700 transition-colors"
             >
               Done & Close
             </button>

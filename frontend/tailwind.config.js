@@ -10,41 +10,45 @@ export default {
         sans: ['"Plus Jakarta Sans"', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
       colors: {
+        dark: {
+          950: '#0D0D10', // Desktop outer background
+          900: '#161619', // Mobile container base background
+          850: '#1A1A1E', // Dock and header navigation
+          800: '#222227', // Primary card surface
+          750: '#28282E', // Secondary surface and input fields
+          700: '#32323A', // Subtle borders and dividers
+          600: '#42424D', // Active borders and hover states
+        },
+        coral: {
+          DEFAULT: '#FF5A36', // Electric Coral-Orange primary accent
+          hover: '#FF451A',
+          active: '#E0360D',
+          glow: 'rgba(255, 90, 54, 0.28)',
+          subtle: 'rgba(255, 90, 54, 0.12)',
+        },
         brand: {
           50: '#EEF2FF',
-          100: '#E0E7FF',
-          200: '#C7D2FE',
-          300: '#A5B4FC',
-          400: '#818CF8',
-          500: '#6366F1',
-          600: '#4F46E5', // Primary Brand Color
-          700: '#4338CA',
-          800: '#3730A3',
-          900: '#312E81',
-          950: '#1E1B4B',
+          500: '#FF5A36',
+          600: '#FF5A36',
         },
         app: {
-          bg: '#F8FAFC',
-          card: '#FFFFFF',
-          purple: '#4F46E5', // Repurposed to Electric Indigo
-          violet: '#6366F1',
-          pink: '#E11D48',
-          magenta: '#4338CA',
-          dark: '#0F172A',
-          muted: '#64748B',
+          bg: '#161619',
+          card: '#222227',
+          coral: '#FF5A36',
+          dark: '#0D0D10',
+          muted: '#8E8E93',
         },
       },
       backgroundImage: {
-        'header-gradient': 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-        'purple-btn': 'linear-gradient(135deg, #4F46E5 0%, #4338CA 100%)',
-        'pill-active': 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-        'soft-glow': 'none',
+        'coral-gradient': 'linear-gradient(135deg, #FF643E 0%, #FF451A 100%)',
+        'dark-card': 'linear-gradient(180deg, #242429 0%, #1F1F24 100%)',
+        'dark-dock': 'linear-gradient(180deg, rgba(26, 26, 30, 0.95) 0%, rgba(22, 22, 25, 0.98) 100%)',
       },
       boxShadow: {
-        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05)',
-        'card-hover': '0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04)',
-        'btn': '0 4px 14px 0 rgba(79, 70, 229, 0.25)',
-        'dock': '0 10px 30px -5px rgba(15, 23, 42, 0.12)',
+        'coral': '0 4px 18px 0 rgba(255, 90, 54, 0.35)',
+        'coral-sm': '0 2px 10px 0 rgba(255, 90, 54, 0.25)',
+        'dark-card': '0 4px 20px -2px rgba(0, 0, 0, 0.3)',
+        'dock': '0 -4px 25px 0 rgba(0, 0, 0, 0.45)',
       },
     },
   },

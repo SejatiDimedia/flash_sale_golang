@@ -49,34 +49,34 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
     switch (type) {
       case 'admitted':
         return (
-          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-            <IoFlash className="w-4 h-4 text-emerald-600" />
+          <div className="w-8 h-8 rounded-xl bg-dark-750 text-coral flex items-center justify-center shrink-0">
+            <IoFlash className="w-4 h-4 text-coral" />
           </div>
         );
       case 'order_confirmed':
         return (
-          <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-            <HiTicket className="w-4 h-4 text-indigo-600" />
+          <div className="w-8 h-8 rounded-xl bg-dark-750 text-emerald-400 flex items-center justify-center shrink-0">
+            <HiTicket className="w-4 h-4 text-emerald-400" />
           </div>
         );
       default:
         return (
-          <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-            <FiBell className="w-4 h-4 text-indigo-600" />
+          <div className="w-8 h-8 rounded-xl bg-dark-750 text-coral flex items-center justify-center shrink-0">
+            <FiBell className="w-4 h-4 text-coral" />
           </div>
         );
     }
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[99999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-      <div className="relative w-full max-w-sm bg-white rounded-2xl p-5 shadow-2xl border border-slate-200 max-h-[85vh] flex flex-col justify-between overflow-hidden">
+    <div className="fixed inset-0 z-[99999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+      <div className="relative w-full max-w-sm bg-dark-900 rounded-3xl p-5 shadow-2xl border border-dark-700 max-h-[85vh] flex flex-col justify-between overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="flex items-center justify-between pb-3 border-b border-dark-700">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-bold text-slate-900">Notifications</h3>
+            <h3 className="text-sm font-bold text-white">Notifications</h3>
             {unreadCount > 0 && (
-              <span className="px-2 py-0.5 bg-indigo-600 text-white rounded-full text-[10px] font-bold">
+              <span className="px-2 py-0.5 bg-coral text-white rounded-full text-[10px] font-bold shadow-coral-sm">
                 {unreadCount} New
               </span>
             )}
@@ -86,7 +86,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
             {notifications.length > 0 && (
               <button
                 onClick={onClearAll}
-                className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
+                className="p-2 text-zinc-400 hover:text-rose-400 rounded-full hover:bg-dark-800 transition-colors"
                 title="Clear all notifications"
               >
                 <FiTrash2 className="w-4 h-4" />
@@ -94,7 +94,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
             )}
             <button
               onClick={onClose}
-              className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-full bg-dark-800 hover:bg-dark-750 text-zinc-400 hover:text-white flex items-center justify-center transition-colors border border-dark-700"
             >
               <FiX className="w-4 h-4" />
             </button>
@@ -102,14 +102,14 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
         </div>
 
         {/* Notifications List */}
-        <div className="overflow-y-auto no-scrollbar flex-1 py-3 space-y-2">
+        <div className="overflow-y-auto no-scrollbar flex-1 py-3 space-y-2.5">
           {notifications.length === 0 ? (
             <div className="text-center py-10 space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
-                <FiBell className="w-5 h-5" />
+              <div className="w-12 h-12 rounded-2xl bg-dark-800 text-zinc-500 flex items-center justify-center mx-auto border border-dark-700">
+                <FiBell className="w-6 h-6" />
               </div>
-              <h4 className="text-xs font-bold text-slate-800">No Notifications Yet</h4>
-              <p className="text-[11px] text-slate-500 max-w-[200px] mx-auto">
+              <h4 className="text-xs font-bold text-white">No Notifications Yet</h4>
+              <p className="text-[11px] text-zinc-400 max-w-[200px] mx-auto">
                 Waiting room turn alerts and order confirmation updates will appear here.
               </p>
             </div>
@@ -118,32 +118,32 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
               <div
                 key={n.id}
                 onClick={() => onSelectNotification(n)}
-                className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start gap-3 relative overflow-hidden ${
+                className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 relative overflow-hidden ${
                   !n.read
-                    ? 'bg-indigo-50/50 border-indigo-200 shadow-xs'
-                    : 'bg-white border-slate-200 hover:border-slate-300'
+                    ? 'bg-dark-800 border-coral/40 shadow-dark-card'
+                    : 'bg-dark-800/60 border-dark-700 hover:border-dark-600'
                 }`}
               >
                 {!n.read && (
-                  <span className="absolute top-3 right-3 w-2 h-2 rounded-full bg-indigo-600"></span>
+                  <span className="absolute top-3 right-3 w-2 h-2 rounded-full bg-coral"></span>
                 )}
                 {getIcon(n.type)}
                 <div className="flex-1 space-y-0.5">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold text-slate-900 leading-tight">
+                    <h4 className="text-xs font-bold text-white leading-tight">
                       {n.title}
                     </h4>
                   </div>
-                  <p className="text-[11px] text-slate-600 leading-snug">
+                  <p className="text-[11px] text-zinc-400 leading-snug">
                     {n.message}
                   </p>
-                  <div className="flex items-center justify-between pt-1 text-[10px] font-medium text-slate-400">
+                  <div className="flex items-center justify-between pt-1 text-[10px] font-medium text-zinc-500">
                     <span className="flex items-center gap-1">
-                      <FiClock className="w-3 h-3 text-indigo-600" />
+                      <FiClock className="w-3 h-3 text-coral" />
                       {getTimeAgo(n.timestamp)}
                     </span>
                     {n.type === 'admitted' && (
-                      <span className="text-indigo-600 font-bold">Open Checkout →</span>
+                      <span className="text-coral font-bold">Open Checkout →</span>
                     )}
                   </div>
                 </div>
@@ -153,18 +153,18 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="pt-2 border-t border-slate-100 flex gap-2">
+        <div className="pt-2 border-t border-dark-700 flex gap-2">
           {notifications.length > 0 && (
             <button
               onClick={onMarkAllAsRead}
-              className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors"
+              className="flex-1 py-2.5 bg-dark-800 hover:bg-dark-750 text-zinc-300 rounded-full text-xs font-semibold border border-dark-700 transition-colors"
             >
               Mark All as Read
             </button>
           )}
           <button
             onClick={onClose}
-            className="flex-1 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors"
+            className="flex-1 py-2.5 bg-coral hover:bg-coral-hover text-white rounded-full text-xs font-bold shadow-coral transition-colors"
           >
             Close
           </button>

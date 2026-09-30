@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiArrowLeft, FiCalendar, FiCheckCircle, FiClock, FiArrowRight, FiX } from 'react-icons/fi';
+import { FiArrowLeft, FiCalendar, FiCheckCircle, FiClock, FiArrowRight, FiX, FiCopy, FiCheck } from 'react-icons/fi';
 import { HiTicket } from 'react-icons/hi2';
 import { IoFlash } from 'react-icons/io5';
 import { CgSpinner } from 'react-icons/cg';
@@ -25,6 +25,8 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
 }) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'history'>('upcoming');
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   // ⏳ Active Waiting Room Queue Pass State
   const [activeQueueEventId, setActiveQueueEventId] = useState<string | null>(() => {
@@ -85,13 +87,19 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
     setActiveQueueStatus(null);
   };
 
+  const handleCopy = (text: string) => {
+    navigator.clipboard?.writeText(text);
+    setCopiedCode(text);
+    setTimeout(() => setCopiedCode(null), 2000);
+  };
+
   if (!user) return null;
 
   const queuedEvent = events.find((e) => e.id === activeQueueEventId);
 
   const getEventName = (eventId: string) => {
     const found = events.find((e) => e.id === eventId);
-    return found ? found.name : 'Coldplay Concert Flash Sale';
+    return found ? found.name : 'Coldplay Live in Jakarta';
   };
 
   const getEventCategory = (eventId: string) => {
@@ -107,234 +115,450 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
     }).format(p);
   };
 
-  return (
-    <div className="space-y-4 animate-fadeIn">
-      {/* Top Header Bar for Tickets Page */}
-      <div className="w-full bg-slate-900 p-4 border-b border-slate-800 text-white shadow-sm">
-        <div className="flex items-center justify-between mb-2">
-          <button
-            onClick={onBack}
-            className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition-colors border border-slate-700"
-            title="Back"
-          >
-            <FiArrowLeft className="w-4 h-4" />
-          </button>
-          <span className="text-xs font-bold tracking-wide uppercase text-slate-400">E-Tickets & Passes</span>
-          <div className="w-8"></div>
-        </div>
+  // Reusable crisp SVG QR Code pattern based on order ID
+  const renderQRCode = (_seed: string) => {
+    return (
+      <div className="bg-white p-3.5 rounded-2xl inline-block shadow-md">
+        <svg viewBox="0 0 100 100" className="w-36 h-36 mx-auto text-black fill-current">
+          {/* Top-Left Corner Box */}
+          <rect x="5" y="5" width="28" height="28" rx="4" fill="black" />
+          <rect x="10" y="10" width="18" height="18" rx="2" fill="white" />
+          <rect x="14" y="14" width="10" height="10" rx="1.5" fill="black" />
 
-        <div>
-          <h1 className="text-lg font-bold text-white leading-tight">
-            Order & Ticket History
-          </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Active queue passes and verified concert tickets
-          </p>
-        </div>
+          {/* Top-Right Corner Box */}
+          <rect x="67" y="5" width="28" height="28" rx="4" fill="black" />
+          <rect x="72" y="10" width="18" height="18" rx="2" fill="white" />
+          <rect x="76" y="14" width="10" height="10" rx="1.5" fill="black" />
+
+          {/* Bottom-Left Corner Box */}
+          <rect x="5" y="67" width="28" height="28" rx="4" fill="black" />
+          <rect x="10" y="72" width="18" height="18" rx="2" fill="white" />
+          <rect x="14" y="76" width="10" height="10" rx="1.5" fill="black" />
+
+          {/* Simulated QR Modules Matrix */}
+          <rect x="38" y="8" width="6" height="6" fill="black" />
+          <rect x="48" y="8" width="6" height="6" fill="black" />
+          <rect x="58" y="8" width="5" height="6" fill="black" />
+          <rect x="38" y="18" width="8" height="6" fill="black" />
+          <rect x="52" y="18" width="8" height="6" fill="black" />
+          <rect x="38" y="28" width="6" height="6" fill="black" />
+          <rect x="48" y="28" width="12" height="6" fill="black" />
+
+          <rect x="8" y="38" width="6" height="6" fill="black" />
+          <rect x="18" y="38" width="8" height="6" fill="black" />
+          <rect x="30" y="38" width="6" height="6" fill="black" />
+          <rect x="40" y="38" width="6" height="6" fill="black" />
+          <rect x="50" y="38" width="8" height="6" fill="black" />
+          <rect x="62" y="38" width="6" height="6" fill="black" />
+          <rect x="72" y="38" width="8" height="6" fill="black" />
+          <rect x="84" y="38" width="8" height="6" fill="black" />
+
+          <rect x="8" y="48" width="12" height="6" fill="black" />
+          <rect x="24" y="48" width="8" height="6" fill="black" />
+          <rect x="36" y="48" width="12" height="6" fill="black" />
+          <rect x="52" y="48" width="6" height="6" fill="black" />
+          <rect x="62" y="48" width="12" height="6" fill="black" />
+          <rect x="78" y="48" width="14" height="6" fill="black" />
+
+          <rect x="8" y="58" width="6" height="6" fill="black" />
+          <rect x="20" y="58" width="10" height="6" fill="black" />
+          <rect x="34" y="58" width="8" height="6" fill="black" />
+          <rect x="46" y="58" width="10" height="6" fill="black" />
+          <rect x="60" y="58" width="8" height="6" fill="black" />
+          <rect x="72" y="58" width="12" height="6" fill="black" />
+          <rect x="88" y="58" width="4" height="6" fill="black" />
+
+          <rect x="38" y="68" width="8" height="6" fill="black" />
+          <rect x="50" y="68" width="10" height="6" fill="black" />
+          <rect x="64" y="68" width="8" height="6" fill="black" />
+          <rect x="76" y="68" width="16" height="6" fill="black" />
+
+          <rect x="38" y="78" width="12" height="6" fill="black" />
+          <rect x="54" y="78" width="6" height="6" fill="black" />
+          <rect x="64" y="78" width="12" height="6" fill="black" />
+          <rect x="80" y="78" width="12" height="6" fill="black" />
+
+          <rect x="38" y="88" width="6" height="6" fill="black" />
+          <rect x="48" y="88" width="14" height="6" fill="black" />
+          <rect x="66" y="88" width="6" height="6" fill="black" />
+          <rect x="76" y="88" width="16" height="6" fill="black" />
+        </svg>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-4 animate-fadeIn pb-6">
+      {/* Top Header Bar for Tickets Page (Reference UI Style) */}
+      <div className="w-full bg-dark-900 p-4 border-b border-dark-700 text-white flex items-center justify-between">
+        <button
+          onClick={onBack}
+          className="w-9 h-9 rounded-full bg-dark-800 hover:bg-dark-750 flex items-center justify-center text-zinc-300 hover:text-white transition-colors border border-dark-700"
+          title="Back"
+        >
+          <FiArrowLeft className="w-4 h-4" />
+        </button>
+        <h1 className="text-base font-bold text-white tracking-wide">
+          Ticket
+        </h1>
+        <div className="w-9"></div>
       </div>
 
       {/* Main Page Content */}
       <div className="px-4 space-y-4">
-        {/* 1. ⚡ LIVE WAITING ROOM & ACTIVE QUEUE PASS (Pinned at top if active) */}
-        {activeQueueEventId && queuedEvent && activeQueueStatus && (
-          <div className="space-y-2 animate-fadeIn">
-            <div className="flex items-center justify-between px-1">
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                <IoFlash className="w-4 h-4 text-amber-500 animate-pulse" />
-                <span>Active Waiting Room Pass</span>
-              </h3>
-              <button
-                onClick={handleCancelQueue}
-                className="text-xs font-medium text-slate-400 hover:text-rose-600 flex items-center gap-1 transition-colors"
-                title="Leave queue"
-              >
-                <FiX className="w-3.5 h-3.5" />
-                <span>Leave Queue</span>
-              </button>
-            </div>
-
-            <div
-              className={`rounded-2xl p-4 border transition-all duration-300 ${
-                activeQueueStatus.isAllowedToPurchase
-                  ? 'bg-emerald-50/90 border-emerald-200 text-slate-900'
-                  : 'bg-white border-slate-200 text-slate-900 shadow-sm'
-              }`}
-            >
-              {/* Event Mini Banner */}
-              <div className="flex items-start gap-3">
-                <img
-                  src={getEventImage(queuedEvent.category)}
-                  alt={queuedEvent.name}
-                  className="w-14 h-14 rounded-xl object-cover shrink-0 border border-slate-200"
-                />
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-1 mb-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
-                      {queuedEvent.category?.toUpperCase() || 'CONCERT'}
-                    </span>
-
-                    {activeQueueStatus.isAllowedToPurchase ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-ping"></span>
-                        Pass Active
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500">
-                        <CgSpinner className="w-3 h-3 animate-spin text-indigo-600" />
-                        In Queue
-                      </span>
-                    )}
-                  </div>
-
-                  <h4 className="text-xs font-bold text-slate-900 truncate leading-tight">
-                    {queuedEvent.name}
-                  </h4>
-                  <span className="text-xs font-bold text-indigo-600 block mt-0.5">
-                    {formatPrice(queuedEvent.price)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Status Details / Stats */}
-              {activeQueueStatus.isAllowedToPurchase ? (
-                <div className="mt-3 pt-3 border-t border-emerald-200/60 space-y-2">
-                  <p className="text-xs font-medium text-emerald-800 leading-tight">
-                    🎉 It's your turn! Your 5-minute checkout session is active.
-                  </p>
-                  <button
-                    onClick={() => onOpenCheckout && onOpenCheckout(queuedEvent)}
-                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2"
-                  >
-                    <IoFlash className="w-4 h-4 text-amber-300" />
-                    <span>Proceed to Express Checkout</span>
-                    <FiArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                <div className="mt-3 pt-3 border-t border-slate-100 space-y-2.5">
-                  <div className="grid grid-cols-3 gap-2 text-center bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
-                    <div>
-                      <span className="text-[10px] font-medium text-slate-500 block">Position</span>
-                      <span className="text-xs font-bold text-indigo-600">#{activeQueueStatus.position}</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-medium text-slate-500 block">In Queue</span>
-                      <span className="text-xs font-bold text-slate-800">{activeQueueStatus.totalInQueue}</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-medium text-slate-500 block">Est. Wait</span>
-                      <span className="text-xs font-bold text-slate-800">~{activeQueueStatus.estimatedWaitSeconds}s</span>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => onOpenWaitingRoom && onOpenWaitingRoom(queuedEvent)}
-                    className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5"
-                  >
-                    <FiClock className="w-3.5 h-3.5" />
-                    <span>Open Live Waiting Room View</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* 2. 🎟️ CONFIRMED TICKETS LIST */}
-        <div className="flex items-center justify-between px-1 pt-1">
-          <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-            <HiTicket className="w-4 h-4 text-indigo-600" />
-            <span>Purchased Tickets ({orders.length})</span>
-          </h3>
+        {/* 🔘 Segmented Control Tabs: Coming soon vs History (Matches Screen 1) */}
+        <div className="bg-dark-800 p-1 rounded-full border border-dark-700 flex items-center gap-1">
           <button
-            onClick={fetchMyOrders}
-            className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
+            onClick={() => setActiveTab('upcoming')}
+            className={`flex-1 py-2 px-3 rounded-full text-xs font-bold transition-all text-center ${
+              activeTab === 'upcoming'
+                ? 'bg-white text-dark-950 shadow-md'
+                : 'text-zinc-400 hover:text-white'
+            }`}
           >
-            Refresh
+            Coming soon {activeQueueEventId ? '• (Pass Active)' : ''}
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`flex-1 py-2 px-3 rounded-full text-xs font-bold transition-all text-center ${
+              activeTab === 'history'
+                ? 'bg-white text-dark-950 shadow-md'
+                : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            History ({orders.length})
           </button>
         </div>
 
-        {/* Tickets Feed */}
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-12 gap-2 bg-slate-50 rounded-2xl border border-slate-200 p-6">
-            <CgSpinner className="w-7 h-7 text-indigo-600 animate-spin" />
-            <span className="text-xs font-medium text-slate-500">Loading ticket history...</span>
-          </div>
-        ) : orders.length === 0 ? (
-          <div className="bg-slate-50 rounded-2xl p-8 text-center border border-slate-200 space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-slate-200 text-slate-500 flex items-center justify-center mx-auto">
-              <HiTicket className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-slate-800">No Tickets Purchased Yet</h4>
-              <p className="text-xs text-slate-500 mt-1 max-w-[240px] mx-auto">
-                You do not have any active concert tickets. Join upcoming flash sale events now!
-              </p>
-            </div>
-            <button
-              onClick={onExplore}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-colors inline-block"
-            >
-              Explore Flash Sale Events
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {orders.map((o) => (
-              <div
-                key={o.id}
-                className="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-sm space-y-3"
-              >
-                {/* Event Photo & Title Row */}
-                <div className="flex items-start gap-3">
-                  <img
-                    src={getEventImage(getEventCategory(o.eventId))}
-                    alt={getEventName(o.eventId)}
-                    className="w-12 h-12 rounded-xl object-cover shrink-0 border border-slate-100"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block mb-0.5">
-                      Official E-Ticket
-                    </span>
-                    <h4 className="text-xs font-bold text-slate-900 truncate">
-                      {getEventName(o.eventId)}
-                    </h4>
-                  </div>
-                  <span
-                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase shrink-0 ${
-                      o.status === 'CONFIRMED'
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : o.status === 'PENDING'
-                        ? 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse'
-                        : 'bg-rose-50 text-rose-700 border border-rose-200'
-                    }`}
+        {/* 1. ⚡ UPCOMING / ACTIVE QUEUE PASS TAB */}
+        {activeTab === 'upcoming' && (
+          <div className="space-y-4">
+            {activeQueueEventId && queuedEvent && activeQueueStatus ? (
+              <div className="space-y-2 animate-fadeIn">
+                <div className="flex items-center justify-between px-1">
+                  <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <IoFlash className="w-4 h-4 text-coral animate-pulse" />
+                    <span>Active Waiting Room Pass</span>
+                  </h3>
+                  <button
+                    onClick={handleCancelQueue}
+                    className="text-xs font-medium text-zinc-400 hover:text-rose-400 flex items-center gap-1 transition-colors"
+                    title="Leave queue"
                   >
-                    <FiCheckCircle className="w-3 h-3" />
-                    {o.status}
-                  </span>
+                    <FiX className="w-3.5 h-3.5" />
+                    <span>Leave Queue</span>
+                  </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-xs pt-2.5 border-t border-slate-100 text-slate-500">
-                  <div>
-                    <span className="text-[10px] text-slate-400 block font-medium">Quantity</span>
-                    <span className="font-bold text-slate-800">{o.quantity} Tickets</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 block font-medium">Total Paid</span>
-                    <span className="font-bold text-indigo-600">{formatPrice(o.totalPrice)}</span>
-                  </div>
-                </div>
+                <div
+                  className={`rounded-3xl p-4 border transition-all duration-300 ${
+                    activeQueueStatus.isAllowedToPurchase
+                      ? 'bg-dark-800 border-emerald-500/60 shadow-dark-card'
+                      : 'bg-dark-800 border-dark-700 shadow-dark-card'
+                  }`}
+                >
+                  {/* Event Mini Banner */}
+                  <div className="flex items-start gap-3">
+                    <img
+                      src={getEventImage(queuedEvent.category)}
+                      alt={queuedEvent.name}
+                      className="w-16 h-16 rounded-2xl object-cover shrink-0 border border-dark-700"
+                    />
 
-                <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-100">
-                  <span className="font-mono text-[10px] text-slate-500 truncate max-w-[150px]">ID: {o.id}</span>
-                  <span className="flex items-center gap-1 font-medium text-[10px] text-slate-500">
-                    <FiCalendar className="w-3.5 h-3.5 text-indigo-600" />
-                    {new Date(o.createdAt).toLocaleDateString('en-US')}
-                  </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-1 mb-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-dark-750 text-zinc-300">
+                          {queuedEvent.category?.toUpperCase() || 'CONCERT'}
+                        </span>
+
+                        {activeQueueStatus.isAllowedToPurchase ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-500/40">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                            Pass Active
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-400">
+                            <CgSpinner className="w-3 h-3 animate-spin text-coral" />
+                            In Queue
+                          </span>
+                        )}
+                      </div>
+
+                      <h4 className="text-sm font-bold text-white truncate leading-tight">
+                        {queuedEvent.name}
+                      </h4>
+                      <span className="text-xs font-bold text-coral block mt-0.5">
+                        {formatPrice(queuedEvent.price)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Status Details / Stats */}
+                  {activeQueueStatus.isAllowedToPurchase ? (
+                    <div className="mt-4 pt-3 border-t border-dark-700 space-y-3">
+                      <p className="text-xs font-semibold text-emerald-400 leading-tight">
+                        🎉 It's your turn! Your 5-minute checkout session is active.
+                      </p>
+                      <button
+                        onClick={() => onOpenCheckout && onOpenCheckout(queuedEvent)}
+                        className="w-full py-3 bg-coral hover:bg-coral-hover text-white rounded-full text-xs font-bold shadow-coral transition-all flex items-center justify-center gap-2"
+                      >
+                        <IoFlash className="w-4 h-4 text-white" />
+                        <span>Proceed to Express Checkout</span>
+                        <FiArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="mt-4 pt-3 border-t border-dark-700 space-y-3">
+                      <div className="grid grid-cols-3 gap-2 text-center bg-dark-750 p-3 rounded-2xl border border-dark-700">
+                        <div>
+                          <span className="text-[10px] font-medium text-zinc-400 block">Position</span>
+                          <span className="text-xs font-bold text-coral">#{activeQueueStatus.position}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-medium text-zinc-400 block">In Queue</span>
+                          <span className="text-xs font-bold text-white">{activeQueueStatus.totalInQueue}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-medium text-zinc-400 block">Est. Wait</span>
+                          <span className="text-xs font-bold text-white">~{activeQueueStatus.estimatedWaitSeconds}s</span>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => onOpenWaitingRoom && onOpenWaitingRoom(queuedEvent)}
+                        className="w-full py-2.5 bg-dark-750 hover:bg-dark-700 text-white rounded-full text-xs font-bold border border-dark-700 transition-all flex items-center justify-center gap-1.5"
+                      >
+                        <FiClock className="w-3.5 h-3.5 text-coral" />
+                        <span>Open Live Waiting Room View</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
-            ))}
+            ) : null}
+
+            {/* If there are confirmed orders, also preview the latest ticket right here in upcoming */}
+            {orders.length > 0 ? (
+              <div className="space-y-4">
+                {orders.slice(0, 1).map((latestOrder) => {
+                  const bookingCode = `BLK${latestOrder.id.replace(/[^0-9]/g, '').slice(0, 11) || '21738745123'}`;
+                  return (
+                    <div
+                      key={latestOrder.id}
+                      className="bg-dark-800 rounded-3xl p-5 border border-dark-700/80 shadow-dark-card space-y-4"
+                    >
+                      {/* Ticket Header (Reference Screen 2) */}
+                      <div className="flex items-start gap-3.5">
+                        <img
+                          src={getEventImage(getEventCategory(latestOrder.eventId))}
+                          alt={getEventName(latestOrder.eventId)}
+                          className="w-16 h-16 rounded-2xl object-cover shrink-0 border border-dark-700"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <span className="inline-block px-2.5 py-0.5 rounded-full bg-dark-750 text-zinc-300 text-[10px] font-bold uppercase tracking-wider mb-1">
+                            {getEventCategory(latestOrder.eventId).toUpperCase()}
+                          </span>
+                          <h3 className="text-sm font-bold text-white leading-tight truncate">
+                            {getEventName(latestOrder.eventId)}
+                          </h3>
+                          <p className="text-[11px] text-zinc-400 mt-0.5 truncate">
+                            Gelora Bung Karno Main Stadium, Jakarta
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Ticket Spec Grid (Reference Screen 2) */}
+                      <div className="space-y-3 pt-1">
+                        <div>
+                          <span className="text-[10px] font-medium text-zinc-400 block">Venue</span>
+                          <span className="text-xs font-bold text-white">Gelora Bung Karno Main Stadium</span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <span className="text-[10px] font-medium text-zinc-400 block">Section</span>
+                            <span className="text-xs font-bold text-white">Tribune VIP</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-medium text-zinc-400 block">Row</span>
+                            <span className="text-xs font-bold text-white">8</span>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <span className="text-[10px] font-medium text-zinc-400 block">Date</span>
+                            <span className="text-xs font-bold text-white">
+                              {new Date(latestOrder.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-medium text-zinc-400 block">Time</span>
+                            <span className="text-xs font-bold text-white">07.00 PM</span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <span className="text-[10px] font-medium text-zinc-400 block">Booking Code</span>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="font-mono text-xs font-bold text-white tracking-wider">
+                              {bookingCode}
+                            </span>
+                            <button
+                              onClick={() => handleCopy(bookingCode)}
+                              className="text-zinc-400 hover:text-white transition-colors"
+                              title="Copy Booking Code"
+                            >
+                              {copiedCode === bookingCode ? (
+                                <FiCheck className="w-3.5 h-3.5 text-emerald-400" />
+                              ) : (
+                                <FiCopy className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* ✂️ Dashed Ticket Divider (Screen 2) */}
+                      <div className="ticket-dashed-divider pt-4 text-center">
+                        {renderQRCode(latestOrder.id)}
+                      </div>
+
+                      {/* Terms and Conditions (Screen 2) */}
+                      <div className="bg-dark-750/70 p-3.5 rounded-2xl border border-dark-700 space-y-1.5">
+                        <h4 className="text-[11px] font-bold text-white">Terms and Conditions</h4>
+                        <ul className="text-[10px] text-zinc-400 space-y-1 list-disc list-inside leading-relaxed">
+                          <li>Tickets must be presented at gate entrance for barcode check.</li>
+                          <li>No refunds, exchanges, or cancellations unless event is canceled.</li>
+                          <li>A valid ticket and ID are required for entry. Re-entry is not allowed.</li>
+                        </ul>
+                      </div>
+
+                      {/* Big Orange Download / Print CTA Button (Screen 2) */}
+                      <button
+                        onClick={() => alert(`Official E-Ticket (${bookingCode}) verified and ready for entry!`)}
+                        className="w-full py-3.5 bg-coral hover:bg-coral-hover text-white rounded-full text-xs font-bold shadow-coral transition-all active:scale-[0.99]"
+                      >
+                        Download Ticket
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : !activeQueueEventId ? (
+              <div className="bg-dark-800 rounded-3xl p-8 text-center border border-dark-700 space-y-3 shadow-dark-card">
+                <div className="w-12 h-12 rounded-2xl bg-dark-750 text-coral flex items-center justify-center mx-auto shadow-sm">
+                  <HiTicket className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white">No Upcoming Tickets</h4>
+                  <p className="text-xs text-zinc-400 mt-1 max-w-[240px] mx-auto">
+                    You do not have any active concert tickets yet. Join live flash sale events now!
+                  </p>
+                </div>
+                <button
+                  onClick={onExplore}
+                  className="px-5 py-2.5 bg-coral hover:bg-coral-hover text-white rounded-full text-xs font-bold shadow-coral transition-all inline-block"
+                >
+                  Explore Flash Sale Events
+                </button>
+              </div>
+            ) : null}
+          </div>
+        )}
+
+        {/* 2. 🎟️ HISTORY TAB */}
+        {activeTab === 'history' && (
+          <div className="space-y-3">
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-2 bg-dark-800 rounded-3xl border border-dark-700 p-6">
+                <CgSpinner className="w-7 h-7 text-coral animate-spin" />
+                <span className="text-xs font-medium text-zinc-400">Loading ticket history...</span>
+              </div>
+            ) : orders.length === 0 ? (
+              <div className="bg-dark-800 rounded-3xl p-8 text-center border border-dark-700 space-y-3 shadow-dark-card">
+                <div className="w-12 h-12 rounded-2xl bg-dark-750 text-zinc-500 flex items-center justify-center mx-auto">
+                  <HiTicket className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white">No Tickets Purchased Yet</h4>
+                  <p className="text-xs text-zinc-400 mt-1 max-w-[240px] mx-auto">
+                    Your past orders and ticket passes will appear here after checkout.
+                  </p>
+                </div>
+                <button
+                  onClick={onExplore}
+                  className="px-5 py-2.5 bg-coral hover:bg-coral-hover text-white rounded-full text-xs font-bold shadow-coral transition-all inline-block"
+                >
+                  Explore Flash Sale Events
+                </button>
+              </div>
+            ) : (
+              orders.map((o) => {
+                const bookingCode = `BLK${o.id.replace(/[^0-9]/g, '').slice(0, 11) || '21738745123'}`;
+                return (
+                  <div
+                    key={o.id}
+                    className="bg-dark-800 rounded-3xl p-4 border border-dark-700/80 shadow-dark-card space-y-3"
+                  >
+                    {/* Header Row */}
+                    <div className="flex items-start gap-3">
+                      <img
+                        src={getEventImage(getEventCategory(o.eventId))}
+                        alt={getEventName(o.eventId)}
+                        className="w-14 h-14 rounded-2xl object-cover shrink-0 border border-dark-700"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <span className="text-[10px] font-bold text-coral uppercase tracking-wider block mb-0.5">
+                          Official E-Ticket
+                        </span>
+                        <h4 className="text-xs font-bold text-white truncate">
+                          {getEventName(o.eventId)}
+                        </h4>
+                        <p className="text-[11px] text-zinc-400 truncate mt-0.5">
+                          Gelora Bung Karno Main Stadium, Jakarta
+                        </p>
+                      </div>
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase shrink-0 ${
+                          o.status === 'CONFIRMED'
+                            ? 'bg-emerald-950/70 text-emerald-400 border border-emerald-500/30'
+                            : o.status === 'PENDING'
+                            ? 'bg-amber-950/70 text-amber-400 border border-amber-500/30 animate-pulse'
+                            : 'bg-rose-950/70 text-rose-400 border border-rose-500/30'
+                        }`}
+                      >
+                        <FiCheckCircle className="w-3 h-3" />
+                        {o.status}
+                      </span>
+                    </div>
+
+                    {/* Booking Code & Price */}
+                    <div className="grid grid-cols-2 gap-2 text-xs pt-2.5 border-t border-dark-700 text-zinc-400">
+                      <div>
+                        <span className="text-[10px] text-zinc-500 block font-medium">Quantity</span>
+                        <span className="font-bold text-white">{o.quantity} Tickets</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-zinc-500 block font-medium">Total Paid</span>
+                        <span className="font-bold text-coral">{formatPrice(o.totalPrice)}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-2 border-t border-dark-700">
+                      <span className="font-mono text-[10px] text-zinc-400 truncate max-w-[150px]">
+                        Code: {bookingCode}
+                      </span>
+                      <span className="flex items-center gap-1 font-medium text-[10px] text-zinc-400">
+                        <FiCalendar className="w-3.5 h-3.5 text-coral" />
+                        {new Date(o.createdAt).toLocaleDateString('en-US')}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         )}
       </div>

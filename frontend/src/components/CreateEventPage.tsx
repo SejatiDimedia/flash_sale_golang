@@ -70,16 +70,16 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
   return (
     <div className="space-y-4 animate-fadeIn">
       {/* Top Header Bar for Create Event Page */}
-      <div className="w-full bg-slate-900 p-4 border-b border-slate-800 text-white shadow-sm">
+      <div className="w-full bg-dark-950 p-4 border-b border-dark-800 text-white shadow-sm">
         <div className="flex items-center justify-between mb-2">
           <button
             onClick={onBack}
-            className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition-colors border border-slate-700"
+            className="w-8 h-8 rounded-xl bg-dark-800 hover:bg-dark-750 flex items-center justify-center text-zinc-400 hover:text-white transition-colors border border-dark-700"
             title="Back"
           >
             <FiArrowLeft className="w-4 h-4" />
           </button>
-          <span className="text-xs font-bold tracking-wide uppercase text-slate-400">Admin Console</span>
+          <span className="text-xs font-bold tracking-wide uppercase text-zinc-400">Admin Console</span>
           <div className="w-8"></div>
         </div>
 
@@ -87,7 +87,7 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
           <h1 className="text-lg font-bold text-white leading-tight">
             Create Flash Sale Event
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-zinc-400 mt-0.5">
             Register new concert/event and sync quota to Redis RAM
           </p>
         </div>
@@ -95,29 +95,29 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
 
       {/* Main Form Page Body */}
       <div className="px-4">
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3.5">
+        <form onSubmit={handleSubmit} className="bg-dark-800 rounded-3xl p-5 border border-dark-700 shadow-dark-card space-y-4">
           {/* Event Name */}
           <div>
-            <label className="block text-[11px] font-bold text-slate-700 mb-1">
+            <label className="block text-[11px] font-bold text-zinc-300 mb-1">
               Event Name
             </label>
             <div className="relative">
-              <FiTag className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+              <FiTag className="absolute left-3.5 top-3 w-4 h-4 text-zinc-500" />
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Coldplay Music of the Spheres Tour"
-                className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors"
+                className="w-full pl-10 pr-3 py-2 bg-dark-750 border border-dark-700 rounded-xl text-xs font-medium text-white placeholder-zinc-500 outline-none focus:border-coral transition-colors"
               />
             </div>
           </div>
 
           {/* Category Selector */}
           <div>
-            <label className="block text-[11px] font-bold text-slate-700 mb-1.5 flex items-center gap-1">
-              <FiLayers className="w-3.5 h-3.5 text-indigo-600" />
+            <label className="block text-[11px] font-bold text-zinc-300 mb-1.5 flex items-center gap-1">
+              <FiLayers className="w-3.5 h-3.5 text-coral" />
               <span>Event Category</span>
             </label>
             <div className="grid grid-cols-3 gap-1.5">
@@ -128,8 +128,8 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
                   onClick={() => setCategory(cat.id)}
                   className={`py-1.5 px-2 rounded-xl text-xs font-bold border transition-all text-center ${
                     category === cat.id
-                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
+                      ? 'bg-coral text-white border-coral shadow-coral'
+                      : 'bg-dark-750 text-zinc-300 border-dark-700 hover:border-dark-600 hover:text-white'
                   }`}
                 >
                   {cat.label}
@@ -140,17 +140,17 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
 
           {/* Description */}
           <div>
-            <label className="block text-[11px] font-bold text-slate-700 mb-1">
+            <label className="block text-[11px] font-bold text-zinc-300 mb-1">
               Event Description
             </label>
             <div className="relative">
-              <FiFileText className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+              <FiFileText className="absolute left-3.5 top-3 w-4 h-4 text-zinc-500" />
               <textarea
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Write brief description, venue location, terms & conditions..."
-                className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-normal text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors resize-none"
+                className="w-full pl-10 pr-3 py-2 bg-dark-750 border border-dark-700 rounded-xl text-xs font-normal text-white placeholder-zinc-500 outline-none focus:border-coral transition-colors resize-none"
               />
             </div>
           </div>
@@ -158,28 +158,28 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
           {/* Total Stock & Price */}
           <div className="grid grid-cols-2 gap-2.5">
             <div>
-              <label className="block text-[11px] font-bold text-slate-700 mb-1">
+              <label className="block text-[11px] font-bold text-zinc-300 mb-1">
                 Total Ticket Quota
               </label>
               <div className="relative">
-                <HiTicket className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+                <HiTicket className="absolute left-3.5 top-3 w-4 h-4 text-zinc-500" />
                 <input
                   type="number"
                   min={1}
                   required
                   value={totalStock}
                   onChange={(e) => setTotalStock(Number(e.target.value))}
-                  className="w-full pl-9 pr-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors"
+                  className="w-full pl-9 pr-2 py-2 bg-dark-750 border border-dark-700 rounded-xl text-xs font-bold text-white outline-none focus:border-coral transition-colors"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-slate-700 mb-1">
+              <label className="block text-[11px] font-bold text-zinc-300 mb-1">
                 Ticket Price (IDR)
               </label>
               <div className="relative">
-                <FiDollarSign className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+                <FiDollarSign className="absolute left-3.5 top-3 w-4 h-4 text-zinc-500" />
                 <input
                   type="number"
                   min={0}
@@ -187,7 +187,7 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
                   required
                   value={price}
                   onChange={(e) => setPrice(Number(e.target.value))}
-                  className="w-full pl-9 pr-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors"
+                  className="w-full pl-9 pr-2 py-2 bg-dark-750 border border-dark-700 rounded-xl text-xs font-bold text-white outline-none focus:border-coral transition-colors"
                 />
               </div>
             </div>
@@ -196,7 +196,7 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
           {/* Max Per User & Status */}
           <div className="grid grid-cols-2 gap-2.5">
             <div>
-              <label className="block text-[11px] font-bold text-slate-700 mb-1">
+              <label className="block text-[11px] font-bold text-zinc-300 mb-1">
                 Max. Tickets / User
               </label>
               <input
@@ -206,62 +206,62 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
                 required
                 value={maxPerUser}
                 onChange={(e) => setMaxPerUser(Number(e.target.value))}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors text-center"
+                className="w-full px-3 py-2 bg-dark-750 border border-dark-700 rounded-xl text-xs font-bold text-white outline-none focus:border-coral transition-colors text-center"
               />
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-slate-700 mb-1">
+              <label className="block text-[11px] font-bold text-zinc-300 mb-1">
                 Sale Status
               </label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors"
+                className="w-full px-3 py-2 bg-dark-750 border border-dark-700 rounded-xl text-xs font-semibold text-white outline-none focus:border-coral transition-colors"
               >
-                <option value="ACTIVE">ACTIVE (Live Flash Sale)</option>
-                <option value="SCHEDULED">SCHEDULED (Upcoming)</option>
-                <option value="DRAFT">DRAFT</option>
-                <option value="CLOSED">CLOSED</option>
+                <option value="ACTIVE" className="bg-dark-800 text-white">ACTIVE (Live Flash Sale)</option>
+                <option value="SCHEDULED" className="bg-dark-800 text-white">SCHEDULED (Upcoming)</option>
+                <option value="DRAFT" className="bg-dark-800 text-white">DRAFT</option>
+                <option value="CLOSED" className="bg-dark-800 text-white">CLOSED</option>
               </select>
             </div>
           </div>
 
           {/* Start & End Dates */}
           <div>
-            <label className="block text-[11px] font-bold text-slate-700 mb-1">
+            <label className="block text-[11px] font-bold text-zinc-300 mb-1">
               Sale Start Time
             </label>
             <div className="relative">
-              <FiCalendar className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+              <FiCalendar className="absolute left-3.5 top-3 w-4 h-4 text-zinc-500" />
               <input
                 type="datetime-local"
                 required
                 value={startSaleAt}
                 onChange={(e) => setStartSaleAt(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors"
+                className="w-full pl-10 pr-3 py-2 bg-dark-750 border border-dark-700 rounded-xl text-xs font-medium text-white outline-none focus:border-coral transition-colors [color-scheme:dark]"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold text-slate-700 mb-1">
+            <label className="block text-[11px] font-bold text-zinc-300 mb-1">
               Sale End Time
             </label>
             <div className="relative">
-              <FiCalendar className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+              <FiCalendar className="absolute left-3.5 top-3 w-4 h-4 text-zinc-500" />
               <input
                 type="datetime-local"
                 required
                 value={endSaleAt}
                 onChange={(e) => setEndSaleAt(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors"
+                className="w-full pl-10 pr-3 py-2 bg-dark-750 border border-dark-700 rounded-xl text-xs font-medium text-white outline-none focus:border-coral transition-colors [color-scheme:dark]"
               />
             </div>
           </div>
 
           {error && (
-            <div className="p-3 bg-rose-50 text-rose-700 rounded-xl text-xs font-medium border border-rose-200">
+            <div className="p-3 bg-rose-500/10 text-rose-300 rounded-2xl text-xs font-medium border border-rose-500/30">
               {error}
             </div>
           )}
@@ -271,7 +271,7 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3 bg-coral hover:bg-coral-hover text-white rounded-full text-xs font-bold shadow-coral transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {isLoading ? (
                 <>
@@ -280,7 +280,7 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
                 </>
               ) : (
                 <>
-                  <IoFlash className="w-4 h-4 text-amber-300" />
+                  <IoFlash className="w-4 h-4 text-white" />
                   <span>Publish Flash Sale Event</span>
                 </>
               )}
@@ -289,7 +289,7 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
             <button
               type="button"
               onClick={onBack}
-              className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-600 rounded-xl text-center transition-colors"
+              className="w-full py-2.5 bg-dark-750 hover:bg-dark-700 text-xs font-semibold text-zinc-300 hover:text-white rounded-full text-center transition-colors border border-dark-700"
             >
               Cancel and Go Back
             </button>
