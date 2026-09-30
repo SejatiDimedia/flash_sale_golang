@@ -61,8 +61,8 @@
 ---
 
 ## 💻 Milestone 5: Frontend Testing
-- [ ] Unit/Component test (Vitest/Testing Library) untuk komponen antrean (WaitingRoomModal) dan checkout (CheckoutModal).
-- [ ] E2E Test Playwright: Alur lengkap user masuk waiting room, mendapatkan giliran, dan menyelesaikan checkout tiket.
+- [x] Unit/Component test (Vitest/Testing Library) untuk komponen antrean (WaitingRoomModal) dan checkout (CheckoutModal).
+- [x] E2E Test Playwright: Alur lengkap user masuk waiting room, mendapatkan giliran, dan menyelesaikan checkout tiket.
 
 ---
 
