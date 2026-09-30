@@ -260,7 +260,12 @@ export function App() {
     const desc = e.description || '';
     const matchesSearch = e.name.toLowerCase().includes(searchQuery.toLowerCase()) || desc.toLowerCase().includes(searchQuery.toLowerCase());
     const eventCategory = (e.category || 'concerts').toLowerCase();
-    const matchesCategory = selectedCategory === 'all' || eventCategory === selectedCategory.toLowerCase();
+    const matchesCategory =
+      selectedCategory === 'all' ||
+      eventCategory === selectedCategory.toLowerCase() ||
+      (selectedCategory === 'theatre' && (eventCategory === 'theatre' || eventCategory === 'cinema')) ||
+      (selectedCategory === 'concerts' && (eventCategory === 'concerts' || eventCategory === 'festivals')) ||
+      (selectedCategory === 'social' && (eventCategory === 'social' || eventCategory === 'comedy'));
     return matchesSearch && matchesCategory;
   });
 
@@ -334,23 +339,39 @@ export function App() {
                 </main>
               ) : (
                 /* 🎟️ USER EXPERIENCE HOME PAGE VIEW (MOBILE SINGLE-COLUMN) */
-                <main className="px-4 py-4 space-y-4 animate-fadeIn">
-                  <CategoryFilter
-                    selectedCategory={selectedCategory}
-                    onSelectCategory={setSelectedCategory}
-                  />
+                <main className="px-4 pt-16 pb-4 space-y-5 animate-fadeIn">
+                  {/* Popular Events Section & Category Cards (Matches Screenshot) */}
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between px-1">
+                      <h2 className="text-base font-bold text-white tracking-tight">
+                        Popular events
+                      </h2>
+                      <span className="text-[11px] font-semibold text-zinc-400">
+                        {filteredEvents.length} Available
+                      </span>
+                    </div>
 
-                  <div className="flex items-center justify-between px-1">
-                    <h2 className="text-sm font-bold text-white tracking-tight">
-                      Active Flash Sale Events
-                    </h2>
-                    <button
-                      onClick={() => setSelectedCategory('all')}
-                      className="text-xs font-semibold text-coral hover:text-coral-hover transition-colors"
-                    >
-                      View All ({filteredEvents.length})
-                    </button>
+                    <CategoryFilter
+                      selectedCategory={selectedCategory}
+                      onSelectCategory={setSelectedCategory}
+                    />
                   </div>
+
+                  {/* Events Feed Section */}
+                  <div className="space-y-3 pt-1">
+                    <div className="flex items-center justify-between px-1">
+                      <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                        Featured Flash Sale
+                      </h3>
+                      {selectedCategory !== 'all' && (
+                        <button
+                          onClick={() => setSelectedCategory('all')}
+                          className="text-xs font-semibold text-coral hover:text-coral-hover transition-colors"
+                        >
+                          Clear Filter
+                        </button>
+                      )}
+                    </div>
 
                   {isLoadingEvents ? (
                     <div className="flex flex-col items-center justify-center py-16 gap-3 bg-dark-800 rounded-2xl border border-dark-700">
@@ -373,6 +394,7 @@ export function App() {
                       ))}
                     </div>
                   )}
+                  </div>
                 </main>
               )}
             </>
