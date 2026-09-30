@@ -123,8 +123,16 @@ func (p *OrderWorkerPool) processMessage(workerID int, msg amqp.Delivery) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	// 0. Idempotency Check: Jika order sudah CONFIRMED, jangan proses ulang (cegah duplikasi)
+	existingOrder, err := p.orderRepo.GetOrderByID(ctx, payload.OrderID)
+	if err == nil && existingOrder != nil && existingOrder.Status == "CONFIRMED" {
+		log.Printf("ℹ️ [Worker %d] Order %s is already CONFIRMED (Idempotent bypass). Acknowledging.", workerID, payload.OrderID)
+		_ = msg.Ack(false)
+		return
+	}
+
 	// 1. Update status order menjadi CONFIRMED di PostgreSQL
-	err := p.orderRepo.UpdateOrderStatus(ctx, payload.OrderID, "CONFIRMED")
+	err = p.orderRepo.UpdateOrderStatus(ctx, payload.OrderID, "CONFIRMED")
 	if err != nil {
 		payload.RetryCount++
 		failReason := fmt.Sprintf("DB update failed: %v", err)

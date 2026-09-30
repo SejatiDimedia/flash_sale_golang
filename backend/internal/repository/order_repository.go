@@ -38,7 +38,8 @@ type OrderRepository interface {
 	GetUserPurchasedCount(ctx context.Context, userID, eventID string) (int, error)
 	CreateOrderLog(ctx context.Context, orderID, eventType, payloadJSON string) error
 	GetOrderLogsByOrderID(ctx context.Context, orderID string) ([]*OrderLog, error)
-	GetConfirmedTicketCount(ctx context.Context, eventID string) (int, error) // 👈 Tambahkan ini
+	GetConfirmedTicketCount(ctx context.Context, eventID string) (int, error)
+	GetExpiredPendingOrders(ctx context.Context, olderThan time.Duration) ([]*Order, error)
 }
 
 type orderRepository struct {
@@ -248,3 +249,34 @@ func (r *orderRepository) GetConfirmedTicketCount(ctx context.Context, eventID s
 
 	return totalConfirmed, nil
 }
+
+// GetExpiredPendingOrders mengambil semua order yang masih PENDING melewati batas waktu tertentu
+func (r *orderRepository) GetExpiredPendingOrders(ctx context.Context, olderThan time.Duration) ([]*Order, error) {
+	threshold := time.Now().Add(-olderThan)
+	query := `
+		SELECT id, user_id, event_id, quantity, total_price, status, created_at, confirmed_at
+		FROM orders
+		WHERE status = 'PENDING' AND created_at < $1
+		ORDER BY created_at ASC
+	`
+	rows, err := r.db.Query(ctx, query, threshold)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get expired pending orders: %w", err)
+	}
+	defer rows.Close()
+
+	var orders []*Order
+	for rows.Next() {
+		var o Order
+		if err := rows.Scan(
+			&o.ID, &o.UserID, &o.EventID, &o.Quantity,
+			&o.TotalPrice, &o.Status, &o.CreatedAt, &o.ConfirmedAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan expired order: %w", err)
+		}
+		orders = append(orders, &o)
+	}
+
+	return orders, nil
+}
+

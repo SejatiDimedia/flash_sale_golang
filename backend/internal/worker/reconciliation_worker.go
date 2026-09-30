@@ -54,6 +54,20 @@ func (w *ReconciliationWorker) Start(ctx context.Context) {
 }
 
 func (w *ReconciliationWorker) runAudit(ctx context.Context) {
+	// 0. Batalkan reservasi PENDING yang kedaluwarsa (> 10 menit) dan kembalikan stoknya
+	expiredOrders, err := w.orderRepo.GetExpiredPendingOrders(ctx, 10*time.Minute)
+	if err == nil && len(expiredOrders) > 0 {
+		for _, order := range expiredOrders {
+			if updateErr := w.orderRepo.UpdateOrderStatus(ctx, order.ID, "CANCELLED"); updateErr == nil {
+				_ = w.redisClient.IncrStock(ctx, order.EventID, order.Quantity)
+				_ = w.eventRepo.RestoreAvailableStock(ctx, order.EventID, order.Quantity)
+				_ = w.orderRepo.CreateOrderLog(ctx, order.ID, "RESERVATION_EXPIRED", `{"reason":"reconciliation_timeout"}`)
+				log.Printf("♻️ [Reconciliation] Expired pending order %s cancelled and %d stock restored for event %s",
+					order.ID, order.Quantity, order.EventID)
+			}
+		}
+	}
+
 	// 1. Ambil semua event yang aktif
 	statusActive := "active"
 	events, err := w.eventRepo.ListEvents(ctx, &statusActive)
@@ -88,7 +102,7 @@ func (w *ReconciliationWorker) runAudit(ctx context.Context) {
 				cachedStock, expectedAvailableStock, event.TotalStock, confirmedCount)
 
 			// Auto-correct Redis counter
-			if err := w.redisClient.InitStock(ctx, event.ID, expectedAvailableStock); err == nil {
+			if err := w.redisClient.SetStock(ctx, event.ID, expectedAvailableStock); err == nil {
 				log.Printf("✅ [Reconciliation] Successfully auto-corrected Redis stock to %d!", expectedAvailableStock)
 			}
 

@@ -7,9 +7,12 @@ import (
 	"github.com/google/uuid"
 )
 
-const RequestIDKey contextKey = "RequestID"
+const (
+	RequestIDKey         contextKey = "RequestID"
+	IdempotencyKeyHeader contextKey = "IdempotencyKey"
+)
 
-// RequestIDMiddleware menyisipkan unique UUID (Trace ID) ke setiap request
+// RequestIDMiddleware menyisipkan unique UUID (Trace ID) dan Idempotency-Key ke setiap request
 func RequestIDMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		reqID := c.GetHeader("X-Request-ID")
@@ -22,6 +25,13 @@ func RequestIDMiddleware() gin.HandlerFunc {
 
 		// Suntikkan ke context.Context
 		ctx := context.WithValue(c.Request.Context(), RequestIDKey, reqID)
+
+		// Ambil Idempotency-Key jika disediakan client
+		idempotencyKey := c.GetHeader("Idempotency-Key")
+		if idempotencyKey != "" {
+			ctx = context.WithValue(ctx, IdempotencyKeyHeader, idempotencyKey)
+		}
+
 		c.Request = c.Request.WithContext(ctx)
 
 		c.Next()
@@ -34,4 +44,12 @@ func GetRequestID(ctx context.Context) string {
 		return val
 	}
 	return "unknown"
+}
+
+// GetIdempotencyKey mengambil Idempotency-Key dari context
+func GetIdempotencyKey(ctx context.Context) string {
+	if val, ok := ctx.Value(IdempotencyKeyHeader).(string); ok {
+		return val
+	}
+	return ""
 }

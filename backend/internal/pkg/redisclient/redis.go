@@ -40,6 +40,12 @@ func (r *RedisClient) InitStock(ctx context.Context, eventID string, stock int) 
 	return r.Client.SetNX(ctx, key, stock, 0).Err() // SetNX menjamin tidak ada overwrite!
 }
 
+// SetStock memperbarui jumlah stok di Redis secara langsung (digunakan untuk rekonsiliasi data drift)
+func (r *RedisClient) SetStock(ctx context.Context, eventID string, stock int) error {
+	key := fmt.Sprintf("stock:%s", eventID)
+	return r.Client.Set(ctx, key, stock, 0).Err()
+}
+
 // GetStock mengambil sisa stok terkini dari Redis
 func (r *RedisClient) GetStock(ctx context.Context, eventID string) (int, error) {
 	key := fmt.Sprintf("stock:%s", eventID)
@@ -261,4 +267,40 @@ func (r *RedisClient) GetGateMode(ctx context.Context, eventID string) (string, 
 		return "AUTO", err
 	}
 	return val, nil
+}
+
+// ==========================================
+// 🔑 IDEMPOTENCY KEY MANAGEMENT (REDIS)
+// ==========================================
+
+// AcquireIdempotencyLock mencoba mengunci idempotency key dengan status "PROCESSING".
+// Mengembalikan true jika lock berhasil didapat (request pertama), false jika key sudah ada.
+func (r *RedisClient) AcquireIdempotencyLock(ctx context.Context, userID, key string, ttl time.Duration) (bool, error) {
+	redisKey := fmt.Sprintf("idempotency:%s:%s", userID, key)
+	return r.Client.SetNX(ctx, redisKey, "PROCESSING", ttl).Result()
+}
+
+// GetIdempotencyValue mengambil nilai atau status idempotency key
+func (r *RedisClient) GetIdempotencyValue(ctx context.Context, userID, key string) (string, error) {
+	redisKey := fmt.Sprintf("idempotency:%s:%s", userID, key)
+	val, err := r.Client.Get(ctx, redisKey).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return "", nil
+		}
+		return "", err
+	}
+	return val, nil
+}
+
+// SaveIdempotencyResult menyimpan hasil akhir order (order ID) ke idempotency key
+func (r *RedisClient) SaveIdempotencyResult(ctx context.Context, userID, key, orderID string, ttl time.Duration) error {
+	redisKey := fmt.Sprintf("idempotency:%s:%s", userID, key)
+	return r.Client.Set(ctx, redisKey, orderID, ttl).Err()
+}
+
+// ReleaseIdempotencyLock menghapus lock idempotency jika proses gagal di tengah jalan
+func (r *RedisClient) ReleaseIdempotencyLock(ctx context.Context, userID, key string) error {
+	redisKey := fmt.Sprintf("idempotency:%s:%s", userID, key)
+	return r.Client.Del(ctx, redisKey).Err()
 }

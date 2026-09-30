@@ -32,6 +32,8 @@ type EventRepository interface {
 	GetEventByID(ctx context.Context, id string) (*Event, error)
 	ListEvents(ctx context.Context, status *string) ([]*Event, error)
 	UpdateAvailableStock(ctx context.Context, id string, newStock int) error
+	DeductAvailableStock(ctx context.Context, id string, qty int) error
+	RestoreAvailableStock(ctx context.Context, id string, qty int) error
 }
 
 type eventRepository struct {
@@ -166,3 +168,32 @@ func (r *eventRepository) UpdateAvailableStock(ctx context.Context, id string, n
 	_, err := r.db.Exec(ctx, query, newStock, id)
 	return err
 }
+
+// DeductAvailableStock mengurangi stok di DB secara relatif dan aman (mencegah out-of-order write)
+func (r *eventRepository) DeductAvailableStock(ctx context.Context, id string, qty int) error {
+	query := `
+		UPDATE events 
+		SET available_stock = available_stock - $1, updated_at = NOW() 
+		WHERE id = $2 AND available_stock >= $1
+	`
+	res, err := r.db.Exec(ctx, query, qty, id)
+	if err != nil {
+		return fmt.Errorf("failed to deduct event stock in db: %w", err)
+	}
+	if res.RowsAffected() == 0 {
+		return errors.New("insufficient database stock or event not found")
+	}
+	return nil
+}
+
+// RestoreAvailableStock mengembalikan stok ke database saat order dibatalkan atau kedaluwarsa
+func (r *eventRepository) RestoreAvailableStock(ctx context.Context, id string, qty int) error {
+	query := `
+		UPDATE events 
+		SET available_stock = LEAST(total_stock, available_stock + $1), updated_at = NOW() 
+		WHERE id = $2
+	`
+	_, err := r.db.Exec(ctx, query, qty, id)
+	return err
+}
+

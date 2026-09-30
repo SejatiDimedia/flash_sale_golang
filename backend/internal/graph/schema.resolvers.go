@@ -186,7 +186,9 @@ func (r *mutationResolver) PurchaseTicket(ctx context.Context, eventID string, q
 		return nil, errors.New("unauthorized: please login to purchase ticket")
 	}
 
-	order, err := r.CheckoutService.PurchaseTicket(ctx, currentUser.UserID, eventID, quantity)
+	idempotencyKey := middleware.GetIdempotencyKey(ctx)
+
+	order, err := r.CheckoutService.PurchaseTicketWithIdempotency(ctx, currentUser.UserID, eventID, quantity, idempotencyKey)
 	if err != nil {
 		return nil, err
 	}

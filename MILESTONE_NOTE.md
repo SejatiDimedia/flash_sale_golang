@@ -29,15 +29,18 @@
 ---
 
 ## 🛡️ Milestone 2: Hardening & Bug Fixes (Commit Bertahap)
-- [ ] **Penerapan Idempotency Key:**
-  - Tambahkan dukungan idempotency key pada checkout service & GraphQL mutation.
-  - Simpan dan validasi key di Redis dengan TTL untuk mencegah double-order pada request paralel/retry.
-- [ ] **Pencegahan Kebocoran Stok (Stock Leak Prevention):**
-  - Rollback atomik stok Redis (`IncrStock`) dan update status order menjadi `FAILED` jika RabbitMQ publish gagal.
-- [ ] **Pencegahan Database Race Condition (DB Safe Update):**
-  - Perbaiki update stok DB menjadi relative decrement (`available_stock = available_stock - $1 WHERE available_stock >= $1`).
-- [ ] **Mekanisme Reservasi Kedaluwarsa & Pembatalan:**
-  - Tambahkan alur rilis tiket kedaluwarsa jika pesanan tidak diselesaikan dalam batas waktu tertentu.
+- [x] **Penerapan Idempotency Key:**
+  - [x] Tambahkan dukungan idempotency key pada checkout service & GraphQL middleware.
+  - [x] Simpan dan validasi key di Redis dengan TTL untuk mencegah double-order pada request paralel/retry.
+- [x] **Pencegahan Kebocoran Stok (Stock Leak Prevention):**
+  - [x] Rollback atomik stok Redis (`IncrStock`) dan DB (`RestoreAvailableStock`), serta update status order menjadi `FAILED` jika RabbitMQ publish gagal.
+- [x] **Pencegahan Database Race Condition (DB Safe Update):**
+  - [x] Implementasikan relative decrement `DeductAvailableStock` di PostgreSQL (`available_stock = available_stock - $1 WHERE available_stock >= $1`).
+- [x] **Mekanisme Reservasi Kedaluwarsa & Pembatalan:**
+  - [x] Tambahkan `GetExpiredPendingOrders`, `CancelExpiredOrders`, serta background cleaner di reconciliation worker.
+- [x] **Worker Idempotency & Reconciliation Fix:**
+  - [x] Cegah pemrosesan ganda pada pesan RabbitMQ yang sudah CONFIRMED.
+  - [x] Perbaiki data drift auto-correction di Redis menggunakan `SetStock`.
 
 ---
 
