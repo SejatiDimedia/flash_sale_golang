@@ -98,7 +98,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         <button
           onClick={onClose}
           className="absolute top-4 right-4 w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors"
-          title="Tutup"
+          title="Close"
         >
           <FiX className="w-4 h-4" />
         </button>
@@ -114,14 +114,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 {event.name}
               </h2>
               <p className="text-xs text-slate-500 mt-1">
-                Sisa Kuota: <strong className="text-indigo-600 font-bold">{event.availableStock} tiket</strong>
+                Remaining Quota: <strong className="text-indigo-600 font-bold">{event.availableStock} tickets</strong>
               </p>
             </div>
 
             {/* Quantity Selector Card */}
             <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-4 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-700">Jumlah Tiket (Maks. {event.maxPerUser}):</span>
+                <span className="text-xs font-semibold text-slate-700">Ticket Quantity (Max. {event.maxPerUser}):</span>
                 <div className="flex items-center gap-3 bg-white rounded-lg p-1 border border-slate-300 shadow-sm">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -140,7 +140,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-slate-200">
-                <span className="text-xs text-slate-500 font-medium">Total Tagihan:</span>
+                <span className="text-xs text-slate-500 font-medium">Total Amount:</span>
                 <span className="text-lg font-black text-slate-900 tracking-tight">
                   {formatPrice(totalPrice)}
                 </span>
@@ -167,7 +167,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               {isProcessing ? (
                 <>
                   <CgSpinner className="w-4 h-4 animate-spin" />
-                  Mengunci Stok di Redis...
+                  Securing Stock in Redis...
                 </>
               ) : (
                 <>
@@ -184,10 +184,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </div>
 
             <h3 className="text-lg font-bold text-slate-900 mb-1">
-              Tiket Berhasil Dipesan!
+              Order Confirmed!
             </h3>
             <p className="text-xs text-slate-500 mb-4">
-              Pesanan Anda telah dikonfirmasi dan stok diamankan secara atomik.
+              Your ticket purchase has been confirmed and quota securely deducted.
             </p>
 
             <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 text-left mb-5">
@@ -209,11 +209,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 font-medium block">Jumlah</span>
-                  <span className="font-bold text-slate-800">{order.quantity} Tiket</span>
+                  <span className="text-[10px] text-slate-400 font-medium block">Quantity</span>
+                  <span className="font-bold text-slate-800">{order.quantity} Tickets</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 font-medium block">Total Pembayaran</span>
+                  <span className="text-[10px] text-slate-400 font-medium block">Total Paid</span>
                   <span className="font-bold text-slate-900">{formatPrice(order.totalPrice)}</span>
                 </div>
                 <div>
@@ -227,7 +227,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               onClick={onClose}
               className="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 transition-colors"
             >
-              Selesai & Tutup
+              Done & Close
             </button>
           </div>
         )}

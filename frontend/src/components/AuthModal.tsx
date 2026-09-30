@@ -74,10 +74,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             <FiUser className="w-5 h-5" />
           </div>
           <h3 className="text-lg font-bold text-slate-900">
-            {isLogin ? 'Masuk ke Akun' : 'Daftar Akun Baru'}
+            {isLogin ? 'Sign In to Account' : 'Create New Account'}
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            {isLogin ? 'Gunakan akun admin atau customer untuk masuk' : 'Buat akun untuk mulai memesan tiket flash sale'}
+            {isLogin ? 'Use your admin or customer account to sign in' : 'Create an account to join flash sales and secure tickets'}
           </p>
         </div>
 
@@ -85,7 +85,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           {!isLogin && (
             <>
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
                 <div className="relative">
                   <FiUser className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
                   <input
@@ -93,7 +93,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Nama Lengkap"
+                    placeholder="Full Name"
                     className="w-full pl-10 pr-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:bg-white focus:border-indigo-500 outline-none transition-colors"
                   />
                 </div>
@@ -101,7 +101,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
               {/* Role Selection */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Tipe Akun</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Account Role</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
@@ -132,7 +132,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           )}
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Alamat Email</label>
+            <label className="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
             <div className="relative">
               <FiMail className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
               <input
@@ -140,7 +140,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="nama@example.com"
+                placeholder="name@example.com"
                 className="w-full pl-10 pr-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:bg-white focus:border-indigo-500 outline-none transition-colors"
               />
             </div>
@@ -163,7 +163,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition-colors"
-                title={showPassword ? 'Sembunyikan password' : 'Lihat password'}
+                title={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
               </button>
@@ -184,9 +184,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             {isLoading ? (
               <CgSpinner className="w-4 h-4 animate-spin" />
             ) : isLogin ? (
-              'Masuk Sekarang'
+              'Sign In Now'
             ) : (
-              'Buat Akun'
+              'Create Account'
             )}
           </button>
         </form>
@@ -199,7 +199,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             }}
             className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
           >
-            {isLogin ? 'Belum punya akun? Daftar di sini' : 'Sudah punya akun? Masuk di sini'}
+            {isLogin ? "Don't have an account? Sign up here" : "Already have an account? Sign in here"}
           </button>
         </div>
       </div>

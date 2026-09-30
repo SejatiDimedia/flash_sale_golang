@@ -75,11 +75,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           <button
             onClick={onBack}
             className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition-colors border border-slate-700"
-            title="Kembali"
+            title="Back"
           >
             <FiArrowLeft className="w-4 h-4" />
           </button>
-          <span className="text-xs font-bold tracking-wide uppercase text-slate-400">Profil Pengguna</span>
+          <span className="text-xs font-bold tracking-wide uppercase text-slate-400">User Profile</span>
           <div className="w-8"></div>
         </div>
 
@@ -121,12 +121,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
               <HiTicket className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-slate-800">Tiket Saya</h4>
-              <p className="text-[11px] text-slate-500">Lihat semua tiket konser dan riwayat pemesanan</p>
+              <h4 className="text-xs font-bold text-slate-800">My Tickets</h4>
+              <p className="text-[11px] text-slate-500">View purchased tickets and order history</p>
             </div>
           </div>
           <span className="text-xs font-bold text-indigo-600 group-hover:translate-x-1 transition-transform">
-            Buka →
+            View →
           </span>
         </div>
 
@@ -138,9 +138,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           <div className="flex items-center justify-between pb-2 border-b border-slate-100">
             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
               <FiUser className="w-4 h-4 text-indigo-600" />
-              <span>Pengaturan Profil</span>
+              <span>Profile Settings</span>
             </div>
-            <span className="text-[10px] font-semibold text-slate-500">Hak Akses: {user.role.toUpperCase()}</span>
+            <span className="text-[10px] font-semibold text-slate-500">Role: {user.role.toUpperCase()}</span>
           </div>
 
           {saveSuccess && (
@@ -159,7 +159,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           {/* Edit Name */}
           <div>
             <label className="block text-[11px] font-bold text-slate-700 mb-1">
-              Nama Lengkap
+              Full Name
             </label>
             <div className="relative">
               <FiUser className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
@@ -168,7 +168,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                 required
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                placeholder="Nama Lengkap"
+                placeholder="Full Name"
                 className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors"
               />
             </div>
@@ -177,7 +177,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           {/* Edit Email */}
           <div>
             <label className="block text-[11px] font-bold text-slate-700 mb-1">
-              Alamat Email
+              Email Address
             </label>
             <div className="relative">
               <FiMail className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
@@ -186,7 +186,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                 required
                 value={editEmail}
                 onChange={(e) => setEditEmail(e.target.value)}
-                placeholder="nama@example.com"
+                placeholder="name@example.com"
                 className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors"
               />
             </div>
@@ -195,7 +195,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           {/* Edit Password */}
           <div>
             <label className="block text-[11px] font-bold text-slate-700 mb-1">
-              Password Baru <span className="text-slate-400 font-normal">(Kosongkan bila tidak diubah)</span>
+              New Password <span className="text-slate-400 font-normal">(Leave blank to keep unchanged)</span>
             </label>
             <div className="relative">
               <FiLock className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
@@ -203,7 +203,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                 type="password"
                 value={editPassword}
                 onChange={(e) => setEditPassword(e.target.value)}
-                placeholder="Password baru (min. 6 karakter)"
+                placeholder="New password (min. 6 characters)"
                 className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors"
               />
             </div>
@@ -219,12 +219,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
               {isSaving ? (
                 <>
                   <CgSpinner className="w-4 h-4 animate-spin" />
-                  <span>Menyimpan Perubahan...</span>
+                  <span>Saving Changes...</span>
                 </>
               ) : (
                 <>
                   <FiCheckCircle className="w-4 h-4" />
-                  <span>Simpan Perubahan Profil</span>
+                  <span>Save Changes</span>
                 </>
               )}
             </button>
@@ -238,8 +238,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
               <FiAward className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-800 block">Akun Terverifikasi</span>
-              <span className="text-[10px] text-slate-500">Sesi Login Aktif</span>
+              <span className="text-xs font-bold text-slate-800 block">Verified Account</span>
+              <span className="text-[10px] text-slate-500">Active Login Session</span>
             </div>
           </div>
 
@@ -248,8 +248,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
               <FiKey className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-800 block">Keamanan JWT</span>
-              <span className="text-[10px] text-slate-500">Bearer Token Valid</span>
+              <span className="text-xs font-bold text-slate-800 block">JWT Security</span>
+              <span className="text-[10px] text-slate-500">Valid Bearer Token</span>
             </div>
           </div>
         </div>
@@ -261,7 +261,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             className="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-rose-200"
           >
             <FiLogOut className="w-4 h-4" />
-            <span>Keluar Akun (Logout)</span>
+            <span>Sign Out (Logout)</span>
           </button>
         </div>
       </div>

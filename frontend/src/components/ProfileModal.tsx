@@ -63,7 +63,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
           <div className="flex items-center justify-between">
             <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
               <FiUser className="w-4 h-4 text-app-purple" />
-              <span>Profil Pengguna</span>
+              <span>User Profile</span>
             </h2>
             <button
               onClick={onClose}
@@ -106,7 +106,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                 <HiTicket className="w-4 h-4 text-app-purple" />
-                <span>Tiket Saya ({orders.length})</span>
+                <span>My Tickets ({orders.length})</span>
               </h4>
               <button
                 onClick={fetchMyOrders}
@@ -119,14 +119,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
             {isLoading ? (
               <div className="flex flex-col items-center justify-center py-8 gap-2">
                 <CgSpinner className="w-6 h-6 text-app-purple animate-spin" />
-                <span className="text-[11px] text-slate-400 font-bold">Memuat tiket...</span>
+                <span className="text-[11px] text-slate-400 font-bold">Loading tickets...</span>
               </div>
             ) : orders.length === 0 ? (
               <div className="bg-[#F8F3FE] rounded-2xl p-6 text-center border border-purple-50">
                 <HiTicket className="w-8 h-8 text-purple-300 mx-auto mb-2" />
-                <p className="text-xs font-bold text-slate-600">Belum Ada Tiket Dibeli</p>
+                <p className="text-xs font-bold text-slate-600">No Tickets Purchased Yet</p>
                 <p className="text-[10px] text-slate-400 mt-0.5">
-                  Ikuti war tiket flash sale untuk mendapatkan tiket konser impianmu!
+                  Join the flash sale ticket wars to secure passes for your favorite concerts!
                 </p>
               </div>
             ) : (
@@ -139,7 +139,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <span className="text-[9px] font-black text-app-purple uppercase tracking-widest block">
-                          E-Ticket Official
+                          Official E-Ticket
                         </span>
                         <h5 className="text-xs font-extrabold text-slate-900 line-clamp-1">
                           {getEventName(o.eventId)}
@@ -161,11 +161,11 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
 
                     <div className="grid grid-cols-2 gap-2 text-[11px] pt-1.5 border-t border-purple-50 text-slate-500">
                       <div>
-                        <span className="text-[9px] text-slate-400 block font-bold">Jumlah Tiket</span>
-                        <span className="font-extrabold text-slate-800">{o.quantity} Tiket</span>
+                        <span className="text-[9px] text-slate-400 block font-bold">Quantity</span>
+                        <span className="font-extrabold text-slate-800">{o.quantity} Tickets</span>
                       </div>
                       <div>
-                        <span className="text-[9px] text-slate-400 block font-bold">Total Pembayaran</span>
+                        <span className="text-[9px] text-slate-400 block font-bold">Total Paid</span>
                         <span className="font-black text-app-purple">{formatPrice(o.totalPrice)}</span>
                       </div>
                     </div>
@@ -174,7 +174,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                       <span className="font-mono truncate max-w-[140px]">ID: {o.id}</span>
                       <span className="flex items-center gap-1">
                         <FiCalendar className="w-3 h-3" />
-                        {new Date(o.createdAt).toLocaleDateString('id-ID')}
+                        {new Date(o.createdAt).toLocaleDateString('en-US')}
                       </span>
                     </div>
                   </div>
@@ -194,7 +194,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
             className="w-full py-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-2xl text-xs font-black transition-all flex items-center justify-center gap-2 border border-red-200"
           >
             <FiLogOut className="w-4 h-4" />
-            <span>Keluar dari Akun (Logout)</span>
+            <span>Sign Out (Logout)</span>
           </button>
         </div>
       </div>

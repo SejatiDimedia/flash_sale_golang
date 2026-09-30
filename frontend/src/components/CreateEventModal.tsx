@@ -57,7 +57,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
       onSuccess();
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Gagal menambahkan event baru');
+      setError(err.message || 'Failed to create new event');
     } finally {
       setIsLoading(false);
     }
@@ -74,7 +74,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                 <FiPlus className="w-4 h-4" />
               </div>
               <h2 className="text-base font-black text-slate-900">
-                Buat Event Flash Sale
+                Create Flash Sale Event
               </h2>
             </div>
             <button
@@ -89,7 +89,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
             {/* Event Name */}
             <div>
               <label className="block text-[11px] font-extrabold text-slate-700 mb-1">
-                Nama Event / Konser
+                Event / Concert Name
               </label>
               <div className="relative">
                 <FiTag className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
@@ -98,7 +98,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Contoh: Bruno Mars Live in Jakarta"
+                  placeholder="e.g. Coldplay Music of the Spheres"
                   className="w-full pl-9 pr-3 py-2.5 bg-[#F8F3FE] rounded-2xl border border-purple-100 text-xs font-bold text-slate-800 outline-none focus:border-app-purple"
                 />
               </div>
@@ -107,13 +107,13 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
             {/* Description */}
             <div>
               <label className="block text-[11px] font-extrabold text-slate-700 mb-1">
-                Deskripsi Singkat
+                Brief Description
               </label>
               <textarea
                 rows={2}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Konser tur dunia spektakuler dengan pengalaman audio visual terbaik..."
+                placeholder="Spectacular world tour concert with high fidelity audio visual experience..."
                 className="w-full p-3 bg-[#F8F3FE] rounded-2xl border border-purple-100 text-xs font-semibold text-slate-800 outline-none focus:border-app-purple resize-none"
               />
             </div>
@@ -122,7 +122,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="block text-[11px] font-extrabold text-slate-700 mb-1">
-                  Total Kuota Tiket
+                  Total Ticket Quota
                 </label>
                 <div className="relative">
                   <HiTicket className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
@@ -139,7 +139,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
               <div>
                 <label className="block text-[11px] font-extrabold text-slate-700 mb-1">
-                  Harga Tiket (Rp)
+                  Ticket Price (IDR)
                 </label>
                 <div className="relative">
                   <FiDollarSign className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
@@ -160,7 +160,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="block text-[11px] font-extrabold text-slate-700 mb-1">
-                  Maks / User (Anti-Scalper)
+                  Max / User (Fair Access)
                 </label>
                 <input
                   type="number"
@@ -175,7 +175,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
               <div>
                 <label className="block text-[11px] font-extrabold text-slate-700 mb-1">
-                  Status Event
+                  Event Status
                 </label>
                 <select
                   value={status}
@@ -183,9 +183,9 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                   className="w-full px-3 py-2.5 bg-[#F8F3FE] rounded-2xl border border-purple-100 text-xs font-bold text-slate-800 outline-none focus:border-app-purple"
                 >
                   <option value="ACTIVE">ACTIVE (Flash Sale)</option>
-                  <option value="SCHEDULED">SCHEDULED (Segera)</option>
+                  <option value="SCHEDULED">SCHEDULED (Upcoming)</option>
                   <option value="DRAFT">DRAFT</option>
-                  <option value="CLOSED">CLOSED (Ditutup)</option>
+                  <option value="CLOSED">CLOSED</option>
                 </select>
               </div>
             </div>
@@ -193,7 +193,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
             {/* Start Sale Time & End Sale Time */}
             <div>
               <label className="block text-[11px] font-extrabold text-slate-700 mb-1">
-                Waktu Mulai Penjualan
+                Sale Start Time
               </label>
               <div className="relative">
                 <FiCalendar className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
@@ -209,7 +209,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
             <div>
               <label className="block text-[11px] font-extrabold text-slate-700 mb-1">
-                Waktu Berakhir Penjualan
+                Sale End Time
               </label>
               <div className="relative">
                 <FiCalendar className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
@@ -242,12 +242,12 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
             {isLoading ? (
               <>
                 <CgSpinner className="w-4 h-4 animate-spin" />
-                <span>Mendaftarkan Event ke Database & Redis...</span>
+                <span>Registering Event to Database & Redis...</span>
               </>
             ) : (
               <>
                 <IoFlash className="w-4 h-4" />
-                <span>Publikasikan Event Flash Sale 🚀</span>
+                <span>Publish Flash Sale Event 🚀</span>
               </>
             )}
           </button>

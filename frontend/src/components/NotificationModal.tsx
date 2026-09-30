@@ -74,10 +74,10 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-bold text-slate-900">Notifikasi</h3>
+            <h3 className="text-sm font-bold text-slate-900">Notifications</h3>
             {unreadCount > 0 && (
               <span className="px-2 py-0.5 bg-indigo-600 text-white rounded-full text-[10px] font-bold">
-                {unreadCount} Baru
+                {unreadCount} New
               </span>
             )}
           </div>
@@ -87,7 +87,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
               <button
                 onClick={onClearAll}
                 className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
-                title="Hapus semua notifikasi"
+                title="Clear all notifications"
               >
                 <FiTrash2 className="w-4 h-4" />
               </button>
@@ -108,9 +108,9 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
               <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
                 <FiBell className="w-5 h-5" />
               </div>
-              <h4 className="text-xs font-bold text-slate-800">Belum Ada Notifikasi</h4>
+              <h4 className="text-xs font-bold text-slate-800">No Notifications Yet</h4>
               <p className="text-[11px] text-slate-500 max-w-[200px] mx-auto">
-                Pemberitahuan giliran ruang tunggu antrean dan konfirmasi pesanan tiket akan muncul di sini.
+                Waiting room turn alerts and order confirmation updates will appear here.
               </p>
             </div>
           ) : (
@@ -143,7 +143,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
                       {getTimeAgo(n.timestamp)}
                     </span>
                     {n.type === 'admitted' && (
-                      <span className="text-indigo-600 font-bold">Buka Checkout →</span>
+                      <span className="text-indigo-600 font-bold">Open Checkout →</span>
                     )}
                   </div>
                 </div>
@@ -159,14 +159,14 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
               onClick={onMarkAllAsRead}
               className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors"
             >
-              Tandai Telah Dibaca
+              Mark All as Read
             </button>
           )}
           <button
             onClick={onClose}
             className="flex-1 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors"
           >
-            Tutup
+            Close
           </button>
         </div>
       </div>

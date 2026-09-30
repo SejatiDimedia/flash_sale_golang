@@ -107,7 +107,7 @@ export const Header: React.FC<HeaderProps> = ({
               className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-1"
             >
               <FiUser className="w-3.5 h-3.5" />
-              <span>Masuk</span>
+              <span>Sign In</span>
             </button>
           )}
         </div>
@@ -120,7 +120,7 @@ export const Header: React.FC<HeaderProps> = ({
             Flash Sale & Live Events
           </h1>
           <p className="text-[11px] text-slate-400">
-            Antrean adil dan pencegahan overselling instan.
+            Fair virtual queues and instant zero-overselling prevention.
           </p>
         </div>
       )}
@@ -133,7 +133,7 @@ export const Header: React.FC<HeaderProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari event konser, festival..."
+            placeholder="Search concerts, festivals, sports..."
             className="w-full pl-10 pr-4 py-2 bg-slate-800/90 text-white placeholder-slate-400 text-xs rounded-xl border border-slate-700 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
           />
         </div>

@@ -115,20 +115,20 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
           <button
             onClick={onBack}
             className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition-colors border border-slate-700"
-            title="Kembali"
+            title="Back"
           >
             <FiArrowLeft className="w-4 h-4" />
           </button>
-          <span className="text-xs font-bold tracking-wide uppercase text-slate-400">E-Tiket & Antrean</span>
+          <span className="text-xs font-bold tracking-wide uppercase text-slate-400">E-Tickets & Passes</span>
           <div className="w-8"></div>
         </div>
 
         <div>
           <h1 className="text-lg font-bold text-white leading-tight">
-            Tiket & Status Antrean
+            Order & Ticket History
           </h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            Daftar tiket terverifikasi dan status antrean flash sale Anda
+            Active queue passes and verified concert tickets
           </p>
         </div>
       </div>
@@ -141,15 +141,15 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
             <div className="flex items-center justify-between px-1">
               <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                 <IoFlash className="w-4 h-4 text-amber-500 animate-pulse" />
-                <span>Tiket Antrean Aktif</span>
+                <span>Active Waiting Room Pass</span>
               </h3>
               <button
                 onClick={handleCancelQueue}
                 className="text-xs font-medium text-slate-400 hover:text-rose-600 flex items-center gap-1 transition-colors"
-                title="Tinggalkan antrean"
+                title="Leave queue"
               >
                 <FiX className="w-3.5 h-3.5" />
-                <span>Keluar Antrean</span>
+                <span>Leave Queue</span>
               </button>
             </div>
 
@@ -177,12 +177,12 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
                     {activeQueueStatus.isAllowedToPurchase ? (
                       <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-ping"></span>
-                        Giliran Tiba
+                        Pass Active
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500">
                         <CgSpinner className="w-3 h-3 animate-spin text-indigo-600" />
-                        Dalam Antrean
+                        In Queue
                       </span>
                     )}
                   </div>
@@ -200,14 +200,14 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
               {activeQueueStatus.isAllowedToPurchase ? (
                 <div className="mt-3 pt-3 border-t border-emerald-200/60 space-y-2">
                   <p className="text-xs font-medium text-emerald-800 leading-tight">
-                    Sesi pembelian Anda sedang aktif! Segera selesaikan pemesanan tiket Anda dalam 5 menit.
+                    🎉 It's your turn! Your 5-minute checkout session is active.
                   </p>
                   <button
                     onClick={() => onOpenCheckout && onOpenCheckout(queuedEvent)}
                     className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2"
                   >
                     <IoFlash className="w-4 h-4 text-amber-300" />
-                    <span>Lanjut ke Checkout Pembelian</span>
+                    <span>Proceed to Express Checkout</span>
                     <FiArrowRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -215,16 +215,16 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
                 <div className="mt-3 pt-3 border-t border-slate-100 space-y-2.5">
                   <div className="grid grid-cols-3 gap-2 text-center bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
                     <div>
-                      <span className="text-[10px] font-medium text-slate-500 block">Posisi</span>
+                      <span className="text-[10px] font-medium text-slate-500 block">Position</span>
                       <span className="text-xs font-bold text-indigo-600">#{activeQueueStatus.position}</span>
                     </div>
                     <div>
-                      <span className="text-[10px] font-medium text-slate-500 block">Total Antrean</span>
+                      <span className="text-[10px] font-medium text-slate-500 block">In Queue</span>
                       <span className="text-xs font-bold text-slate-800">{activeQueueStatus.totalInQueue}</span>
                     </div>
                     <div>
-                      <span className="text-[10px] font-medium text-slate-500 block">Est. Tunggu</span>
-                      <span className="text-xs font-bold text-slate-800">~{activeQueueStatus.estimatedWaitSeconds}d</span>
+                      <span className="text-[10px] font-medium text-slate-500 block">Est. Wait</span>
+                      <span className="text-xs font-bold text-slate-800">~{activeQueueStatus.estimatedWaitSeconds}s</span>
                     </div>
                   </div>
 
@@ -233,7 +233,7 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
                     className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5"
                   >
                     <FiClock className="w-3.5 h-3.5" />
-                    <span>Lihat Ruang Tunggu Live</span>
+                    <span>Open Live Waiting Room View</span>
                   </button>
                 </div>
               )}
@@ -245,13 +245,13 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
         <div className="flex items-center justify-between px-1 pt-1">
           <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
             <HiTicket className="w-4 h-4 text-indigo-600" />
-            <span>Tiket yang Dimiliki ({orders.length})</span>
+            <span>Purchased Tickets ({orders.length})</span>
           </h3>
           <button
             onClick={fetchMyOrders}
             className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
           >
-            Muat Ulang
+            Refresh
           </button>
         </div>
 
@@ -259,7 +259,7 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12 gap-2 bg-slate-50 rounded-2xl border border-slate-200 p-6">
             <CgSpinner className="w-7 h-7 text-indigo-600 animate-spin" />
-            <span className="text-xs font-medium text-slate-500">Memuat riwayat tiket...</span>
+            <span className="text-xs font-medium text-slate-500">Loading ticket history...</span>
           </div>
         ) : orders.length === 0 ? (
           <div className="bg-slate-50 rounded-2xl p-8 text-center border border-slate-200 space-y-3">
@@ -267,16 +267,16 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
               <HiTicket className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-slate-800">Belum Ada Tiket yang Dibeli</h4>
+              <h4 className="text-sm font-bold text-slate-800">No Tickets Purchased Yet</h4>
               <p className="text-xs text-slate-500 mt-1 max-w-[240px] mx-auto">
-                Anda belum memiliki tiket konser aktif. Ikuti flash sale pada halaman utama sekarang!
+                You do not have any active concert tickets. Join upcoming flash sale events now!
               </p>
             </div>
             <button
               onClick={onExplore}
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-colors inline-block"
             >
-              Jelajahi Flash Sale
+              Explore Flash Sale Events
             </button>
           </div>
         ) : (
@@ -295,7 +295,7 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
                   />
                   <div className="flex-1 min-w-0">
                     <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block mb-0.5">
-                      E-Tiket Resmi
+                      Official E-Ticket
                     </span>
                     <h4 className="text-xs font-bold text-slate-900 truncate">
                       {getEventName(o.eventId)}
@@ -317,11 +317,11 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
 
                 <div className="grid grid-cols-2 gap-2 text-xs pt-2.5 border-t border-slate-100 text-slate-500">
                   <div>
-                    <span className="text-[10px] text-slate-400 block font-medium">Jumlah</span>
-                    <span className="font-bold text-slate-800">{o.quantity} Tiket</span>
+                    <span className="text-[10px] text-slate-400 block font-medium">Quantity</span>
+                    <span className="font-bold text-slate-800">{o.quantity} Tickets</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 block font-medium">Total Pembayaran</span>
+                    <span className="text-[10px] text-slate-400 block font-medium">Total Paid</span>
                     <span className="font-bold text-indigo-600">{formatPrice(o.totalPrice)}</span>
                   </div>
                 </div>
@@ -330,7 +330,7 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
                   <span className="font-mono text-[10px] text-slate-500 truncate max-w-[150px]">ID: {o.id}</span>
                   <span className="flex items-center gap-1 font-medium text-[10px] text-slate-500">
                     <FiCalendar className="w-3.5 h-3.5 text-indigo-600" />
-                    {new Date(o.createdAt).toLocaleDateString('id-ID')}
+                    {new Date(o.createdAt).toLocaleDateString('en-US')}
                   </span>
                 </div>
               </div>

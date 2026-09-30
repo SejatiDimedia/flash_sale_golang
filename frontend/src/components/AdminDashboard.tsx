@@ -184,7 +184,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <div className="flex items-center justify-between gap-2 mb-2">
           <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
             <FiShield className="w-4 h-4 text-indigo-600" />
-            <span>Pilih Event Flash Sale</span>
+            <span>Select Flash Sale Event</span>
           </div>
           <button
             onClick={() => {
@@ -192,7 +192,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               onRefreshEvents();
             }}
             className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 transition-colors"
-            title="Muat Ulang Data"
+            title="Reload Data"
           >
             <FiRefreshCw className={`w-3.5 h-3.5 ${isLoadingOrders ? 'animate-spin' : ''}`} />
           </button>
@@ -205,7 +205,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         >
           {events.map((e) => (
             <option key={e.id} value={e.id}>
-              {e.name} (Stok: {e.availableStock}/{e.totalStock})
+              {e.name} (Stock: {e.availableStock}/{e.totalStock})
             </option>
           ))}
         </select>
@@ -216,7 +216,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-colors flex items-center justify-center gap-1.5"
         >
           <FiPlus className="w-3.5 h-3.5" />
-          <span>Tambah Event Flash Sale Baru</span>
+          <span>Create New Flash Sale Event</span>
         </button>
       </div>
 
@@ -225,7 +225,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         {/* Card 1: Tickets Sold */}
         <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tiket Terjual</span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tickets Sold</span>
             <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
               <HiTicket className="w-4 h-4" />
             </div>
@@ -235,7 +235,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {totalSold} <span className="text-[11px] text-slate-400 font-semibold">/ {currentEvent?.totalStock || 0}</span>
             </div>
             <span className="text-[10px] font-semibold text-emerald-700 flex items-center gap-1">
-              <FiCheckCircle className="w-3 h-3" /> Stok Terkendali
+              <FiCheckCircle className="w-3 h-3" /> Stock Controlled
             </span>
           </div>
         </div>
@@ -243,7 +243,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         {/* Card 2: Total Revenue */}
         <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Omzet</span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Revenue</span>
             <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <FiDollarSign className="w-4 h-4" />
             </div>
@@ -253,7 +253,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {formatPrice(totalRevenue)}
             </div>
             <span className="text-[10px] font-medium text-slate-500 block">
-              Tercatat di PostgreSQL
+              Recorded in PostgreSQL
             </span>
           </div>
         </div>
@@ -261,14 +261,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         {/* Card 3: Redis Live Stock */}
         <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Stok RAM Redis</span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Redis In-Memory Stock</span>
             <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
               <FiActivity className="w-4 h-4" />
             </div>
           </div>
           <div>
             <div className="text-xl font-extrabold text-slate-900 leading-none mb-1">
-              {currentEvent?.availableStock || 0} <span className="text-[11px] text-slate-400 font-semibold">Tiket</span>
+              {currentEvent?.availableStock || 0} <span className="text-[11px] text-slate-400 font-semibold">Tickets</span>
             </div>
             <span className="text-[10px] font-semibold text-slate-500 block">
               Atomic Lua Quota
@@ -279,7 +279,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         {/* Card 4: DB Queue */}
         <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Antrean Worker</span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Worker Queue</span>
             <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
               <FiUsers className="w-4 h-4" />
             </div>
@@ -289,7 +289,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {pendingOrders} <span className="text-[11px] text-slate-400 font-semibold">Pending</span>
             </div>
             <span className="text-[10px] font-semibold text-blue-700 block">
-              10 Consumer RabbitMQ
+              10 RabbitMQ Consumers
             </span>
           </div>
         </div>
@@ -305,10 +305,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
             <div>
               <h3 className="text-xs font-bold text-slate-900 leading-tight">
-                Pengatur Gerbang Antrean
+                Queue Gatekeeper
               </h3>
               <p className="text-[10px] text-slate-500">
-                Pacing lalu lintas ruang tunggu & checkout
+                Traffic pacing for waiting room & checkout
               </p>
             </div>
           </div>
@@ -346,7 +346,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 gateMode === 'AUTO' ? 'bg-emerald-500' : 'bg-slate-300'
               }`}
             ></span>
-            <span>Auto-Pass (Langsung)</span>
+            <span>Auto-Pass (Direct)</span>
           </button>
 
           <button
@@ -364,7 +364,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 gateMode === 'MANUAL' ? 'bg-amber-500 animate-pulse' : 'bg-slate-300'
               }`}
             ></span>
-            <span>Surge Gate (Bertahap)</span>
+            <span>Surge Gate (Paced)</span>
           </button>
         </div>
 
@@ -375,9 +375,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <FiCheckCircle className="w-4 h-4" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-emerald-900">Checkout Langsung Aktif</h4>
+              <h4 className="text-xs font-bold text-emerald-900">Direct Checkout Active</h4>
               <p className="text-[10px] text-emerald-700 font-medium leading-tight">
-                Pengguna langsung masuk ke layar checkout tanpa harus antre di ruang tunggu.
+                Users enter checkout directly without waiting in the virtual waiting room.
               </p>
             </div>
           </div>
@@ -387,8 +387,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             {/* Preset Quick Batch Buttons */}
             <div>
               <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1.5">
-                <span>Pilih Batch Admission:</span>
-                <span className="text-indigo-600 font-extrabold">{batchSize} Pengguna / Batch</span>
+                <span>Select Admission Batch:</span>
+                <span className="text-indigo-600 font-extrabold">{batchSize} Users / Batch</span>
               </div>
 
               <div className="grid grid-cols-5 gap-1.5">
@@ -444,12 +444,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {isAdmitting ? (
                   <>
                     <CgSpinner className="w-4 h-4 animate-spin" />
-                    <span>Mempersilakan Antrean...</span>
+                    <span>Admitting Queue...</span>
                   </>
                 ) : (
                   <>
                     <IoFlash className="w-4 h-4 text-amber-300" />
-                    <span>Lepas {batchSize} Pengguna ke Checkout</span>
+                    <span>Admit {batchSize} Users to Checkout</span>
                   </>
                 )}
               </button>
@@ -480,7 +480,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       <div className="space-y-2.5">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-            Transaksi Masuk ({filteredOrders.length})
+            Incoming Orders ({filteredOrders.length})
           </h3>
 
           {/* Filter Pills */}
@@ -503,7 +503,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
         {filteredOrders.length === 0 ? (
           <div className="bg-white rounded-2xl p-6 text-center border border-slate-200 shadow-sm">
-            <p className="text-xs font-medium text-slate-400">Tidak ada transaksi berstatus {statusFilter}.</p>
+            <p className="text-xs font-medium text-slate-400">No orders found with status {statusFilter}.</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -540,11 +540,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </div>
 
                   <div className="flex items-center gap-2 text-[10px] text-slate-500">
-                    <span>{o.quantity} Tiket</span>
+                    <span>{o.quantity} Tickets</span>
                     <span>•</span>
                     <span className="font-bold text-slate-800">{formatPrice(o.totalPrice)}</span>
                     <span>•</span>
-                    <span>{new Date(o.createdAt).toLocaleTimeString('id-ID')}</span>
+                    <span>{new Date(o.createdAt).toLocaleTimeString('en-US')}</span>
                   </div>
                 </div>
 
@@ -553,7 +553,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-semibold border border-slate-200 flex items-center gap-1 shrink-0 transition-colors"
                 >
                   <FiFileText className="w-3 h-3" />
-                  <span>Log</span>
+                  <span>Logs</span>
                 </button>
               </div>
             ))}
@@ -571,10 +571,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                     <FiFileText className="w-4 h-4 text-indigo-600" />
-                    <span>Audit Trail Log</span>
+                    <span>Audit Trail Logs</span>
                   </h3>
                   <p className="text-[10px] text-slate-500 font-mono mt-0.5 truncate max-w-[220px]">
-                    ID Pesanan: {selectedOrderId}
+                    Order ID: {selectedOrderId}
                   </p>
                 </div>
 
@@ -590,7 +590,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="overflow-y-auto no-scrollbar flex-1 py-3 space-y-2">
                 {selectedOrderLogs.length === 0 ? (
                   <div className="text-center py-8 text-slate-400 text-xs font-medium">
-                    Belum ada audit log tercatat untuk pesanan ini.
+                    No audit logs recorded for this order yet.
                   </div>
                 ) : (
                   selectedOrderLogs.map((log, index) => {
@@ -606,7 +606,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           </span>
                           <span className="text-[10px] font-medium text-slate-500 flex items-center gap-0.5">
                             <FiClock className="w-2.5 h-2.5" />
-                            {new Date(log.createdAt).toLocaleTimeString('id-ID')}
+                            {new Date(log.createdAt).toLocaleTimeString('en-US')}
                           </span>
                         </div>
 
@@ -625,7 +625,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   onClick={() => setSelectedOrderLogs(null)}
                   className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors"
                 >
-                  Tutup Audit Log
+                  Close Audit Trail
                 </button>
               </div>
             </div>

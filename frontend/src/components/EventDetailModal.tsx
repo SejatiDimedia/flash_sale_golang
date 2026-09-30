@@ -51,7 +51,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
               </button>
 
               <span className="text-white text-xs font-bold uppercase tracking-wider drop-shadow-sm">
-                Detail Flash Sale
+                Flash Sale Details
               </span>
 
               <button className="w-9 h-9 bg-slate-900/80 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:text-indigo-300 transition-colors shadow-sm border border-slate-700/60">
@@ -79,49 +79,49 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
             <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
               <span className="flex items-center gap-1">
                 <FiCalendar className="w-3.5 h-3.5 text-indigo-600" />
-                {new Date(event.startSaleAt).toLocaleDateString('id-ID', { month: 'short', day: 'numeric', year: 'numeric' })}
+                {new Date(event.startSaleAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
               </span>
               <span className="flex items-center gap-1">
                 <FiMapPin className="w-3.5 h-3.5 text-indigo-600" />
-                Stadion Utama GBK, Jakarta
+                Gelora Bung Karno Stadium, Jakarta
               </span>
             </div>
 
             {/* Real Stock Status Pill */}
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-medium text-slate-500 block">Sisa Kuota Tiket</span>
+                <span className="text-[10px] font-medium text-slate-500 block">Remaining Quota</span>
                 <span className="text-xs font-bold text-slate-900">
-                  {event.availableStock} / {event.totalStock} Tiket Tersedia
+                  {event.availableStock} / {event.totalStock} Tickets Available
                 </span>
               </div>
               <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                 event.availableStock > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
               }`}>
-                {event.availableStock > 0 ? 'Tersedia' : 'Habis'}
+                {event.availableStock > 0 ? 'Available' : 'Sold Out'}
               </span>
             </div>
 
             <div className="space-y-1">
               <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                Tentang Event
+                About Event
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                {event.description || 'Nikmati pengalaman pertunjukan live berskala internasional dengan tata panggung canggih dan tata suara spektakuler.'}
+                {event.description || 'Experience an extraordinary live international performance with state-of-the-art stage visuals and sound engineering.'}
               </p>
             </div>
 
             <div className="space-y-1.5">
               <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                Lokasi Venue
+                Venue Location
               </h3>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
                   <FiMapPin className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-slate-800">Gelora Bung Karno (GBK)</h4>
-                  <p className="text-[11px] text-slate-500">Pintu Satu Senayan, Jakarta Pusat</p>
+                  <h4 className="text-xs font-bold text-slate-800">Gelora Bung Karno Main Stadium</h4>
+                  <p className="text-[11px] text-slate-500">Pintu Satu Senayan, Central Jakarta</p>
                 </div>
               </div>
             </div>
@@ -136,7 +136,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
             className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
             <IoFlash className="w-4 h-4 text-amber-300" />
-            <span>{event.availableStock > 0 ? 'Ikuti War Tiket Sekarang' : 'Tiket Sudah Habis'}</span>
+            <span>{event.availableStock > 0 ? 'WAR TICKET NOW' : 'SOLD OUT'}</span>
           </button>
         </div>
       </div>

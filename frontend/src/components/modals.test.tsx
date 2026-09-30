@@ -107,11 +107,11 @@ describe('CheckoutModal Component Test', () => {
     expect(screen.getByText('Express Checkout')).toBeInTheDocument();
     expect(screen.getByText('Coldplay Music of the Spheres')).toBeInTheDocument();
 
-    // Ubah kuantitas jadi 2 tiket
+    // Change quantity to 2 tickets
     const plusBtn = screen.getByText('+');
     fireEvent.click(plusBtn);
 
-    // Kuantitas tiket sekarang 2
+    // Quantity should now be 2
     expect(screen.getByText('2')).toBeInTheDocument();
   });
 

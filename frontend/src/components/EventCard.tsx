@@ -47,7 +47,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onWarTicket, onView
     }).format(price);
   };
 
-  const formattedDate = new Date(event.startSaleAt).toLocaleDateString('id-ID', {
+  const formattedDate = new Date(event.startSaleAt).toLocaleDateString('en-US', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -74,7 +74,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onWarTicket, onView
         <div className="absolute top-3 right-3 flex items-center gap-1.5">
           {isSoldOut ? (
             <span className="px-2.5 py-1 bg-slate-800/90 text-slate-300 rounded-lg text-[10px] font-bold border border-slate-700">
-              HABIS TERJUAL
+              SOLD OUT
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-600/90 text-white rounded-lg text-[10px] font-bold shadow-sm">
@@ -100,7 +100,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onWarTicket, onView
             <button
               onClick={() => onViewDetail(event)}
               className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white text-white hover:text-slate-900 flex items-center justify-center backdrop-blur-sm transition-all shadow-sm shrink-0"
-              title="Lihat Detail"
+              title="View Details"
             >
               <FiArrowUpRight className="w-4 h-4" />
             </button>
@@ -114,7 +114,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onWarTicket, onView
         <div className="flex items-baseline justify-between">
           <div>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-              Harga Flash Sale
+              Flash Sale Price
             </span>
             <span className="text-lg font-black text-slate-900 tracking-tight">
               {formatPrice(event.price)}
@@ -132,7 +132,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onWarTicket, onView
         {/* Real-Time Live Stock Indicator */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-500 font-medium text-[11px]">Sisa Kuota Tiket</span>
+            <span className="text-slate-500 font-medium text-[11px]">Available Quota</span>
             <span className={`font-bold ${isSoldOut ? 'text-rose-600' : 'text-slate-900'}`}>
               {isSoldOut ? 'Sold Out' : `${event.availableStock} / ${event.totalStock}`}
             </span>
@@ -163,7 +163,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onWarTicket, onView
           }`}
         >
           <IoFlash className="w-3.5 h-3.5" />
-          <span>{isSoldOut ? 'Tiket Habis' : 'Beli Tiket (WAR TICKET NOW)'}</span>
+          <span>{isSoldOut ? 'Sold Out' : 'WAR TICKET NOW'}</span>
         </button>
       </div>
     </div>

@@ -87,7 +87,7 @@ export const WaitingRoomModal: React.FC<WaitingRoomModalProps> = ({
         </div>
 
         <h2 className="text-xl font-bold text-slate-900 leading-tight mb-1">
-          {isAdmitted ? "It's Your Turn!" : 'Antrean Tiket Aktif'}
+          {isAdmitted ? "It's Your Turn!" : 'Live Ticket Queue'}
         </h2>
         <p className="text-xs text-slate-500 mb-6">
           {event.name} • Securing fair access for all
@@ -98,7 +98,7 @@ export const WaitingRoomModal: React.FC<WaitingRoomModalProps> = ({
           {isLoading ? (
             <div className="flex flex-col items-center gap-3 py-6">
               <CgSpinner className="w-9 h-9 text-indigo-600 animate-spin" />
-              <span className="text-xs font-semibold text-slate-500">Mempersiapkan nomor antrean...</span>
+              <span className="text-xs font-semibold text-slate-500">Preparing your queue ticket...</span>
             </div>
           ) : isAdmitted ? (
             <div className="flex flex-col items-center gap-3 py-4">
@@ -106,7 +106,7 @@ export const WaitingRoomModal: React.FC<WaitingRoomModalProps> = ({
                 <IoSparkles className="w-8 h-8" />
               </div>
               <span className="text-sm font-bold text-emerald-600">
-                Sesi Checkout Aktif (5 Menit)!
+                Checkout Session Active (5 Min)!
               </span>
             </div>
           ) : (
@@ -116,7 +116,7 @@ export const WaitingRoomModal: React.FC<WaitingRoomModalProps> = ({
               <div className="relative w-24 h-24 rounded-full bg-slate-900 shadow-md flex items-center justify-center text-white">
                 <div className="text-center">
                   <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">
-                    Posisi
+                    Position
                   </span>
                   <span className="text-2xl font-black text-white">
                     #{queueStatus?.position || 1}
@@ -130,16 +130,16 @@ export const WaitingRoomModal: React.FC<WaitingRoomModalProps> = ({
           {!isLoading && !isAdmitted && (
             <div className="w-full grid grid-cols-2 gap-2.5 mt-5">
               <div className="bg-slate-50 rounded-xl p-3 text-center border border-slate-200">
-                <span className="text-[10px] font-semibold text-slate-500 block mb-0.5">Total Antrean</span>
+                <span className="text-[10px] font-semibold text-slate-500 block mb-0.5">Total in Queue</span>
                 <span className="text-sm font-bold text-slate-900 flex items-center justify-center gap-1">
                   <FiUsers className="w-3.5 h-3.5 text-indigo-600" />
                   {queueStatus?.totalInQueue || 1} Users
                 </span>
               </div>
               <div className="bg-slate-50 rounded-xl p-3 text-center border border-slate-200">
-                <span className="text-[10px] font-semibold text-slate-500 block mb-0.5">Estimasi Waktu</span>
+                <span className="text-[10px] font-semibold text-slate-500 block mb-0.5">Est. Wait Time</span>
                 <span className="text-sm font-bold text-indigo-600">
-                  ~{Math.max(1, Math.ceil((queueStatus?.position || 1) / 10))} Menit
+                  ~{Math.max(1, Math.ceil((queueStatus?.position || 1) / 10))} Min
                 </span>
               </div>
             </div>
@@ -158,7 +158,7 @@ export const WaitingRoomModal: React.FC<WaitingRoomModalProps> = ({
             onClick={onClose}
             className="w-1/3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
           >
-            Batal
+            Cancel
           </button>
 
           {isAdmitted ? (
@@ -166,12 +166,12 @@ export const WaitingRoomModal: React.FC<WaitingRoomModalProps> = ({
               onClick={() => onAdmitted(true)}
               className="w-2/3 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-1.5 transition-colors"
             >
-              Lanjut ke Checkout <FiArrowRight className="w-4 h-4" />
+              Proceed to Checkout <FiArrowRight className="w-4 h-4" />
             </button>
           ) : (
             <div className="w-2/3 py-2.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
               <CgSpinner className="w-4 h-4 animate-spin text-indigo-600" />
-              Menunggu Giliran...
+              Waiting in Line...
             </div>
           )}
         </div>

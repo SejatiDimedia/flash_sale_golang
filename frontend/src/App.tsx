@@ -50,8 +50,8 @@ export function App() {
     return [
       {
         id: 'welcome-notif',
-        title: 'Selamat Datang di Flash Sale Ticket',
-        message: 'Jelajahi konser live dan nikmati proteksi antrean adil Zero-Overselling.',
+        title: 'Welcome to Flash Sale Tickets',
+        message: 'Explore live concerts and enjoy fair queue protection with Zero-Overselling.',
         timestamp: new Date(Date.now() - 1000 * 60 * 5),
         type: 'stock_alert',
         read: false,
@@ -178,8 +178,8 @@ export function App() {
     playChime();
 
     addNotification({
-      title: "Giliran Anda Tiba!",
-      message: `Anda telah dipersilakan masuk antrean untuk ${name}. Sesi checkout 5 menit Anda sedang aktif.`,
+      title: "It's Your Turn! 🎟️",
+      message: `You have been admitted from the queue for ${name}. Your 5-minute checkout session is active.`,
       type: 'admitted',
       eventId,
     });
@@ -271,7 +271,7 @@ export function App() {
       {/* 📱 MOBILE FRAME CONTAINER (Centering on Desktop & Full View on Mobile) */}
       <div className="w-full max-w-md min-h-screen bg-white shadow-2xl border-x border-slate-200/90 relative flex flex-col justify-between pb-24">
         <div>
-          {/* 1. 👤 FULL PAGE: PROFIL & EDIT PROFIL */}
+          {/* 1. 👤 FULL PAGE: PROFILE & SETTINGS */}
           {currentView === 'profile' ? (
             <ProfilePage
               user={user}
@@ -284,7 +284,7 @@ export function App() {
               }}
             />
           ) : currentView === 'tickets' ? (
-            /* 2. 🎟️ FULL PAGE: TIKET SAYA */
+            /* 2. 🎟️ FULL PAGE: MY TICKETS */
             <TicketsPage
               user={user}
               onBack={() => setCurrentView('home')}
@@ -300,7 +300,7 @@ export function App() {
               }}
             />
           ) : currentView === 'create_event' ? (
-            /* 3. ➕ FULL PAGE: TAMBAH EVENT FLASH SALE BARU */
+            /* 3. ➕ FULL PAGE: CREATE NEW FLASH SALE EVENT */
             <CreateEventPage
               onBack={() => setCurrentView('admin')}
               onSuccess={() => {
@@ -342,24 +342,24 @@ export function App() {
 
                   <div className="flex items-center justify-between px-1">
                     <h2 className="text-sm font-bold text-slate-900 tracking-tight">
-                      Event Flash Sale Aktif
+                      Active Flash Sale Events
                     </h2>
                     <button
                       onClick={() => setSelectedCategory('all')}
                       className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
                     >
-                      Lihat Semua ({filteredEvents.length})
+                      View All ({filteredEvents.length})
                     </button>
                   </div>
 
                   {isLoadingEvents ? (
                     <div className="flex flex-col items-center justify-center py-16 gap-3 bg-slate-50 rounded-2xl border border-slate-200">
                       <CgSpinner className="w-8 h-8 text-indigo-600 animate-spin" />
-                      <span className="text-xs font-semibold text-slate-500">Memuat event flash sale...</span>
+                      <span className="text-xs font-semibold text-slate-500">Loading flash sale events...</span>
                     </div>
                   ) : filteredEvents.length === 0 ? (
                     <div className="bg-slate-50 rounded-2xl p-8 text-center border border-slate-200">
-                      <p className="text-xs font-semibold text-slate-500">Tidak ada event flash sale aktif.</p>
+                      <p className="text-xs font-semibold text-slate-500">No active flash sale events found.</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -393,7 +393,7 @@ export function App() {
                   ? 'bg-indigo-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-white'
               }`}
-              title="Katalog Event"
+              title="Event Catalog"
             >
               <RiHome5Fill className="w-5 h-5" />
             </button>
@@ -431,7 +431,7 @@ export function App() {
                   ? 'bg-indigo-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-white'
               }`}
-              title="Tiket Saya"
+              title="My Tickets"
             >
               <HiTicket className="w-5 h-5" />
             </button>
@@ -451,7 +451,7 @@ export function App() {
                   ? 'bg-indigo-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-white'
               }`}
-              title={user ? 'Profil Saya' : 'Masuk / Daftar'}
+              title={user ? 'My Profile' : 'Sign In / Register'}
             >
               <RiUser3Line className="w-5 h-5" />
             </button>
@@ -511,8 +511,8 @@ export function App() {
         onSuccess={() => {
           fetchEvents();
           addNotification({
-            title: 'Pesanan Dikonfirmasi! 🎫',
-            message: `Tiket Anda untuk ${selectedEvent?.name || 'event'} berhasil diamankan.`,
+            title: 'Order Confirmed! 🎫',
+            message: `Your ticket for ${selectedEvent?.name || 'event'} has been successfully secured.`,
             type: 'order_confirmed',
             eventId: selectedEvent?.id,
           });

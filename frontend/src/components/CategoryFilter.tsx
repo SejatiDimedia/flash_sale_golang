@@ -6,12 +6,12 @@ interface CategoryFilterProps {
 }
 
 const categories = [
-  { id: 'all', label: 'Semua Kategori' },
-  { id: 'concerts', label: 'Konser Musik' },
-  { id: 'festivals', label: 'Festival' },
-  { id: 'cinema', label: 'Bioskop' },
-  { id: 'sports', label: 'Olahraga' },
-  { id: 'social', label: 'Seminar & Workshop' },
+  { id: 'all', label: 'All Categories' },
+  { id: 'concerts', label: 'Music Concerts' },
+  { id: 'festivals', label: 'Festivals' },
+  { id: 'cinema', label: 'Cinema' },
+  { id: 'sports', label: 'Sports' },
+  { id: 'social', label: 'Workshops & Events' },
 ];
 
 export const CategoryFilter: React.FC<CategoryFilterProps> = ({
