@@ -2,7 +2,7 @@ name: Continuous Integration (CI)
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [ main, master, develop, test-and-audit-hardening ]
   pull_request:
     branches: [ main, master, develop ]
 
@@ -14,10 +14,9 @@ jobs:
     name: Go Tests & Race Detector
     runs-on: ubuntu-latest
 
-    # Service container pendukung agar backend bisa terkoneksi ke DB, Cache & Queue
     services:
       postgres:
-        image: postgres:15-alpine
+        image: postgres:16-alpine
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
@@ -67,6 +66,15 @@ jobs:
       - name: 📦 Download Dependencies
         run: go mod download
 
+      - name: 🐘 Apply Database Schema Migrations
+        env:
+          PGPASSWORD: password
+        run: |
+          sudo apt-get update && sudo apt-get install -y postgresql-client
+          psql -h localhost -U postgres -d flash_sale_db -f migrations/000001_init_schema.up.sql
+          psql -h localhost -U postgres -c "CREATE DATABASE flash_sale_test_db;"
+          psql -h localhost -U postgres -d flash_sale_test_db -f migrations/000001_init_schema.up.sql
+
       - name: 🧪 Run Unit & Race Condition Tests
         env:
           DB_HOST: localhost
@@ -74,11 +82,11 @@ jobs:
           DB_USER: postgres
           DB_PASSWORD: password
           DB_NAME: flash_sale_db
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
+          REDIS_ADDR: localhost:6379
           RABBITMQ_URL: amqp://guest:guest@localhost:5672/
         run: |
-          go test -race -v ./...
+          go test -race -v ./internal/service/... ./internal/graph/...
+          go test -race -v tests/integration_test.go
 
       - name: 🏗️ Build Backend Binary Check
         run: go build -v ./cmd/server
@@ -87,7 +95,7 @@ jobs:
   # JOB 2: Backend Code Quality & Linter
   # ============================================================================
   backend-lint:
-    name: Go Code Quality (Vet)
+    name: Go Code Quality (Vet & Gofmt)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -109,10 +117,10 @@ jobs:
           test -z "$(gofmt -l .)" || (echo "Code is not formatted according to gofmt:" && gofmt -l . && exit 1)
 
   # ============================================================================
-  # JOB 3: Frontend TypeScript & Production Build Verification
+  # JOB 3: Frontend Component Testing & Production Build
   # ============================================================================
-  frontend-build:
-    name: Frontend TypeScript & Build Check
+  frontend-test-and-build:
+    name: Frontend Tests & Production Build
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -131,6 +139,9 @@ jobs:
 
       - name: 📦 Install Frontend Dependencies
         run: npm ci
+
+      - name: 🧪 Run Component Tests (Vitest)
+        run: npm test -- --run
 
       - name: 🏗️ Build Frontend (TypeScript & Vite)
         run: npm run build

@@ -6,6 +6,10 @@
 # Binaries & Build Output
 bin/
 dist/
+server
+backend/server
+test-results/
+playwright-report/
 *.exe
 *.exe~
 *.dll
