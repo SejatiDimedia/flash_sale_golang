@@ -92,9 +92,10 @@ export function App() {
     setIsLoadingEvents(true);
     try {
       const data = await api.getEvents();
-      setEvents(data);
+      setEvents(data || []);
     } catch (e) {
       console.error('Failed to fetch events:', e);
+      setEvents([]);
     } finally {
       setIsLoadingEvents(false);
     }
@@ -102,7 +103,7 @@ export function App() {
 
   // 📡 SUBSCRIBE TO REAL-TIME STOCK UPDATES VIA WEBSOCKET
   useEffect(() => {
-    if (events.length === 0) return;
+    if (!events || events.length === 0) return;
 
     const unsubscribers = events.map((event) => {
       return subscribeStock(event.id, (updatedEvent) => {
@@ -121,7 +122,7 @@ export function App() {
     return () => {
       unsubscribers.forEach((unsub) => unsub());
     };
-  }, [events.length]);
+  }, [events?.length || 0]);
 
   const playChime = () => {
     try {
