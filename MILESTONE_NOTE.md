@@ -45,11 +45,11 @@
 ---
 
 ## 🧪 Milestone 3: Integration Testing (Race Detection & Fault Tolerance)
-- [ ] **3.a Concurrency Test:** N request paralel ke stok terbatas dengan flag `-race` berulang (Zero-Oversell guarantee).
-- [ ] **3.b Idempotency Test:** Checkout dengan Idempotency-Key sama dikirim berkali-kali & paralel hanya menghasilkan 1 order.
-- [ ] **3.c Expiration Release Test:** Reservasi kedaluwarsa melepaskan stok dan stok dapat dipesan kembali oleh pengguna lain.
-- [ ] **3.d Failure Resilience Test:** Simulasi kegagalan di tengah checkout (RabbitMQ terputus/DB error) tidak membocorkan stok.
-- [ ] **3.e Retry Backoff & DLQ Test:** Pesan gagal diproses masuk retry dengan exponential backoff lalu ke Dead-Letter Queue (DLQ) tanpa duplikasi pemrosesan.
+- [x] **3.a Concurrency Test:** N request paralel ke stok terbatas dengan flag `-race` berulang (Zero-Oversell guarantee).
+- [x] **3.b Idempotency Test:** Checkout dengan Idempotency-Key sama dikirim berkali-kali & paralel hanya menghasilkan 1 order.
+- [x] **3.c Expiration Release Test:** Reservasi kedaluwarsa melepaskan stok dan stok dapat dipesan kembali oleh pengguna lain.
+- [x] **3.d Failure Resilience Test:** Simulasi kegagalan di tengah checkout (RabbitMQ terputus/DB error) tidak membocorkan stok.
+- [x] **3.e Retry Backoff & DLQ Test:** Pesan gagal diproses masuk retry dengan exponential backoff lalu ke Dead-Letter Queue (DLQ) tanpa duplikasi pemrosesan.
 
 ---
 
