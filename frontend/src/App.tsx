@@ -51,7 +51,7 @@ export function App() {
       {
         id: 'welcome-notif',
         title: 'Welcome to Flash Sale Tickets',
-        message: 'Explore live concerts and enjoy fair queue protection with Zero-Overselling.',
+        message: 'Explore live concerts and enjoy fair queue protection with guaranteed ticket reservation.',
         timestamp: new Date(Date.now() - 1000 * 60 * 5),
         type: 'stock_alert',
         read: false,
@@ -179,7 +179,7 @@ export function App() {
 
     addNotification({
       title: "It's Your Turn! 🎟️",
-      message: `You have been admitted from the queue for ${name}. Your 5-minute checkout session is active.`,
+      message: `It's your turn in line for ${name}! Your 5-minute checkout session is active.`,
       type: 'admitted',
       eventId,
     });
@@ -263,9 +263,9 @@ export function App() {
     const matchesCategory =
       selectedCategory === 'all' ||
       eventCategory === selectedCategory.toLowerCase() ||
-      (selectedCategory === 'theatre' && (eventCategory === 'theatre' || eventCategory === 'cinema')) ||
-      (selectedCategory === 'concerts' && (eventCategory === 'concerts' || eventCategory === 'festivals')) ||
-      (selectedCategory === 'social' && (eventCategory === 'social' || eventCategory === 'comedy'));
+      ((selectedCategory === 'theatre' || selectedCategory === 'cinema') && (eventCategory === 'theatre' || eventCategory === 'cinema')) ||
+      ((selectedCategory === 'concerts' || selectedCategory === 'festivals') && (eventCategory === 'concerts' || eventCategory === 'festivals')) ||
+      ((selectedCategory === 'social' || selectedCategory === 'comedy') && (eventCategory === 'social' || eventCategory === 'comedy'));
     return matchesSearch && matchesCategory;
   });
 

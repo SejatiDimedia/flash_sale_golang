@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/sejatidimedia/flash_sale_platform/internal/pkg/rabbitmq"
@@ -88,7 +89,7 @@ func (s *checkoutService) PurchaseTicketWithIdempotency(ctx context.Context, use
 		return nil, errors.New("event not found")
 	}
 
-	if event.Status != "active" {
+	if strings.ToLower(event.Status) != "active" {
 		if idempotencyKey != "" {
 			_ = s.redisClient.ReleaseIdempotencyLock(ctx, userID, idempotencyKey)
 		}

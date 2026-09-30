@@ -156,7 +156,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
             <div className="flex items-center justify-center gap-1.5 text-[11px] text-zinc-400 font-medium mb-4">
               <FiShield className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Redis Lua Lock (100% Zero-Oversell Guaranteed)</span>
+              <span>100% Official Tickets • Guaranteed Reservation</span>
             </div>
 
             <button
@@ -167,7 +167,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               {isProcessing ? (
                 <>
                   <CgSpinner className="w-4 h-4 animate-spin" />
-                  Securing Stock in Redis...
+                  Securing Your Tickets...
                 </>
               ) : (
                 <>
@@ -187,7 +187,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               Order Confirmed!
             </h3>
             <p className="text-xs text-zinc-400 mb-4">
-              Your ticket purchase has been confirmed and quota securely deducted.
+              Your ticket purchase is confirmed and your booking is complete.
             </p>
 
             <div className="bg-dark-800 rounded-2xl p-4 border border-dark-700 text-left mb-5">

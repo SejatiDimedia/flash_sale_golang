@@ -216,7 +216,7 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
-            Coming soon {activeQueueEventId ? '• (Pass Active)' : ''}
+            Coming soon {activeQueueEventId ? '• (In Queue)' : ''}
           </button>
           <button
             onClick={() => setActiveTab('history')}
@@ -238,7 +238,7 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
                 <div className="flex items-center justify-between px-1">
                   <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
                     <IoFlash className="w-4 h-4 text-coral animate-pulse" />
-                    <span>Active Waiting Room Pass</span>
+                    <span>Live Queue Status</span>
                   </h3>
                   <button
                     onClick={handleCancelQueue}
@@ -274,7 +274,7 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
                         {activeQueueStatus.isAllowedToPurchase ? (
                           <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-500/40">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                            Pass Active
+                            Ready to Buy
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-400">

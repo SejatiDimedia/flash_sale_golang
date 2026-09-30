@@ -12,6 +12,8 @@ export const getEventImage = (category?: string, customImage?: string): string =
     case 'festivals':
     case 'festival':
       return '/images/events/festivals.jpg';
+    case 'theatre':
+    case 'theater':
     case 'cinema':
     case 'movie':
     case 'film':
@@ -19,6 +21,8 @@ export const getEventImage = (category?: string, customImage?: string): string =
     case 'sports':
     case 'sport':
       return '/images/events/sports.jpg';
+    case 'comedy':
+    case 'standup':
     case 'social':
     case 'community':
     case 'party':

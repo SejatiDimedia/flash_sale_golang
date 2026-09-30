@@ -35,11 +35,11 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
             onClick={() => onSelectCategory(cat.id)}
             className={`flex flex-col items-center justify-center p-2.5 rounded-2xl min-w-[68px] flex-1 transition-all duration-200 ${
               isActive
-                ? 'bg-[#BCE859]/15 border-2 border-[#A8E443] text-[#A8E443] shadow-xs'
+                ? 'bg-coral/15 border-2 border-coral text-coral shadow-coral-sm'
                 : 'bg-dark-800 border border-dark-700 text-zinc-400 hover:text-white hover:border-dark-600'
             }`}
           >
-            <Icon className={`w-5 h-5 mb-1.5 transition-colors ${isActive ? 'text-[#A8E443]' : 'text-zinc-400'}`} />
+            <Icon className={`w-5 h-5 mb-1.5 transition-colors ${isActive ? 'text-coral' : 'text-zinc-500'}`} />
             <span className={`text-[11px] font-bold tracking-tight whitespace-nowrap ${isActive ? 'text-white' : 'text-zinc-400'}`}>
               {cat.label}
             </span>

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { FiArrowLeft, FiBookmark, FiCalendar, FiMapPin } from 'react-icons/fi';
 import { IoFlash } from 'react-icons/io5';
 import { getEventImage } from '../lib/images';
+import { getCategoryIcon } from './EventCard';
 import type { Event } from '../lib/api';
 
 interface EventDetailModalProps {
@@ -64,8 +65,9 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
           <div className="p-5 space-y-4">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <span className="text-[10px] font-bold text-coral uppercase tracking-wider block mb-1">
-                  {event.category?.toUpperCase() || 'CONCERT'}
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-coral uppercase tracking-wider mb-1">
+                  {getCategoryIcon(event.category, "w-3.5 h-3.5 text-coral")}
+                  <span>{event.category?.toUpperCase() || 'CONCERT'}</span>
                 </span>
                 <h2 className="text-lg font-bold text-white leading-tight">
                   {event.name}

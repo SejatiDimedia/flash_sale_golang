@@ -137,15 +137,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       case 'ORDER_CREATED':
         return {
           title: 'Order Created',
-          desc: 'Request validated and message published to RabbitMQ queue',
+          desc: 'Order request validated and queued for processing',
           icon: <HiTicket className="w-4 h-4 text-purple-600" />,
           dotBg: 'bg-purple-500',
           badgeClass: 'bg-purple-100 text-purple-700 border-purple-200',
         };
       case 'STOCK_RESERVED':
         return {
-          title: 'Stock Reserved in Redis',
-          desc: 'Lua script atomically deducted in-memory quota (0% race condition)',
+          title: 'Ticket Inventory Reserved',
+          desc: 'High-speed atomic allocation verified with zero overselling',
           icon: <IoFlash className="w-4 h-4 text-amber-600" />,
           dotBg: 'bg-amber-500',
           badgeClass: 'bg-amber-100 text-amber-700 border-amber-200',
@@ -153,7 +153,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       case 'ORDER_CONFIRMED':
         return {
           title: 'Order Confirmed',
-          desc: 'Worker pool processed order and persisted to PostgreSQL database',
+          desc: 'Background processor confirmed order and saved to database',
           icon: <FiCheckCircle className="w-4 h-4 text-emerald-600" />,
           dotBg: 'bg-emerald-500',
           badgeClass: 'bg-emerald-100 text-emerald-700 border-emerald-200',
@@ -161,7 +161,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       case 'ORDER_FAILED':
         return {
           title: 'Order Failed',
-          desc: 'Order processing failed and stock was rolled back to Redis RAM',
+          desc: 'Order processing failed and ticket was returned to inventory',
           icon: <FiXCircle className="w-4 h-4 text-red-600" />,
           dotBg: 'bg-red-500',
           badgeClass: 'bg-red-100 text-red-700 border-red-200',
@@ -253,7 +253,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {formatPrice(totalRevenue)}
             </div>
             <span className="text-[10px] font-medium text-zinc-500 block">
-              Recorded in PostgreSQL
+              Confirmed in Database
             </span>
           </div>
         </div>
@@ -261,7 +261,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         {/* Card 3: Redis Live Stock */}
         <div className="bg-dark-800 rounded-3xl p-3.5 border border-dark-700 shadow-dark-card flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Redis In-Memory Stock</span>
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Live Inventory Cache</span>
             <div className="w-7 h-7 rounded-xl bg-dark-750 text-coral flex items-center justify-center">
               <FiActivity className="w-4 h-4" />
             </div>
@@ -271,7 +271,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {currentEvent?.availableStock || 0} <span className="text-[11px] text-zinc-500 font-semibold">Tickets</span>
             </div>
             <span className="text-[10px] font-semibold text-zinc-400 block">
-              Atomic Lua Quota
+              Atomic Live Allocation
             </span>
           </div>
         </div>
@@ -279,7 +279,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         {/* Card 4: DB Queue */}
         <div className="bg-dark-800 rounded-3xl p-3.5 border border-dark-700 shadow-dark-card flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Worker Queue</span>
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Processing Queue</span>
             <div className="w-7 h-7 rounded-xl bg-dark-750 text-blue-400 flex items-center justify-center">
               <FiUsers className="w-4 h-4" />
             </div>
@@ -289,7 +289,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {pendingOrders} <span className="text-[11px] text-zinc-500 font-semibold">Pending</span>
             </div>
             <span className="text-[10px] font-semibold text-blue-400 block">
-              10 RabbitMQ Consumers
+              10 Active Queue Workers
             </span>
           </div>
         </div>
@@ -305,10 +305,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
             <div>
               <h3 className="text-xs font-bold text-white leading-tight">
-                Queue Gatekeeper
+                Admission Gatekeeper
               </h3>
               <p className="text-[10px] text-zinc-400">
-                Traffic pacing for waiting room & checkout
+                Traffic flow control for waiting room & checkout
               </p>
             </div>
           </div>

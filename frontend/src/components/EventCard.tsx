@@ -1,8 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { FiCalendar, FiClock, FiTag, FiArrowUpRight } from 'react-icons/fi';
+import { FiCalendar, FiClock, FiArrowUpRight } from 'react-icons/fi';
 import { IoFlash } from 'react-icons/io5';
+import { GiGuitar } from 'react-icons/gi';
+import { MdSportsTennis } from 'react-icons/md';
+import { FaMasksTheater } from 'react-icons/fa6';
+import { RiEmotionHappyLine, RiApps2Line } from 'react-icons/ri';
 import { getEventImage } from '../lib/images';
 import type { Event } from '../lib/api';
+
+export const getCategoryIcon = (category?: string, className: string = "w-3 h-3 text-coral") => {
+  const cat = (category || '').toLowerCase();
+  if (cat.includes('sport')) {
+    return <MdSportsTennis className={className} />;
+  }
+  if (cat.includes('theatre') || cat.includes('theater') || cat.includes('cinema')) {
+    return <FaMasksTheater className={className} />;
+  }
+  if (cat.includes('comedy') || cat.includes('social')) {
+    return <RiEmotionHappyLine className={className} />;
+  }
+  if (cat.includes('concert') || cat.includes('festival') || cat.includes('music')) {
+    return <GiGuitar className={className} />;
+  }
+  return <RiApps2Line className={className} />;
+};
 
 interface EventCardProps {
   event: Event;
@@ -20,7 +41,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onWarTicket, onView
       const diff = end - now;
 
       if (diff <= 0) {
-        setTimeLeft('Selesai');
+        setTimeLeft('Ended');
         return;
       }
 
@@ -66,8 +87,8 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onWarTicket, onView
 
         {/* Top Badges (Category & Live Sale) */}
         <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none">
-          <div className="flex items-center gap-1 px-2.5 py-0.5 bg-dark-950/70 backdrop-blur-md rounded-full text-white text-[10px] font-bold border border-white/10">
-            <FiTag className="w-3 h-3 text-coral" />
+          <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-dark-950/70 backdrop-blur-md rounded-full text-white text-[10px] font-bold border border-white/10">
+            {getCategoryIcon(event.category, "w-3 h-3 text-coral")}
             <span className="capitalize">{event.category || 'Concert'}</span>
           </div>
 

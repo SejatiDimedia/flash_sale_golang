@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiArrowLeft, FiMail, FiShield, FiLogOut, FiCheckCircle, FiUser, FiLock, FiKey, FiAward } from 'react-icons/fi';
+import { FiArrowLeft, FiMail, FiShield, FiLogOut, FiCheckCircle, FiUser, FiLock, FiHelpCircle } from 'react-icons/fi';
 import { HiTicket } from 'react-icons/hi2';
 import { CgSpinner } from 'react-icons/cg';
 import { api, type User } from '../lib/api';
@@ -67,6 +67,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
     return clean.slice(0, 2).toUpperCase();
   };
 
+  const isAdmin = user.role?.toLowerCase() === 'admin';
+
   return (
     <div className="space-y-4 animate-fadeIn pb-6">
       {/* Top Header Bar for Profile Page */}
@@ -79,7 +81,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           >
             <FiArrowLeft className="w-4 h-4" />
           </button>
-          <span className="text-xs font-bold tracking-wide uppercase text-zinc-400">User Profile</span>
+          <span className="text-xs font-bold tracking-wide uppercase text-zinc-400">Profile &amp; Settings</span>
           <div className="w-9"></div>
         </div>
 
@@ -99,12 +101,15 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
               <FiMail className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
               <span className="truncate">{user.email}</span>
             </div>
-            <div className="pt-1">
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-dark-800 text-zinc-300 rounded-full text-[10px] font-bold uppercase tracking-wider border border-dark-700">
-                <FiShield className="w-3 h-3 text-coral" />
-                {user.role}
-              </span>
-            </div>
+            {/* Show badge only if Admin staff */}
+            {isAdmin && (
+              <div className="pt-1">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-coral/10 text-coral rounded-full text-[10px] font-bold uppercase tracking-wider border border-coral/20">
+                  <FiShield className="w-3 h-3 text-coral" />
+                  Admin Console Access
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -130,7 +135,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           </span>
         </div>
 
-        {/* 📝 EDIT PROFILE FORM */}
+        {/* 📝 PERSONAL INFORMATION FORM */}
         <form
           onSubmit={handleSaveProfile}
           className="bg-dark-800 rounded-3xl p-5 border border-dark-700 shadow-dark-card space-y-3.5"
@@ -138,9 +143,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           <div className="flex items-center justify-between pb-2 border-b border-dark-700">
             <div className="flex items-center gap-1.5 text-xs font-bold text-white">
               <FiUser className="w-4 h-4 text-coral" />
-              <span>Profile Settings</span>
+              <span>Personal Information</span>
             </div>
-            <span className="text-[10px] font-semibold text-zinc-400">Role: {user.role.toUpperCase()}</span>
           </div>
 
           {saveSuccess && (
@@ -231,25 +235,20 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           </div>
         </form>
 
-        {/* Security & Account Badges */}
-        <div className="grid grid-cols-2 gap-2.5">
-          <div className="bg-dark-800 rounded-2xl p-3.5 border border-dark-700 shadow-dark-card flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-dark-750 text-emerald-400 flex items-center justify-center shrink-0">
-              <FiAward className="w-4 h-4" />
-            </div>
-            <div>
-              <span className="text-xs font-bold text-white block">Verified Account</span>
-              <span className="text-[10px] text-zinc-400">Active Login Session</span>
-            </div>
+        {/* ❓ Help Center & FAQ (Helpful for Real Users) */}
+        <div className="bg-dark-800 rounded-3xl p-4 border border-dark-700 shadow-dark-card space-y-2.5">
+          <div className="flex items-center gap-2 text-xs font-bold text-white">
+            <FiHelpCircle className="w-4 h-4 text-coral" />
+            <span>Help Center &amp; Flash Sale FAQ</span>
           </div>
-
-          <div className="bg-dark-800 rounded-2xl p-3.5 border border-dark-700 shadow-dark-card flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-dark-750 text-coral flex items-center justify-center shrink-0">
-              <FiKey className="w-4 h-4" />
+          <div className="space-y-2 text-[11px] text-zinc-400">
+            <div className="p-3 bg-dark-750/70 rounded-2xl border border-dark-700/60">
+              <p className="font-bold text-white mb-0.5">How does the Virtual Waiting Room work?</p>
+              <p className="text-[10px] leading-relaxed text-zinc-400">During flash sales, fans join a fair live waiting room. You will automatically proceed to express checkout when it's your turn.</p>
             </div>
-            <div>
-              <span className="text-xs font-bold text-white block">JWT Security</span>
-              <span className="text-[10px] text-zinc-400">Valid Bearer Token</span>
+            <div className="p-3 bg-dark-750/70 rounded-2xl border border-dark-700/60">
+              <p className="font-bold text-white mb-0.5">How do I enter the venue?</p>
+              <p className="text-[10px] leading-relaxed text-zinc-400">Simply open "My Tickets" from the bottom menu and present your digital QR code at the entrance gate scanner.</p>
             </div>
           </div>
         </div>
@@ -261,7 +260,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             className="w-full py-3 bg-dark-800 hover:bg-rose-950/40 text-rose-400 rounded-full text-xs font-bold transition-all flex items-center justify-center gap-2 border border-dark-700"
           >
             <FiLogOut className="w-4 h-4" />
-            <span>Sign Out (Logout)</span>
+            <span>Sign Out</span>
           </button>
         </div>
       </div>

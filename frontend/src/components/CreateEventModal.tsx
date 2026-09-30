@@ -242,7 +242,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
             {isLoading ? (
               <>
                 <CgSpinner className="w-4 h-4 animate-spin" />
-                <span>Registering Event to Database & Redis...</span>
+                <span>Publishing Event...</span>
               </>
             ) : (
               <>

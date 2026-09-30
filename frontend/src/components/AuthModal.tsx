@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { FiX, FiLock, FiMail, FiUser, FiEye, FiEyeOff, FiShield } from 'react-icons/fi';
+import { FiX, FiLock, FiMail, FiUser, FiEye, FiEyeOff } from 'react-icons/fi';
 import { CgSpinner } from 'react-icons/cg';
 import { api, type User } from '../lib/api';
 
@@ -12,10 +12,9 @@ interface AuthModalProps {
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
-  const [name, setName] = useState('Admin Flash Sale');
-  const [email, setEmail] = useState('admin@example.com');
-  const [password, setPassword] = useState('admin123');
-  const [role, setRole] = useState<'user' | 'admin'>('admin');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +47,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           throw loginErr;
         }
       } else {
-        const res = await api.register(name, email, password, role);
+        // Default role is always Customer ('user')
+        const res = await api.register(name, email, password, 'user');
         onSuccess(res.user, res.token);
         onClose();
       }
@@ -77,58 +77,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             {isLogin ? 'Sign In to Account' : 'Create New Account'}
           </h3>
           <p className="text-xs text-zinc-400 mt-0.5">
-            {isLogin ? 'Use your admin or customer account to sign in' : 'Create an account to join flash sales and secure tickets'}
+            {isLogin ? 'Sign in to join live flash sales and war tickets' : 'Create an account to join flash sales and secure tickets'}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3.5">
           {!isLogin && (
-            <>
-              <div>
-                <label className="block text-xs font-bold text-zinc-300 mb-1">Full Name</label>
-                <div className="relative">
-                  <FiUser className="absolute left-3.5 top-3 w-4 h-4 text-zinc-500" />
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Full Name"
-                    className="w-full pl-10 pr-3 py-2.5 bg-dark-800 rounded-xl border border-dark-700 text-xs font-medium text-white placeholder-zinc-500 focus:outline-none focus:border-coral transition-colors"
-                  />
-                </div>
+            <div>
+              <label className="block text-xs font-bold text-zinc-300 mb-1">Full Name</label>
+              <div className="relative">
+                <FiUser className="absolute left-3.5 top-3 w-4 h-4 text-zinc-500" />
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. John Doe"
+                  className="w-full pl-10 pr-3 py-2.5 bg-dark-800 rounded-xl border border-dark-700 text-xs font-medium text-white placeholder-zinc-500 focus:outline-none focus:border-coral transition-colors"
+                />
               </div>
-
-              {/* Role Selection */}
-              <div>
-                <label className="block text-xs font-bold text-zinc-300 mb-1">Account Role</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setRole('user')}
-                    className={`py-2 px-3 rounded-full text-xs font-bold transition-all border ${
-                      role === 'user'
-                        ? 'bg-coral text-white border-coral shadow-coral-sm'
-                        : 'bg-dark-800 text-zinc-400 border-dark-700 hover:text-white'
-                    }`}
-                  >
-                    Customer
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRole('admin')}
-                    className={`py-2 px-3 rounded-full text-xs font-bold transition-all border flex items-center justify-center gap-1 ${
-                      role === 'admin'
-                        ? 'bg-coral text-white border-coral shadow-coral-sm'
-                        : 'bg-dark-800 text-zinc-400 border-dark-700 hover:text-white'
-                    }`}
-                  >
-                    <FiShield className="w-3.5 h-3.5" />
-                    Admin
-                  </button>
-                </div>
-              </div>
-            </>
+            </div>
           )}
 
           <div>

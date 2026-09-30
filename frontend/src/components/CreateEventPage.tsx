@@ -88,7 +88,7 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
             Create Flash Sale Event
           </h1>
           <p className="text-xs text-zinc-400 mt-0.5">
-            Register new concert/event and sync quota to Redis RAM
+            Publish a new concert or event with real-time ticket inventory
           </p>
         </div>
       </div>
@@ -276,7 +276,7 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
               {isLoading ? (
                 <>
                   <CgSpinner className="w-4 h-4 animate-spin" />
-                  <span>Registering in DB & Redis...</span>
+                  <span>Publishing Event...</span>
                 </>
               ) : (
                 <>
