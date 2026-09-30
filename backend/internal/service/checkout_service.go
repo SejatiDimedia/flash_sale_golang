@@ -181,8 +181,14 @@ func (s *checkoutService) PurchaseTicketWithIdempotency(ctx context.Context, use
 
 	// 7. Update available stock di DB secara relatif (mencegah out-of-order overwrite)
 	if dbStockErr := s.eventRepo.DeductAvailableStock(ctx, eventID, quantity); dbStockErr != nil {
-		log.Printf("⚠️ DB DeductAvailableStock warning (fallback to remainingStock): %v", dbStockErr)
-		_ = s.eventRepo.UpdateAvailableStock(ctx, eventID, remainingStock)
+		// Database stok habis (hard boundary protection): rollback Redis & batalkan order
+		_ = s.redisClient.IncrStock(ctx, eventID, quantity)
+		_ = s.orderRepo.UpdateOrderStatus(ctx, createdOrder.ID, "CANCELLED")
+		_ = s.orderRepo.CreateOrderLog(ctx, createdOrder.ID, "DB_STOCK_DEPLETED_ROLLBACK", fmt.Sprintf(`{"error":"%v"}`, dbStockErr))
+		if idempotencyKey != "" {
+			_ = s.redisClient.ReleaseIdempotencyLock(ctx, userID, idempotencyKey)
+		}
+		return nil, errors.New("sold out: insufficient stock available")
 	}
 
 	// 8. Audit Logs

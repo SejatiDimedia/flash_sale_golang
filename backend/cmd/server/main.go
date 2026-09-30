@@ -14,10 +14,12 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sejatidimedia/flash_sale_platform/internal/config"
 	"github.com/sejatidimedia/flash_sale_platform/internal/graph"
 	"github.com/sejatidimedia/flash_sale_platform/internal/middleware"
 	"github.com/sejatidimedia/flash_sale_platform/internal/pkg/database"
+	"github.com/sejatidimedia/flash_sale_platform/internal/pkg/metrics"
 	"github.com/sejatidimedia/flash_sale_platform/internal/pkg/rabbitmq"
 	"github.com/sejatidimedia/flash_sale_platform/internal/pkg/redisclient"
 	"github.com/sejatidimedia/flash_sale_platform/internal/repository"
@@ -111,7 +113,7 @@ func main() {
 	}()
 
 	eventRepo := repository.NewEventRepository(dbPool)
-	eventService := service.NewEventService(eventRepo)
+	eventService := service.NewEventService(eventRepo, redisClient)
 
 	orderRepo := repository.NewOrderRepository(dbPool)
 	checkoutService := service.NewCheckoutService(orderRepo, eventRepo, redisClient, rabbitClient)
@@ -150,14 +152,16 @@ func main() {
 		c.Next()
 	})
 
-	// 🔍 Pasang Request ID (Trace ID) & Auth Middleware
+	// 🔍 Pasang Request ID (Trace ID) & Auth Middleware & Prometheus Metrics
 	r.Use(middleware.RequestIDMiddleware())
 	r.Use(middleware.AuthMiddleware(authService))
+	r.Use(metrics.PrometheusMiddleware())
 
 	// Endpoints
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
+	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	r.GET("/", playgroundHandler())
 	r.POST("/query", graphqlHandler(authService, eventService, checkoutService, orderRepo, eventRepo, redisClient))
 	r.GET("/query", graphqlHandler(authService, eventService, checkoutService, orderRepo, eventRepo, redisClient))

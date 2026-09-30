@@ -95,8 +95,19 @@ func (w *ReconciliationWorker) runAudit(ctx context.Context) {
 			continue
 		}
 
-		// 4. Jika terjadi selisih (Data Drift), lakukan AUTO-CORRECTION!
+		// 4. Jika terjadi selisih (Data Drift), lakukan AUTO-CORRECTION secara aman!
 		if cachedStock != expectedAvailableStock {
+			// Jika cachedStock < expectedAvailableStock, ini bisa jadi karena order in-flight di goroutine/worker.
+			// Cek apakah ada aktivitas transaksi dalam 2 menit terakhir:
+			if cachedStock < expectedAvailableStock {
+				hasRecent, recentErr := w.orderRepo.HasRecentOrders(ctx, event.ID, 2*time.Minute)
+				if recentErr == nil && hasRecent {
+					log.Printf("⏳ [Reconciliation] In-flight transactions active for Event '%s' (Redis: %d, DB: %d). Skipping upward correction to prevent overselling.",
+						event.Name, cachedStock, expectedAvailableStock)
+					continue
+				}
+			}
+
 			log.Printf("🚨 [Reconciliation ALERT] Data Drift detected for Event '%s' (%s)!", event.Name, event.ID)
 			log.Printf("👉 Redis Stock: %d | DB Expected Stock: %d (Total: %d, Sold: %d)",
 				cachedStock, expectedAvailableStock, event.TotalStock, confirmedCount)

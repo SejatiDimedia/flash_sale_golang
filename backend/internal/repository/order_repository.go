@@ -40,6 +40,7 @@ type OrderRepository interface {
 	GetOrderLogsByOrderID(ctx context.Context, orderID string) ([]*OrderLog, error)
 	GetConfirmedTicketCount(ctx context.Context, eventID string) (int, error)
 	GetExpiredPendingOrders(ctx context.Context, olderThan time.Duration) ([]*Order, error)
+	HasRecentOrders(ctx context.Context, eventID string, within time.Duration) (bool, error)
 }
 
 type orderRepository struct {
@@ -278,5 +279,17 @@ func (r *orderRepository) GetExpiredPendingOrders(ctx context.Context, olderThan
 	}
 
 	return orders, nil
+}
+
+// HasRecentOrders memeriksa apakah ada pesanan yang dibuat dalam jendela durasi tertentu
+func (r *orderRepository) HasRecentOrders(ctx context.Context, eventID string, within time.Duration) (bool, error) {
+	threshold := time.Now().Add(-within)
+	query := `SELECT EXISTS(SELECT 1 FROM orders WHERE event_id = $1 AND created_at >= $2)`
+	var exists bool
+	err := r.db.QueryRow(ctx, query, eventID, threshold).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
 }
 

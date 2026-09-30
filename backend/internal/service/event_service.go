@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/sejatidimedia/flash_sale_platform/internal/pkg/redisclient"
 	"github.com/sejatidimedia/flash_sale_platform/internal/repository"
 )
 
@@ -41,11 +42,12 @@ type EventService interface {
 }
 
 type eventService struct {
-	eventRepo repository.EventRepository
+	eventRepo   repository.EventRepository
+	redisClient *redisclient.RedisClient
 }
 
-func NewEventService(eventRepo repository.EventRepository) EventService {
-	return &eventService{eventRepo: eventRepo}
+func NewEventService(eventRepo repository.EventRepository, redisClient *redisclient.RedisClient) EventService {
+	return &eventService{eventRepo: eventRepo, redisClient: redisClient}
 }
 
 func (s *eventService) CreateEvent(ctx context.Context, actorRole string, req CreateEventRequest) (*repository.Event, error) {
@@ -89,7 +91,17 @@ func (s *eventService) CreateEvent(ctx context.Context, actorRole string, req Cr
 		MaxPerUser:  req.MaxPerUser,
 	}
 
-	return s.eventRepo.CreateEvent(ctx, event)
+	created, err := s.eventRepo.CreateEvent(ctx, event)
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. Inisialisasi stok langsung di Redis cache agar zero-delay saat flash sale dimulai
+	if s.redisClient != nil {
+		_ = s.redisClient.InitStock(ctx, created.ID, created.TotalStock)
+	}
+
+	return created, nil
 }
 
 func (s *eventService) UpdateEvent(ctx context.Context, actorRole string, req UpdateEventRequest) (*repository.Event, error) {
