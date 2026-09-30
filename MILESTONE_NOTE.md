@@ -54,9 +54,9 @@
 ---
 
 ## 🌐 Milestone 4: GraphQL Resolvers Testing
-- [ ] Test validasi input untuk setiap mutation (register, login, createEvent, purchaseTicket).
-- [ ] Test otorisasi peran (RBAC: Admin vs User biasa vs Guest).
-- [ ] Test error format & clean error handling (tidak membocorkan stack trace internal).
+- [x] Test validasi input untuk setiap mutation (register, login, createEvent, purchaseTicket).
+- [x] Test otorisasi peran (RBAC: Admin vs User biasa vs Guest).
+- [x] Test error format & clean error handling (tidak membocorkan stack trace internal).
 
 ---
 
