@@ -267,25 +267,10 @@ export function App() {
   const unreadNotifsCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col justify-between antialiased">
-      <div className="w-full">
-        {/* Header Bar */}
-        <Header
-          user={user}
-          onOpenAuth={() => setIsAuthOpen(true)}
-          onLogout={handleLogout}
-          isAdminView={currentView === 'admin'}
-          onToggleAdmin={() => setCurrentView(currentView === 'admin' ? 'home' : 'admin')}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          onOpenNotifications={() => setIsNotificationsOpen(true)}
-          unreadCount={unreadNotifsCount}
-          currentView={currentView}
-          onNavigateView={setCurrentView}
-        />
-
-        {/* Main Content Area (Fluid & Responsive Container) */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="min-h-screen bg-slate-100/90 text-slate-900 font-sans flex justify-center antialiased">
+      {/* 📱 MOBILE FRAME CONTAINER (Centering on Desktop & Full View on Mobile) */}
+      <div className="w-full max-w-md min-h-screen bg-white shadow-2xl border-x border-slate-200/90 relative flex flex-col justify-between pb-24">
+        <div>
           {/* 1. 👤 FULL PAGE: PROFIL & EDIT PROFIL */}
           {currentView === 'profile' ? (
             <ProfilePage
@@ -323,133 +308,156 @@ export function App() {
                 setCurrentView('admin');
               }}
             />
-          ) : isAdmin && currentView === 'admin' ? (
-            /* 4. 📊 ADMIN CONSOLE PAGE VIEW */
-            <main className="space-y-6 animate-fadeIn">
-              <AdminDashboard
-                events={events}
-                onRefreshEvents={fetchEvents}
-                onNavigateCreateEvent={() => setCurrentView('create_event')}
-              />
-            </main>
           ) : (
-            /* 5. 🎟️ USER EXPERIENCE HOME PAGE VIEW (RESPONSIVE GRID) */
-            <main className="space-y-6 animate-fadeIn">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <CategoryFilter
-                  selectedCategory={selectedCategory}
-                  onSelectCategory={setSelectedCategory}
-                />
+            /* 4. 📄 PAGES WITH TOP HEADER (HOME / ADMIN DASHBOARD) */
+            <>
+              <Header
+                user={user}
+                onOpenAuth={() => setIsAuthOpen(true)}
+                onLogout={handleLogout}
+                isAdminView={currentView === 'admin'}
+                onToggleAdmin={() => setCurrentView(currentView === 'admin' ? 'home' : 'admin')}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                onOpenNotifications={() => setIsNotificationsOpen(true)}
+                unreadCount={unreadNotifsCount}
+              />
 
-                <div className="text-xs text-slate-500 font-medium">
-                  Menampilkan <strong className="text-slate-900">{filteredEvents.length}</strong> event aktif
-                </div>
-              </div>
-
-              {isLoadingEvents ? (
-                <div className="flex flex-col items-center justify-center py-24 gap-3 bg-white rounded-2xl border border-slate-200">
-                  <CgSpinner className="w-8 h-8 text-indigo-600 animate-spin" />
-                  <span className="text-xs font-semibold text-slate-500">Memuat katalog event flash sale...</span>
-                </div>
-              ) : filteredEvents.length === 0 ? (
-                <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">
-                  <p className="text-sm font-semibold text-slate-500">Tidak ada event flash sale yang sesuai pencarian.</p>
-                </div>
+              {isAdmin && currentView === 'admin' ? (
+                /* 📊 ADMIN CONSOLE PAGE VIEW */
+                <main className="px-4 py-4 space-y-4 animate-fadeIn">
+                  <AdminDashboard
+                    events={events}
+                    onRefreshEvents={fetchEvents}
+                    onNavigateCreateEvent={() => setCurrentView('create_event')}
+                  />
+                </main>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredEvents.map((event) => (
-                    <EventCard
-                      key={event.id}
-                      event={event}
-                      onWarTicket={handleWarTicket}
-                      onViewDetail={handleViewDetail}
-                    />
-                  ))}
-                </div>
+                /* 🎟️ USER EXPERIENCE HOME PAGE VIEW (MOBILE SINGLE-COLUMN) */
+                <main className="px-4 py-4 space-y-4 animate-fadeIn">
+                  <CategoryFilter
+                    selectedCategory={selectedCategory}
+                    onSelectCategory={setSelectedCategory}
+                  />
+
+                  <div className="flex items-center justify-between px-1">
+                    <h2 className="text-sm font-bold text-slate-900 tracking-tight">
+                      Event Flash Sale Aktif
+                    </h2>
+                    <button
+                      onClick={() => setSelectedCategory('all')}
+                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
+                    >
+                      Lihat Semua ({filteredEvents.length})
+                    </button>
+                  </div>
+
+                  {isLoadingEvents ? (
+                    <div className="flex flex-col items-center justify-center py-16 gap-3 bg-slate-50 rounded-2xl border border-slate-200">
+                      <CgSpinner className="w-8 h-8 text-indigo-600 animate-spin" />
+                      <span className="text-xs font-semibold text-slate-500">Memuat event flash sale...</span>
+                    </div>
+                  ) : filteredEvents.length === 0 ? (
+                    <div className="bg-slate-50 rounded-2xl p-8 text-center border border-slate-200">
+                      <p className="text-xs font-semibold text-slate-500">Tidak ada event flash sale aktif.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {filteredEvents.map((event) => (
+                        <EventCard
+                          key={event.id}
+                          event={event}
+                          onWarTicket={handleWarTicket}
+                          onViewDetail={handleViewDetail}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </main>
               )}
-            </main>
+            </>
           )}
         </div>
-      </div>
 
-      {/* 📱 Mobile Bottom Navigation Dock (Disembunyikan di layar Desktop md:) */}
-      <nav className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-full max-w-sm px-4 pointer-events-none">
-        <div className="bg-slate-900/95 backdrop-blur-xl rounded-2xl p-2 shadow-dock border border-slate-700/80 flex items-center justify-around pointer-events-auto">
-          {/* Home Tab */}
-          <button
-            onClick={() => {
-              setCurrentView('home');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-              currentView === 'home'
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white'
-            }`}
-            title="Katalog"
-          >
-            <RiHome5Fill className="w-5 h-5" />
-          </button>
-
-          {/* Admin Tab */}
-          {isAdmin && (
+        {/* 📱 MOBILE BOTTOM NAVIGATION DOCK (Always visible on mobile frame) */}
+        <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-full max-w-md px-4 pointer-events-none">
+          <div className="bg-slate-900/95 backdrop-blur-xl rounded-2xl p-2 shadow-dock border border-slate-700/80 flex items-center justify-around pointer-events-auto">
+            {/* 1. Home Tab */}
             <button
               onClick={() => {
-                setCurrentView('admin');
+                setCurrentView('home');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-                currentView === 'admin' || currentView === 'create_event'
+                currentView === 'home'
                   ? 'bg-indigo-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-white'
               }`}
-              title="Admin Panel"
+              title="Katalog Event"
             >
-              <FiShield className="w-5 h-5" />
+              <RiHome5Fill className="w-5 h-5" />
             </button>
-          )}
 
-          {/* My Tickets Tab */}
-          <button
-            onClick={() => {
-              if (user) {
-                setCurrentView('tickets');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              } else {
-                setIsAuthOpen(true);
-              }
-            }}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-              currentView === 'tickets'
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white'
-            }`}
-            title="Tiket Saya"
-          >
-            <HiTicket className="w-5 h-5" />
-          </button>
+            {/* 2. Admin Tab (Only if admin role) */}
+            {isAdmin && (
+              <button
+                onClick={() => {
+                  setCurrentView('admin');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                  currentView === 'admin' || currentView === 'create_event'
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="Admin Dashboard"
+              >
+                <FiShield className="w-5 h-5" />
+              </button>
+            )}
 
-          {/* Profile Tab */}
-          <button
-            onClick={() => {
-              if (user) {
-                setCurrentView('profile');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              } else {
-                setIsAuthOpen(true);
-              }
-            }}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-              currentView === 'profile'
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white'
-            }`}
-            title="Akun Saya"
-          >
-            <RiUser3Line className="w-5 h-5" />
-          </button>
-        </div>
-      </nav>
+            {/* 3. My Tickets Tab */}
+            <button
+              onClick={() => {
+                if (user) {
+                  setCurrentView('tickets');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                  setIsAuthOpen(true);
+                }
+              }}
+              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                currentView === 'tickets'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+              title="Tiket Saya"
+            >
+              <HiTicket className="w-5 h-5" />
+            </button>
+
+            {/* 4. Profile Tab */}
+            <button
+              onClick={() => {
+                if (user) {
+                  setCurrentView('profile');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                  setIsAuthOpen(true);
+                }
+              }}
+              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                currentView === 'profile'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+              title={user ? 'Profil Saya' : 'Masuk / Daftar'}
+            >
+              <RiUser3Line className="w-5 h-5" />
+            </button>
+          </div>
+        </nav>
+      </div>
 
       {/* Modals Container */}
       <NotificationModal
