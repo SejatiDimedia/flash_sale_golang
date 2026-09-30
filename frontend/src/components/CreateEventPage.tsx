@@ -70,57 +70,55 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
   return (
     <div className="space-y-4 animate-fadeIn">
       {/* Top Header Bar for Create Event Page */}
-      <div className="relative w-full rounded-b-[36px] bg-header-gradient p-5 pt-4 text-white shadow-card overflow-hidden">
-        <div className="flex items-center justify-between mb-3">
+      <div className="w-full bg-slate-900 p-4 border-b border-slate-800 text-white shadow-sm">
+        <div className="flex items-center justify-between mb-2">
           <button
             onClick={onBack}
-            className="w-9 h-9 glass-circle rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-colors shadow-sm"
+            className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition-colors border border-slate-700"
+            title="Kembali"
           >
-            <FiArrowLeft className="w-5 h-5" />
+            <FiArrowLeft className="w-4 h-4" />
           </button>
-          <span className="text-sm font-extrabold tracking-wide">Event Management</span>
-          <div className="w-9"></div> {/* Spacer */}
+          <span className="text-xs font-bold tracking-wide uppercase text-slate-400">Konsol Admin</span>
+          <div className="w-8"></div>
         </div>
 
-        <div className="pt-1 pb-2">
-          <span className="text-[10px] font-bold text-white/75 tracking-wider uppercase block">
-            Admin Console
-          </span>
-          <h1 className="text-xl font-black text-white leading-tight">
-            Create Flash Sale Event
+        <div>
+          <h1 className="text-lg font-bold text-white leading-tight">
+            Buat Event Flash Sale
           </h1>
-          <p className="text-xs text-white/80 mt-0.5">
-            Publish new event and sync quotas to Redis cache
+          <p className="text-xs text-slate-400 mt-0.5">
+            Daftarkan konser/event baru dan sinkronisasikan kuota ke Redis
           </p>
         </div>
       </div>
 
       {/* Main Form Page Body */}
       <div className="px-4">
-        <form onSubmit={handleSubmit} className="bg-white rounded-[28px] p-5 border border-purple-100 shadow-card space-y-3.5">
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3.5">
           {/* Event Name */}
           <div>
-            <label className="block text-[11px] font-extrabold text-slate-700 mb-1">
-              Event Title
+            <label className="block text-[11px] font-bold text-slate-700 mb-1">
+              Nama Event
             </label>
             <div className="relative">
-              <FiTag className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+              <FiTag className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Coldplay Music of the Spheres Live"
-                className="w-full pl-10 pr-3 py-3 bg-[#F8F3FE] rounded-2xl border border-purple-100 text-xs font-bold text-slate-800 outline-none focus:border-app-purple"
+                placeholder="Contoh: Coldplay Live in Jakarta 2026"
+                className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors"
               />
             </div>
           </div>
 
           {/* Category Selector */}
           <div>
-            <label className="block text-[11px] font-extrabold text-slate-700 mb-1.5 flex items-center gap-1">
-              <FiLayers className="w-3.5 h-3.5 text-app-purple" />
-              <span>Event Category</span>
+            <label className="block text-[11px] font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+              <FiLayers className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Kategori Event</span>
             </label>
             <div className="grid grid-cols-3 gap-1.5">
               {categoryOptions.map((cat) => (
@@ -128,10 +126,10 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
                   key={cat.id}
                   type="button"
                   onClick={() => setCategory(cat.id)}
-                  className={`py-2 px-2 rounded-xl text-xs font-extrabold border transition-all text-center ${
+                  className={`py-1.5 px-2 rounded-xl text-xs font-bold border transition-all text-center ${
                     category === cat.id
-                      ? 'bg-app-purple text-white border-app-purple shadow-sm'
-                      : 'bg-[#F8F3FE] text-slate-600 border-purple-100 hover:border-purple-200'
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
                   }`}
                 >
                   {cat.label}
@@ -142,17 +140,17 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
 
           {/* Description */}
           <div>
-            <label className="block text-[11px] font-extrabold text-slate-700 mb-1">
-              Event Description
+            <label className="block text-[11px] font-bold text-slate-700 mb-1">
+              Deskripsi Event
             </label>
             <div className="relative">
-              <FiFileText className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+              <FiFileText className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
               <textarea
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Event description, venue information, and line-up..."
-                className="w-full pl-10 pr-3 py-2.5 bg-[#F8F3FE] rounded-2xl border border-purple-100 text-xs font-semibold text-slate-800 outline-none focus:border-app-purple resize-none"
+                placeholder="Tuliskan deskripsi ringkas, lokasi venue, dan tata tertib..."
+                className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-normal text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors resize-none"
               />
             </div>
           </div>
@@ -160,28 +158,28 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
           {/* Total Stock & Price */}
           <div className="grid grid-cols-2 gap-2.5">
             <div>
-              <label className="block text-[11px] font-extrabold text-slate-700 mb-1">
-                Total Ticket Quota
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                Total Kuota Tiket
               </label>
               <div className="relative">
-                <HiTicket className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+                <HiTicket className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
                 <input
                   type="number"
                   min={1}
                   required
                   value={totalStock}
                   onChange={(e) => setTotalStock(Number(e.target.value))}
-                  className="w-full pl-9 pr-2 py-2.5 bg-[#F8F3FE] rounded-2xl border border-purple-100 text-xs font-black text-slate-800 outline-none focus:border-app-purple"
+                  className="w-full pl-9 pr-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[11px] font-extrabold text-slate-700 mb-1">
-                Ticket Price (IDR)
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                Harga Tiket (IDR)
               </label>
               <div className="relative">
-                <FiDollarSign className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+                <FiDollarSign className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
                 <input
                   type="number"
                   min={0}
@@ -189,7 +187,7 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
                   required
                   value={price}
                   onChange={(e) => setPrice(Number(e.target.value))}
-                  className="w-full pl-9 pr-2 py-2.5 bg-[#F8F3FE] rounded-2xl border border-purple-100 text-xs font-black text-slate-800 outline-none focus:border-app-purple"
+                  className="w-full pl-9 pr-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors"
                 />
               </div>
             </div>
@@ -198,8 +196,8 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
           {/* Max Per User & Status */}
           <div className="grid grid-cols-2 gap-2.5">
             <div>
-              <label className="block text-[11px] font-extrabold text-slate-700 mb-1">
-                Max Tickets / User
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                Maks. Tiket / User
               </label>
               <input
                 type="number"
@@ -208,21 +206,21 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
                 required
                 value={maxPerUser}
                 onChange={(e) => setMaxPerUser(Number(e.target.value))}
-                className="w-full px-3 py-2.5 bg-[#F8F3FE] rounded-2xl border border-purple-100 text-xs font-black text-slate-800 outline-none focus:border-app-purple text-center"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors text-center"
               />
             </div>
 
             <div>
-              <label className="block text-[11px] font-extrabold text-slate-700 mb-1">
-                Sale Status
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                Status Penjualan
               </label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full px-3 py-2.5 bg-[#F8F3FE] rounded-2xl border border-purple-100 text-xs font-black text-slate-800 outline-none focus:border-app-purple"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors"
               >
-                <option value="ACTIVE">ACTIVE (Live Flash Sale)</option>
-                <option value="SCHEDULED">SCHEDULED (Upcoming)</option>
+                <option value="ACTIVE">ACTIVE (Flash Sale Aktif)</option>
+                <option value="SCHEDULED">SCHEDULED (Mendatang)</option>
                 <option value="DRAFT">DRAFT</option>
                 <option value="CLOSED">CLOSED</option>
               </select>
@@ -231,59 +229,59 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
 
           {/* Start & End Dates */}
           <div>
-            <label className="block text-[11px] font-extrabold text-slate-700 mb-1">
-              Sale Start Date & Time
+            <label className="block text-[11px] font-bold text-slate-700 mb-1">
+              Waktu Mulai Flash Sale
             </label>
             <div className="relative">
-              <FiCalendar className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+              <FiCalendar className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
               <input
                 type="datetime-local"
                 required
                 value={startSaleAt}
                 onChange={(e) => setStartSaleAt(e.target.value)}
-                className="w-full pl-10 pr-3 py-2.5 bg-[#F8F3FE] rounded-2xl border border-purple-100 text-xs font-bold text-slate-800 outline-none focus:border-app-purple"
+                className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-[11px] font-extrabold text-slate-700 mb-1">
-              Sale End Date & Time
+            <label className="block text-[11px] font-bold text-slate-700 mb-1">
+              Waktu Selesai Flash Sale
             </label>
             <div className="relative">
-              <FiCalendar className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+              <FiCalendar className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
               <input
                 type="datetime-local"
                 required
                 value={endSaleAt}
                 onChange={(e) => setEndSaleAt(e.target.value)}
-                className="w-full pl-10 pr-3 py-2.5 bg-[#F8F3FE] rounded-2xl border border-purple-100 text-xs font-bold text-slate-800 outline-none focus:border-app-purple"
+                className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors"
               />
             </div>
           </div>
 
           {error && (
-            <div className="p-3 bg-red-50 text-red-600 rounded-2xl text-xs font-bold border border-red-100">
+            <div className="p-3 bg-rose-50 text-rose-700 rounded-xl text-xs font-medium border border-rose-200">
               {error}
             </div>
           )}
 
           {/* Action Buttons */}
-          <div className="pt-3 space-y-2">
+          <div className="pt-2 space-y-2">
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 bg-purple-btn text-white rounded-full text-xs font-black shadow-btn hover:opacity-95 active:scale-[0.99] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {isLoading ? (
                 <>
                   <CgSpinner className="w-4 h-4 animate-spin" />
-                  <span>Publishing to Database & Redis...</span>
+                  <span>Mendaftarkan ke DB & Redis...</span>
                 </>
               ) : (
                 <>
-                  <IoFlash className="w-4 h-4" />
-                  <span>Publish Flash Sale Event</span>
+                  <IoFlash className="w-4 h-4 text-amber-300" />
+                  <span>Terbitkan Event Flash Sale</span>
                 </>
               )}
             </button>
@@ -291,9 +289,9 @@ export const CreateEventPage: React.FC<CreateEventPageProps> = ({
             <button
               type="button"
               onClick={onBack}
-              className="w-full py-2.5 text-xs font-bold text-slate-400 hover:text-slate-600 text-center transition-colors"
+              className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-600 rounded-xl text-center transition-colors"
             >
-              Cancel and Return
+              Batal dan Kembali
             </button>
           </div>
         </form>

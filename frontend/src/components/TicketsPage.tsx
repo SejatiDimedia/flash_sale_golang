@@ -110,27 +110,25 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
   return (
     <div className="space-y-4 animate-fadeIn">
       {/* Top Header Bar for Tickets Page */}
-      <div className="relative w-full rounded-b-[36px] bg-header-gradient p-5 pt-4 text-white shadow-card overflow-hidden">
-        <div className="flex items-center justify-between mb-3">
+      <div className="w-full bg-slate-900 p-4 border-b border-slate-800 text-white shadow-sm">
+        <div className="flex items-center justify-between mb-2">
           <button
             onClick={onBack}
-            className="w-9 h-9 glass-circle rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-colors shadow-sm"
+            className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition-colors border border-slate-700"
+            title="Kembali"
           >
-            <FiArrowLeft className="w-5 h-5" />
+            <FiArrowLeft className="w-4 h-4" />
           </button>
-          <span className="text-sm font-extrabold tracking-wide">My E-Tickets & Passes</span>
-          <div className="w-9"></div> {/* Spacer */}
+          <span className="text-xs font-bold tracking-wide uppercase text-slate-400">E-Tiket & Antrean</span>
+          <div className="w-8"></div>
         </div>
 
-        <div className="pt-1 pb-2">
-          <span className="text-[10px] font-bold text-white/75 tracking-wider uppercase block">
-            Digital Ticket Wallet
-          </span>
-          <h1 className="text-xl font-black text-white leading-tight">
-            Order & Ticket History
+        <div>
+          <h1 className="text-lg font-bold text-white leading-tight">
+            Tiket & Status Antrean
           </h1>
-          <p className="text-xs text-white/80 mt-0.5">
-            Active queue passes and verified concert tickets
+          <p className="text-xs text-slate-400 mt-0.5">
+            Daftar tiket terverifikasi dan status antrean flash sale Anda
           </p>
         </div>
       </div>
@@ -141,68 +139,58 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
         {activeQueueEventId && queuedEvent && activeQueueStatus && (
           <div className="space-y-2 animate-fadeIn">
             <div className="flex items-center justify-between px-1">
-              <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                 <IoFlash className="w-4 h-4 text-amber-500 animate-pulse" />
-                <span>Live Waiting Room Pass</span>
+                <span>Tiket Antrean Aktif</span>
               </h3>
               <button
                 onClick={handleCancelQueue}
-                className="text-[11px] font-bold text-slate-400 hover:text-red-500 flex items-center gap-0.5 transition-colors"
-                title="Leave waiting room queue"
+                className="text-xs font-medium text-slate-400 hover:text-rose-600 flex items-center gap-1 transition-colors"
+                title="Tinggalkan antrean"
               >
                 <FiX className="w-3.5 h-3.5" />
-                <span>Leave Queue</span>
+                <span>Keluar Antrean</span>
               </button>
             </div>
 
             <div
-              className={`rounded-[28px] p-4 border shadow-card relative overflow-hidden transition-all duration-300 ${
+              className={`rounded-2xl p-4 border transition-all duration-300 ${
                 activeQueueStatus.isAllowedToPurchase
-                  ? 'bg-gradient-to-br from-emerald-500 via-teal-600 to-emerald-700 text-white border-emerald-400 shadow-emerald-500/20'
-                  : 'bg-white border-purple-200 text-slate-900'
+                  ? 'bg-emerald-50/90 border-emerald-200 text-slate-900'
+                  : 'bg-white border-slate-200 text-slate-900 shadow-sm'
               }`}
             >
-              {/* Event Mini Hero Banner with Overlay */}
+              {/* Event Mini Banner */}
               <div className="flex items-start gap-3">
                 <img
                   src={getEventImage(queuedEvent.category)}
                   alt={queuedEvent.name}
-                  className="w-16 h-16 rounded-2xl object-cover shadow-sm shrink-0 border border-white/40"
+                  className="w-14 h-14 rounded-xl object-cover shrink-0 border border-slate-200"
                 />
 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-1 mb-0.5">
-                    <span
-                      className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                        activeQueueStatus.isAllowedToPurchase
-                          ? 'bg-white/20 text-white backdrop-blur-sm'
-                          : 'bg-purple-100 text-app-purple'
-                      }`}
-                    >
+                  <div className="flex items-center justify-between gap-1 mb-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
                       {queuedEvent.category?.toUpperCase() || 'CONCERT'}
                     </span>
 
                     {activeQueueStatus.isAllowedToPurchase ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-black text-amber-300">
-                        <span className="w-2 h-2 rounded-full bg-amber-300 animate-ping"></span>
-                        Pass Active
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-ping"></span>
+                        Giliran Tiba
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-400">
-                        <CgSpinner className="w-3 h-3 animate-spin text-app-purple" />
-                        In Queue
+                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500">
+                        <CgSpinner className="w-3 h-3 animate-spin text-indigo-600" />
+                        Dalam Antrean
                       </span>
                     )}
                   </div>
 
-                  <h4 className="text-xs font-black truncate leading-tight">
+                  <h4 className="text-xs font-bold text-slate-900 truncate leading-tight">
                     {queuedEvent.name}
                   </h4>
-                  <span
-                    className={`text-xs font-extrabold block mt-0.5 ${
-                      activeQueueStatus.isAllowedToPurchase ? 'text-white/90' : 'text-app-purple font-black'
-                    }`}
-                  >
+                  <span className="text-xs font-bold text-indigo-600 block mt-0.5">
                     {formatPrice(queuedEvent.price)}
                   </span>
                 </div>
@@ -210,42 +198,42 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
 
               {/* Status Details / Stats */}
               {activeQueueStatus.isAllowedToPurchase ? (
-                <div className="mt-3 pt-3 border-t border-white/20 space-y-2.5">
-                  <p className="text-[11px] font-bold text-white/90 leading-tight">
-                    🎉 It's your turn! Your 5-minute checkout session is active.
+                <div className="mt-3 pt-3 border-t border-emerald-200/60 space-y-2">
+                  <p className="text-xs font-medium text-emerald-800 leading-tight">
+                    Sesi pembelian Anda sedang aktif! Segera selesaikan pemesanan tiket Anda dalam 5 menit.
                   </p>
                   <button
                     onClick={() => onOpenCheckout && onOpenCheckout(queuedEvent)}
-                    className="w-full py-3 bg-white text-emerald-800 rounded-2xl text-xs font-black shadow-lg shadow-black/10 hover:bg-white/95 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2"
                   >
-                    <IoFlash className="w-4 h-4 text-amber-500" />
-                    <span>Proceed to Express Checkout</span>
+                    <IoFlash className="w-4 h-4 text-amber-300" />
+                    <span>Lanjut ke Checkout Pembelian</span>
                     <FiArrowRight className="w-4 h-4" />
                   </button>
                 </div>
               ) : (
-                <div className="mt-3 pt-3 border-t border-purple-50 space-y-2.5">
-                  <div className="grid grid-cols-3 gap-1.5 text-center bg-[#F8F3FE] p-2 rounded-2xl border border-purple-100/80">
+                <div className="mt-3 pt-3 border-t border-slate-100 space-y-2.5">
+                  <div className="grid grid-cols-3 gap-2 text-center bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
                     <div>
-                      <span className="text-[9px] font-bold text-slate-400 block uppercase">Position</span>
-                      <span className="text-xs font-black text-app-purple">#{activeQueueStatus.position}</span>
+                      <span className="text-[10px] font-medium text-slate-500 block">Posisi</span>
+                      <span className="text-xs font-bold text-indigo-600">#{activeQueueStatus.position}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] font-bold text-slate-400 block uppercase">In Queue</span>
-                      <span className="text-xs font-black text-slate-700">{activeQueueStatus.totalInQueue}</span>
+                      <span className="text-[10px] font-medium text-slate-500 block">Total Antrean</span>
+                      <span className="text-xs font-bold text-slate-800">{activeQueueStatus.totalInQueue}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] font-bold text-slate-400 block uppercase">Est. Wait</span>
-                      <span className="text-xs font-black text-slate-700">~{activeQueueStatus.estimatedWaitSeconds}s</span>
+                      <span className="text-[10px] font-medium text-slate-500 block">Est. Tunggu</span>
+                      <span className="text-xs font-bold text-slate-800">~{activeQueueStatus.estimatedWaitSeconds}d</span>
                     </div>
                   </div>
 
                   <button
                     onClick={() => onOpenWaitingRoom && onOpenWaitingRoom(queuedEvent)}
-                    className="w-full py-2.5 bg-purple-btn text-white rounded-2xl text-xs font-black shadow-btn hover:opacity-95 active:scale-[0.99] transition-all flex items-center justify-center gap-1.5"
+                    className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5"
                   >
                     <FiClock className="w-3.5 h-3.5" />
-                    <span>Open Live Waiting Room View</span>
+                    <span>Lihat Ruang Tunggu Live</span>
                   </button>
                 </div>
               )}
@@ -255,38 +243,40 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
 
         {/* 2. 🎟️ CONFIRMED TICKETS LIST */}
         <div className="flex items-center justify-between px-1 pt-1">
-          <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-            <HiTicket className="w-4 h-4 text-app-purple" />
-            <span>Purchased E-Tickets ({orders.length})</span>
+          <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+            <HiTicket className="w-4 h-4 text-indigo-600" />
+            <span>Tiket yang Dimiliki ({orders.length})</span>
           </h3>
           <button
             onClick={fetchMyOrders}
-            className="text-xs font-extrabold text-app-purple hover:underline"
+            className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
           >
-            Refresh
+            Muat Ulang
           </button>
         </div>
 
         {/* Tickets Feed */}
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-12 gap-2 bg-white rounded-[28px] border border-purple-100 p-6">
-            <CgSpinner className="w-8 h-8 text-app-purple animate-spin" />
-            <span className="text-xs font-bold text-slate-400">Loading your tickets...</span>
+          <div className="flex flex-col items-center justify-center py-12 gap-2 bg-slate-50 rounded-2xl border border-slate-200 p-6">
+            <CgSpinner className="w-7 h-7 text-indigo-600 animate-spin" />
+            <span className="text-xs font-medium text-slate-500">Memuat riwayat tiket...</span>
           </div>
         ) : orders.length === 0 ? (
-          <div className="bg-white rounded-[28px] p-8 text-center border border-purple-100 shadow-sm space-y-3">
-            <div className="w-16 h-16 rounded-full bg-purple-100 text-app-purple flex items-center justify-center mx-auto">
-              <HiTicket className="w-8 h-8" />
+          <div className="bg-slate-50 rounded-2xl p-8 text-center border border-slate-200 space-y-3">
+            <div className="w-12 h-12 rounded-xl bg-slate-200 text-slate-500 flex items-center justify-center mx-auto">
+              <HiTicket className="w-6 h-6" />
             </div>
-            <h4 className="text-sm font-black text-slate-800">No Tickets Purchased Yet</h4>
-            <p className="text-xs text-slate-400 max-w-[240px] mx-auto">
-              You do not have any active concert passes. Join upcoming flash sale wars on the home page!
-            </p>
+            <div>
+              <h4 className="text-sm font-bold text-slate-800">Belum Ada Tiket yang Dibeli</h4>
+              <p className="text-xs text-slate-500 mt-1 max-w-[240px] mx-auto">
+                Anda belum memiliki tiket konser aktif. Ikuti flash sale pada halaman utama sekarang!
+              </p>
+            </div>
             <button
               onClick={onExplore}
-              className="px-6 py-2.5 bg-purple-btn text-white rounded-full text-xs font-black shadow-btn hover:opacity-95 transition-all inline-block"
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-colors inline-block"
             >
-              Explore Flash Sale Events
+              Jelajahi Flash Sale
             </button>
           </div>
         ) : (
@@ -294,30 +284,30 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
             {orders.map((o) => (
               <div
                 key={o.id}
-                className="bg-white rounded-[26px] p-4 border border-purple-100/90 shadow-card space-y-3 relative overflow-hidden"
+                className="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-sm space-y-3"
               >
                 {/* Event Photo & Title Row */}
                 <div className="flex items-start gap-3">
                   <img
                     src={getEventImage(getEventCategory(o.eventId))}
                     alt={getEventName(o.eventId)}
-                    className="w-12 h-12 rounded-xl object-cover shadow-xs shrink-0 border border-purple-100"
+                    className="w-12 h-12 rounded-xl object-cover shrink-0 border border-slate-100"
                   />
                   <div className="flex-1 min-w-0">
-                    <span className="text-[9px] font-black text-app-purple uppercase tracking-widest block mb-0.5">
-                      Official E-Ticket
+                    <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block mb-0.5">
+                      E-Tiket Resmi
                     </span>
-                    <h4 className="text-xs font-black text-slate-900 truncate">
+                    <h4 className="text-xs font-bold text-slate-900 truncate">
                       {getEventName(o.eventId)}
                     </h4>
                   </div>
                   <span
-                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase shrink-0 ${
+                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase shrink-0 ${
                       o.status === 'CONFIRMED'
                         ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                         : o.status === 'PENDING'
                         ? 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse'
-                        : 'bg-red-50 text-red-700'
+                        : 'bg-rose-50 text-rose-700 border border-rose-200'
                     }`}
                   >
                     <FiCheckCircle className="w-3 h-3" />
@@ -325,22 +315,22 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-purple-50 text-slate-500">
+                <div className="grid grid-cols-2 gap-2 text-xs pt-2.5 border-t border-slate-100 text-slate-500">
                   <div>
-                    <span className="text-[10px] text-slate-400 block font-bold">Quantity</span>
-                    <span className="font-extrabold text-slate-800">{o.quantity} Tickets</span>
+                    <span className="text-[10px] text-slate-400 block font-medium">Jumlah</span>
+                    <span className="font-bold text-slate-800">{o.quantity} Tiket</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 block font-bold">Total Paid</span>
-                    <span className="font-black text-app-purple">{formatPrice(o.totalPrice)}</span>
+                    <span className="text-[10px] text-slate-400 block font-medium">Total Pembayaran</span>
+                    <span className="font-bold text-indigo-600">{formatPrice(o.totalPrice)}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-purple-50/60">
-                  <span className="font-mono truncate max-w-[150px] text-[10px]">ID: {o.id}</span>
-                  <span className="flex items-center gap-1 font-semibold text-[10px]">
-                    <FiCalendar className="w-3.5 h-3.5 text-app-purple" />
-                    {new Date(o.createdAt).toLocaleDateString('en-US')}
+                <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-100">
+                  <span className="font-mono text-[10px] text-slate-500 truncate max-w-[150px]">ID: {o.id}</span>
+                  <span className="flex items-center gap-1 font-medium text-[10px] text-slate-500">
+                    <FiCalendar className="w-3.5 h-3.5 text-indigo-600" />
+                    {new Date(o.createdAt).toLocaleDateString('id-ID')}
                   </span>
                 </div>
               </div>

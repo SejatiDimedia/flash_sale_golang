@@ -29,91 +29,99 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[99999] bg-black/80 backdrop-blur-md flex items-center justify-center p-3 animate-fadeIn">
-      <div className="relative w-full max-w-sm bg-white rounded-[40px] shadow-2xl border-4 border-white overflow-hidden max-h-[92vh] flex flex-col justify-between">
+    <div className="fixed inset-0 z-[99999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 animate-fadeIn">
+      <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden max-h-[92vh] flex flex-col justify-between">
         <div className="overflow-y-auto no-scrollbar">
           {/* Top Photo Banner */}
-          <div className="relative w-full h-72 overflow-hidden">
+          <div className="relative w-full h-64 overflow-hidden">
             <img
               src={getEventImage(event.category)}
               alt={event.name}
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/30"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-slate-950/40"></div>
 
             {/* Top Navigation Row */}
             <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
               <button
                 onClick={onClose}
-                className="w-10 h-10 glass-circle rounded-full flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all shadow-md"
+                className="w-9 h-9 bg-slate-900/80 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-slate-800 transition-colors shadow-sm border border-slate-700/60"
               >
-                <FiArrowLeft className="w-5 h-5" />
+                <FiArrowLeft className="w-4 h-4" />
               </button>
 
-              <span className="text-white text-sm font-extrabold drop-shadow-md">
-                Event Details
+              <span className="text-white text-xs font-bold uppercase tracking-wider drop-shadow-sm">
+                Detail Flash Sale
               </span>
 
-              <button className="w-10 h-10 glass-circle rounded-full flex items-center justify-center text-white hover:text-pink-300 transition-colors shadow-md">
-                <FiBookmark className="w-5 h-5" />
+              <button className="w-9 h-9 bg-slate-900/80 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:text-indigo-300 transition-colors shadow-sm border border-slate-700/60">
+                <FiBookmark className="w-4 h-4" />
               </button>
             </div>
           </div>
 
           {/* Content Body */}
-          <div className="p-5 -mt-6 bg-white rounded-t-[32px] relative z-10 space-y-4">
+          <div className="p-5 space-y-4">
             <div className="flex items-start justify-between gap-2">
-              <h2 className="text-xl font-extrabold text-app-dark leading-tight">
-                {event.name}
-              </h2>
-              <span className="text-2xl font-black text-app-purple shrink-0">
+              <div>
+                <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block mb-1">
+                  {event.category?.toUpperCase() || 'CONCERT'}
+                </span>
+                <h2 className="text-lg font-bold text-slate-900 leading-tight">
+                  {event.name}
+                </h2>
+              </div>
+              <span className="text-lg font-bold text-indigo-600 shrink-0">
                 {formatPrice(event.price)}
               </span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-500">
+            <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
               <span className="flex items-center gap-1">
-                <FiCalendar className="w-3.5 h-3.5 text-app-purple" />
-                {new Date(event.startSaleAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • 08:00 PM
+                <FiCalendar className="w-3.5 h-3.5 text-indigo-600" />
+                {new Date(event.startSaleAt).toLocaleDateString('id-ID', { month: 'short', day: 'numeric', year: 'numeric' })}
               </span>
               <span className="flex items-center gap-1">
-                <FiMapPin className="w-3.5 h-3.5 text-app-purple" />
-                GBK Stadium, Jakarta
+                <FiMapPin className="w-3.5 h-3.5 text-indigo-600" />
+                Stadion Utama GBK, Jakarta
               </span>
             </div>
 
-            {/* Avatar Stack */}
-            <div className="flex items-center gap-2.5 py-1">
-              <div className="flex -space-x-2">
-                <img className="w-7 h-7 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100" alt="Avatar" />
-                <img className="w-7 h-7 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100" alt="Avatar" />
-                <img className="w-7 h-7 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100" alt="Avatar" />
+            {/* Real Stock Status Pill */}
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-medium text-slate-500 block">Sisa Kuota Tiket</span>
+                <span className="text-xs font-bold text-slate-900">
+                  {event.availableStock} / {event.totalStock} Tiket Tersedia
+                </span>
               </div>
-              <span className="text-xs font-bold text-slate-600">
-                +30 Participants Waiting in Queue
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                event.availableStock > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
+              }`}>
+                {event.availableStock > 0 ? 'Tersedia' : 'Habis'}
               </span>
             </div>
 
             <div className="space-y-1">
-              <h3 className="text-xs font-extrabold text-app-dark uppercase tracking-wider">
-                About Event
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                Tentang Event
               </h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                {event.description || 'Experience a world-class live performance with high-energy visuals, futuristic stage setups, and unforgettable concert vibes.'}
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {event.description || 'Nikmati pengalaman pertunjukan live berskala internasional dengan tata panggung canggih dan tata suara spektakuler.'}
               </p>
             </div>
 
-            <div className="space-y-2">
-              <h3 className="text-xs font-extrabold text-app-dark uppercase tracking-wider">
-                Location
+            <div className="space-y-1.5">
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                Lokasi Venue
               </h3>
-              <div className="p-3 bg-[#F8F3FE] rounded-2xl border border-purple-100 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-app-purple/15 text-app-purple flex items-center justify-center shrink-0">
-                  <FiMapPin className="w-5 h-5" />
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                  <FiMapPin className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-extrabold text-slate-800">Gelora Bung Karno Stadium</h4>
-                  <p className="text-[11px] text-slate-500">Pintu Satu Senayan, Central Jakarta</p>
+                  <h4 className="text-xs font-bold text-slate-800">Gelora Bung Karno (GBK)</h4>
+                  <p className="text-[11px] text-slate-500">Pintu Satu Senayan, Jakarta Pusat</p>
                 </div>
               </div>
             </div>
@@ -121,14 +129,14 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
         </div>
 
         {/* Bottom CTA Button */}
-        <div className="p-4 bg-white border-t border-purple-50">
+        <div className="p-4 bg-white border-t border-slate-100">
           <button
             onClick={() => onContinue(event)}
             disabled={event.availableStock <= 0}
-            className="w-full py-4 bg-purple-btn text-white rounded-full text-sm font-black shadow-btn hover:opacity-95 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            <IoFlash className="w-4 h-4" />
-            <span>Continue • War Ticket Now</span>
+            <IoFlash className="w-4 h-4 text-amber-300" />
+            <span>{event.availableStock > 0 ? 'Ikuti War Tiket Sekarang' : 'Tiket Sudah Habis'}</span>
           </button>
         </div>
       </div>

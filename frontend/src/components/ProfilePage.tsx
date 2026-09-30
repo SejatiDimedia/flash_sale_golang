@@ -70,37 +70,38 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   return (
     <div className="space-y-4 animate-fadeIn">
       {/* Top Header Bar for Profile Page */}
-      <div className="relative w-full rounded-b-[36px] bg-header-gradient p-5 pt-4 text-white shadow-card overflow-hidden">
+      <div className="w-full bg-slate-900 p-4 border-b border-slate-800 text-white shadow-sm">
         <div className="flex items-center justify-between mb-3">
           <button
             onClick={onBack}
-            className="w-9 h-9 glass-circle rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-colors shadow-sm"
+            className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition-colors border border-slate-700"
+            title="Kembali"
           >
-            <FiArrowLeft className="w-5 h-5" />
+            <FiArrowLeft className="w-4 h-4" />
           </button>
-          <span className="text-sm font-extrabold tracking-wide">Account Profile</span>
-          <div className="w-9"></div> {/* Spacer */}
+          <span className="text-xs font-bold tracking-wide uppercase text-slate-400">Profil Pengguna</span>
+          <div className="w-8"></div>
         </div>
 
-        <div className="flex items-center gap-3.5 pt-1 pb-2">
+        <div className="flex items-center gap-3.5 pt-1 pb-1">
           <div className="relative shrink-0">
-            <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md border-2 border-white/90 shadow-md flex items-center justify-center text-white text-xl font-black tracking-wider">
+            <div className="w-14 h-14 rounded-2xl bg-indigo-600 border border-indigo-500 shadow-sm flex items-center justify-center text-white text-lg font-bold tracking-wider">
               {getInitials(user.name)}
             </div>
-            <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-400 border-2 border-white rounded-full"></span>
+            <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-900 rounded-full"></span>
           </div>
 
           <div className="space-y-0.5 overflow-hidden">
-            <h2 className="text-lg font-black text-white leading-tight truncate">
+            <h2 className="text-base font-bold text-white leading-tight truncate">
               {user.name}
             </h2>
-            <div className="flex items-center gap-1.5 text-xs text-white/80 truncate">
-              <FiMail className="w-3.5 h-3.5 text-pink-200 shrink-0" />
+            <div className="flex items-center gap-1.5 text-xs text-slate-400 truncate">
+              <FiMail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
               <span className="truncate">{user.email}</span>
             </div>
             <div className="pt-1">
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-white/25 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-wider border border-white/30">
-                <FiShield className="w-3 h-3" />
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-800 text-slate-300 rounded-md text-[10px] font-bold uppercase tracking-wider border border-slate-700">
+                <FiShield className="w-3 h-3 text-indigo-400" />
                 {user.role}
               </span>
             </div>
@@ -113,117 +114,117 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         {/* Quick Shortcut Card to My Tickets */}
         <div
           onClick={onNavigateTickets}
-          className="bg-white rounded-[24px] p-4 border border-purple-100 shadow-card flex items-center justify-between gap-3 cursor-pointer hover:border-purple-300 transition-all group"
+          className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center justify-between gap-3 cursor-pointer hover:border-indigo-400 transition-all group"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#F8F3FE] group-hover:bg-app-purple text-app-purple group-hover:text-white flex items-center justify-center transition-colors">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white flex items-center justify-center transition-colors">
               <HiTicket className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-xs font-black text-slate-800">My Tickets</h4>
-              <p className="text-[10px] text-slate-400">View all purchased active concert tickets</p>
+              <h4 className="text-xs font-bold text-slate-800">Tiket Saya</h4>
+              <p className="text-[11px] text-slate-500">Lihat semua tiket konser dan riwayat pemesanan</p>
             </div>
           </div>
-          <span className="text-xs font-black text-app-purple group-hover:translate-x-1 transition-transform">
-            Open →
+          <span className="text-xs font-bold text-indigo-600 group-hover:translate-x-1 transition-transform">
+            Buka →
           </span>
         </div>
 
         {/* 📝 EDIT PROFILE FORM */}
         <form
           onSubmit={handleSaveProfile}
-          className="bg-white rounded-[28px] p-5 border border-purple-100 shadow-card space-y-3.5"
+          className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3.5"
         >
-          <div className="flex items-center justify-between pb-2 border-b border-purple-50">
-            <div className="flex items-center gap-1.5 text-xs font-black text-slate-900">
-              <FiUser className="w-4 h-4 text-app-purple" />
-              <span>Profile Settings & Edit</span>
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+              <FiUser className="w-4 h-4 text-indigo-600" />
+              <span>Pengaturan Profil</span>
             </div>
-            <span className="text-[10px] font-bold text-slate-400">Role: {user.role.toUpperCase()}</span>
+            <span className="text-[10px] font-semibold text-slate-500">Hak Akses: {user.role.toUpperCase()}</span>
           </div>
 
           {saveSuccess && (
-            <div className="p-3 bg-emerald-50 text-emerald-800 rounded-2xl text-xs font-bold border border-emerald-200 flex items-center gap-2">
+            <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-medium border border-emerald-200 flex items-center gap-2">
               <FiCheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>{saveSuccess}</span>
             </div>
           )}
 
           {saveError && (
-            <div className="p-3 bg-red-50 text-red-600 rounded-2xl text-xs font-bold border border-red-200">
+            <div className="p-3 bg-rose-50 text-rose-700 rounded-xl text-xs font-medium border border-rose-200">
               {saveError}
             </div>
           )}
 
           {/* Edit Name */}
           <div>
-            <label className="block text-[11px] font-extrabold text-slate-700 mb-1">
-              Full Name
+            <label className="block text-[11px] font-bold text-slate-700 mb-1">
+              Nama Lengkap
             </label>
             <div className="relative">
-              <FiUser className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+              <FiUser className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
               <input
                 type="text"
                 required
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                placeholder="Full Name"
-                className="w-full pl-10 pr-3 py-2.5 bg-[#F8F3FE] rounded-2xl border border-purple-100 text-xs font-bold text-slate-800 outline-none focus:border-app-purple"
+                placeholder="Nama Lengkap"
+                className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors"
               />
             </div>
           </div>
 
           {/* Edit Email */}
           <div>
-            <label className="block text-[11px] font-extrabold text-slate-700 mb-1">
-              Email Address
+            <label className="block text-[11px] font-bold text-slate-700 mb-1">
+              Alamat Email
             </label>
             <div className="relative">
-              <FiMail className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+              <FiMail className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
               <input
                 type="email"
                 required
                 value={editEmail}
                 onChange={(e) => setEditEmail(e.target.value)}
-                placeholder="name@example.com"
-                className="w-full pl-10 pr-3 py-2.5 bg-[#F8F3FE] rounded-2xl border border-purple-100 text-xs font-bold text-slate-800 outline-none focus:border-app-purple"
+                placeholder="nama@example.com"
+                className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors"
               />
             </div>
           </div>
 
           {/* Edit Password */}
           <div>
-            <label className="block text-[11px] font-extrabold text-slate-700 mb-1">
-              New Password <span className="text-slate-400 font-normal">(Leave blank to keep unchanged)</span>
+            <label className="block text-[11px] font-bold text-slate-700 mb-1">
+              Password Baru <span className="text-slate-400 font-normal">(Kosongkan bila tidak diubah)</span>
             </label>
             <div className="relative">
-              <FiLock className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+              <FiLock className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
               <input
                 type="password"
                 value={editPassword}
                 onChange={(e) => setEditPassword(e.target.value)}
-                placeholder="New password (min. 6 characters)"
-                className="w-full pl-10 pr-3 py-2.5 bg-[#F8F3FE] rounded-2xl border border-purple-100 text-xs font-bold text-slate-800 outline-none focus:border-app-purple"
+                placeholder="Password baru (min. 6 karakter)"
+                className="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-colors"
               />
             </div>
           </div>
 
           {/* Save Button */}
-          <div className="pt-2">
+          <div className="pt-1">
             <button
               type="submit"
               disabled={isSaving}
-              className="w-full py-3.5 bg-purple-btn text-white rounded-full text-xs font-black shadow-btn hover:opacity-95 active:scale-[0.99] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {isSaving ? (
                 <>
                   <CgSpinner className="w-4 h-4 animate-spin" />
-                  <span>Saving Changes...</span>
+                  <span>Menyimpan Perubahan...</span>
                 </>
               ) : (
                 <>
                   <FiCheckCircle className="w-4 h-4" />
-                  <span>Save Profile Changes</span>
+                  <span>Simpan Perubahan Profil</span>
                 </>
               )}
             </button>
@@ -232,35 +233,35 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 
         {/* Security & Account Badges */}
         <div className="grid grid-cols-2 gap-2.5">
-          <div className="bg-white rounded-[22px] p-3.5 border border-purple-100 shadow-sm flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+          <div className="bg-white rounded-xl p-3 border border-slate-200 shadow-sm flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
               <FiAward className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-[11px] font-black text-slate-800 block">Verified Account</span>
-              <span className="text-[9px] text-slate-400 font-bold">100% Authentic</span>
+              <span className="text-xs font-bold text-slate-800 block">Akun Terverifikasi</span>
+              <span className="text-[10px] text-slate-500">Sesi Login Aktif</span>
             </div>
           </div>
 
-          <div className="bg-white rounded-[22px] p-3.5 border border-purple-100 shadow-sm flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-purple-100 text-app-purple flex items-center justify-center shrink-0">
+          <div className="bg-white rounded-xl p-3 border border-slate-200 shadow-sm flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
               <FiKey className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-[11px] font-black text-slate-800 block">JWT Security</span>
-              <span className="text-[9px] text-slate-400 font-bold">256-Bit Encrypted</span>
+              <span className="text-xs font-bold text-slate-800 block">Keamanan JWT</span>
+              <span className="text-[10px] text-slate-500">Bearer Token Valid</span>
             </div>
           </div>
         </div>
 
         {/* Logout Button */}
-        <div className="pt-2">
+        <div className="pt-1">
           <button
             onClick={onLogout}
-            className="w-full py-3.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-2xl text-xs font-black transition-all flex items-center justify-center gap-2 border border-red-200 shadow-sm"
+            className="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-rose-200"
           >
             <FiLogOut className="w-4 h-4" />
-            <span>Sign Out (Logout)</span>
+            <span>Keluar Akun (Logout)</span>
           </button>
         </div>
       </div>

@@ -180,19 +180,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   return (
     <div className="space-y-4 animate-fadeIn">
       {/* Event Selector & Quick Action Card */}
-      <div className="bg-white rounded-[28px] p-4 shadow-card border border-purple-100/80">
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
         <div className="flex items-center justify-between gap-2 mb-2">
-          <div className="flex items-center gap-1.5 text-xs font-extrabold text-app-purple">
-            <FiShield className="w-4 h-4" />
-            <span>Selected Flash Sale Event</span>
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+            <FiShield className="w-4 h-4 text-indigo-600" />
+            <span>Pilih Event Flash Sale</span>
           </div>
           <button
             onClick={() => {
               fetchOrders();
               onRefreshEvents();
             }}
-            className="p-2 bg-[#F8F3FE] hover:bg-purple-100 rounded-xl text-app-purple transition-all"
-            title="Refresh Data"
+            className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 transition-colors"
+            title="Muat Ulang Data"
           >
             <FiRefreshCw className={`w-3.5 h-3.5 ${isLoadingOrders ? 'animate-spin' : ''}`} />
           </button>
@@ -201,11 +201,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <select
           value={selectedEventId}
           onChange={(e) => setSelectedEventId(e.target.value)}
-          className="w-full px-3 py-2.5 bg-[#F8F3FE] border border-purple-100 rounded-xl text-xs font-extrabold text-slate-800 outline-none focus:border-app-purple cursor-pointer mb-2.5"
+          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 cursor-pointer mb-2.5"
         >
           {events.map((e) => (
             <option key={e.id} value={e.id}>
-              {e.name} (Stock: {e.availableStock}/{e.totalStock})
+              {e.name} (Stok: {e.availableStock}/{e.totalStock})
             </option>
           ))}
         </select>
@@ -213,108 +213,108 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         {/* ➕ Navigate to Create Event Page */}
         <button
           onClick={onNavigateCreateEvent}
-          className="w-full py-2.5 bg-purple-btn text-white rounded-xl text-xs font-black shadow-btn hover:opacity-95 transition-all flex items-center justify-center gap-1.5"
+          className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-colors flex items-center justify-center gap-1.5"
         >
           <FiPlus className="w-3.5 h-3.5" />
-          <span>Create New Flash Sale Event</span>
+          <span>Tambah Event Flash Sale Baru</span>
         </button>
       </div>
 
       {/* 2x2 Mobile KPI Grid */}
       <div className="grid grid-cols-2 gap-2.5">
         {/* Card 1: Tickets Sold */}
-        <div className="bg-white rounded-[24px] p-3.5 border border-purple-100/80 shadow-card flex flex-col justify-between">
+        <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Tickets Sold</span>
-            <div className="w-7 h-7 rounded-xl bg-purple-100 text-app-purple flex items-center justify-center">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tiket Terjual</span>
+            <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
               <HiTicket className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <div className="text-xl font-black text-slate-900 leading-none mb-1">
-              {totalSold} <span className="text-[10px] text-slate-400 font-bold">/ {currentEvent?.totalStock || 0}</span>
+            <div className="text-xl font-extrabold text-slate-900 leading-none mb-1">
+              {totalSold} <span className="text-[11px] text-slate-400 font-semibold">/ {currentEvent?.totalStock || 0}</span>
             </div>
-            <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
-              <FiCheckCircle className="w-3 h-3" /> Zero-Oversell
+            <span className="text-[10px] font-semibold text-emerald-700 flex items-center gap-1">
+              <FiCheckCircle className="w-3 h-3" /> Stok Terkendali
             </span>
           </div>
         </div>
 
         {/* Card 2: Total Revenue */}
-        <div className="bg-white rounded-[24px] p-3.5 border border-purple-100/80 shadow-card flex flex-col justify-between">
+        <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Total Revenue</span>
-            <div className="w-7 h-7 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Omzet</span>
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <FiDollarSign className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <div className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-app-purple to-app-magenta leading-none mb-1 truncate">
+            <div className="text-base font-extrabold text-slate-900 leading-none mb-1 truncate">
               {formatPrice(totalRevenue)}
             </div>
-            <span className="text-[10px] font-bold text-slate-400 block">
-              Confirmed in DB
+            <span className="text-[10px] font-medium text-slate-500 block">
+              Tercatat di PostgreSQL
             </span>
           </div>
         </div>
 
         {/* Card 3: Redis Live Stock */}
-        <div className="bg-white rounded-[24px] p-3.5 border border-purple-100/80 shadow-card flex flex-col justify-between">
+        <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Redis Stock</span>
-            <div className="w-7 h-7 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Stok RAM Redis</span>
+            <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
               <FiActivity className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <div className="text-xl font-black text-slate-900 leading-none mb-1">
-              {currentEvent?.availableStock || 0} <span className="text-[10px] text-slate-400 font-bold">Tickets</span>
+            <div className="text-xl font-extrabold text-slate-900 leading-none mb-1">
+              {currentEvent?.availableStock || 0} <span className="text-[11px] text-slate-400 font-semibold">Tiket</span>
             </div>
-            <span className="text-[10px] font-bold text-app-purple block">
-              Lua Lock &lt; 1ms
+            <span className="text-[10px] font-semibold text-slate-500 block">
+              Atomic Lua Quota
             </span>
           </div>
         </div>
 
         {/* Card 4: DB Queue */}
-        <div className="bg-white rounded-[24px] p-3.5 border border-purple-100/80 shadow-card flex flex-col justify-between">
+        <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">DB Queue</span>
-            <div className="w-7 h-7 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Antrean Worker</span>
+            <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
               <FiUsers className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <div className="text-xl font-black text-slate-900 leading-none mb-1">
-              {pendingOrders} <span className="text-[10px] text-slate-400 font-bold">Pending</span>
+            <div className="text-xl font-extrabold text-slate-900 leading-none mb-1">
+              {pendingOrders} <span className="text-[11px] text-slate-400 font-semibold">Pending</span>
             </div>
-            <span className="text-[10px] font-bold text-blue-600 block">
-              10 Workers Standby
+            <span className="text-[10px] font-semibold text-blue-700 block">
+              10 Consumer RabbitMQ
             </span>
           </div>
         </div>
       </div>
 
       {/* 🎟️ WAITING ROOM ADMISSION GATEKEEPER & MODE SWITCH CARD */}
-      <div className="bg-white rounded-[28px] p-4 shadow-card border border-purple-100/90 space-y-3.5 relative overflow-hidden">
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
         {/* Header with Live Status Tag */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-purple-100 text-app-purple flex items-center justify-center font-bold shrink-0">
-              <FiUsers className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+              <FiUsers className="w-4 h-4 text-indigo-600" />
             </div>
             <div>
-              <h3 className="text-xs font-black text-slate-900 leading-tight">
-                Waiting Room Gatekeeper
+              <h3 className="text-xs font-bold text-slate-900 leading-tight">
+                Pengatur Gerbang Antrean
               </h3>
-              <p className="text-[10px] text-slate-400 font-semibold">
-                Control queue pacing & traffic surge
+              <p className="text-[10px] text-slate-500">
+                Pacing lalu lintas ruang tunggu & checkout
               </p>
             </div>
           </div>
 
           <span
-            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black border shrink-0 ${
+            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${
               gateMode === 'AUTO'
                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                 : 'bg-amber-50 text-amber-800 border-amber-200'
@@ -322,7 +322,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           >
             <span
               className={`w-1.5 h-1.5 rounded-full ${
-                gateMode === 'AUTO' ? 'bg-emerald-500' : 'bg-pink-500 animate-ping'
+                gateMode === 'AUTO' ? 'bg-emerald-500' : 'bg-amber-500 animate-ping'
               }`}
             ></span>
             <span>{gateMode === 'AUTO' ? 'Auto-Pass' : 'Surge Queue'}</span>
@@ -330,15 +330,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
 
         {/* 🔄 MODE TOGGLE SWITCH: AUTO-PASS VS SURGE QUEUE */}
-        <div className="bg-[#F8F3FE] p-1 rounded-2xl border border-purple-100 flex items-center gap-1">
+        <div className="bg-slate-100 p-1 rounded-xl flex items-center gap-1">
           <button
             type="button"
             disabled={isTogglingMode}
             onClick={() => handleToggleGateMode('AUTO')}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
               gateMode === 'AUTO'
-                ? 'bg-white text-emerald-700 shadow-sm border border-emerald-200'
-                : 'text-slate-500 hover:text-app-purple'
+                ? 'bg-white text-emerald-700 shadow-sm border border-slate-200/80'
+                : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             <span
@@ -346,38 +346,38 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 gateMode === 'AUTO' ? 'bg-emerald-500' : 'bg-slate-300'
               }`}
             ></span>
-            <span>Auto-Pass (Direct)</span>
+            <span>Auto-Pass (Langsung)</span>
           </button>
 
           <button
             type="button"
             disabled={isTogglingMode}
             onClick={() => handleToggleGateMode('MANUAL')}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
               gateMode === 'MANUAL'
-                ? 'bg-white text-app-purple shadow-sm border border-purple-200'
-                : 'text-slate-500 hover:text-app-purple'
+                ? 'bg-white text-indigo-700 shadow-sm border border-slate-200/80'
+                : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             <span
               className={`w-2 h-2 rounded-full ${
-                gateMode === 'MANUAL' ? 'bg-pink-500 animate-pulse' : 'bg-slate-300'
+                gateMode === 'MANUAL' ? 'bg-amber-500 animate-pulse' : 'bg-slate-300'
               }`}
             ></span>
-            <span>Surge Queue Gate</span>
+            <span>Surge Gate (Bertahap)</span>
           </button>
         </div>
 
         {/* 🟢 IF AUTO-PASS IS ACTIVE: Show Status Info */}
         {gateMode === 'AUTO' ? (
-          <div className="p-3 bg-emerald-50/80 rounded-2xl border border-emerald-100 flex items-center gap-2.5 animate-fadeIn">
-            <div className="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+          <div className="p-3 bg-emerald-50/80 rounded-xl border border-emerald-100 flex items-center gap-2.5 animate-fadeIn">
+            <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
               <FiCheckCircle className="w-4 h-4" />
             </div>
             <div>
-              <h4 className="text-xs font-black text-emerald-900">Direct Checkout Active</h4>
-              <p className="text-[10px] text-emerald-700 font-semibold leading-tight">
-                Users bypass the waiting room and proceed directly to ticket purchase.
+              <h4 className="text-xs font-bold text-emerald-900">Checkout Langsung Aktif</h4>
+              <p className="text-[10px] text-emerald-700 font-medium leading-tight">
+                Pengguna langsung masuk ke layar checkout tanpa harus antre di ruang tunggu.
               </p>
             </div>
           </div>
@@ -386,9 +386,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <div className="space-y-3 pt-1 animate-fadeIn">
             {/* Preset Quick Batch Buttons */}
             <div>
-              <div className="flex items-center justify-between text-[11px] font-extrabold text-slate-700 mb-1.5">
-                <span>Select Admission Batch:</span>
-                <span className="text-app-purple font-black">{batchSize} Users / Batch</span>
+              <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1.5">
+                <span>Pilih Batch Admission:</span>
+                <span className="text-indigo-600 font-extrabold">{batchSize} Pengguna / Batch</span>
               </div>
 
               <div className="grid grid-cols-5 gap-1.5">
@@ -397,10 +397,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     key={preset}
                     type="button"
                     onClick={() => setBatchSize(preset)}
-                    className={`py-1.5 rounded-xl text-xs font-black transition-all border text-center ${
+                    className={`py-1 rounded-lg text-xs font-bold transition-all border text-center ${
                       batchSize === preset
-                        ? 'bg-app-purple text-white border-app-purple shadow-sm scale-105'
-                        : 'bg-[#F8F3FE] text-slate-600 border-purple-100 hover:border-purple-300'
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     +{preset}
@@ -411,10 +411,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
             {/* Stepper + Big Action Button */}
             <div className="flex items-center gap-2 pt-0.5">
-              <div className="flex items-center gap-1 bg-[#F8F3FE] p-1 rounded-2xl border border-purple-100 shrink-0">
+              <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-slate-200 shrink-0">
                 <button
                   onClick={() => setBatchSize(Math.max(1, batchSize - 5))}
-                  className="w-8 h-8 rounded-xl bg-white text-app-purple font-black hover:bg-purple-100 flex items-center justify-center text-sm shadow-xs border border-purple-100"
+                  className="w-7 h-7 rounded-lg bg-white text-slate-700 font-bold hover:bg-slate-100 flex items-center justify-center text-xs shadow-xs border border-slate-200"
                 >
                   -
                 </button>
@@ -426,11 +426,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   onChange={(e) =>
                     setBatchSize(Math.max(1, Math.min(100, Number(e.target.value))))
                   }
-                  className="w-10 bg-transparent text-xs font-black text-center text-slate-800 outline-none"
+                  className="w-9 bg-transparent text-xs font-bold text-center text-slate-800 outline-none"
                 />
                 <button
                   onClick={() => setBatchSize(Math.min(100, batchSize + 5))}
-                  className="w-8 h-8 rounded-xl bg-white text-app-purple font-black hover:bg-purple-100 flex items-center justify-center text-sm shadow-xs border border-purple-100"
+                  className="w-7 h-7 rounded-lg bg-white text-slate-700 font-bold hover:bg-slate-100 flex items-center justify-center text-xs shadow-xs border border-slate-200"
                 >
                   +
                 </button>
@@ -439,17 +439,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <button
                 onClick={handleAdmit}
                 disabled={isAdmitting || !selectedEventId}
-                className="flex-1 py-3 bg-purple-btn text-white rounded-2xl text-xs font-black shadow-btn hover:opacity-95 active:scale-[0.99] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {isAdmitting ? (
                   <>
                     <CgSpinner className="w-4 h-4 animate-spin" />
-                    <span>Admitting Queue...</span>
+                    <span>Mempersilakan Antrean...</span>
                   </>
                 ) : (
                   <>
                     <IoFlash className="w-4 h-4 text-amber-300" />
-                    <span>Release {batchSize} Users to Checkout</span>
+                    <span>Lepas {batchSize} Pengguna ke Checkout</span>
                   </>
                 )}
               </button>
@@ -460,16 +460,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         {/* Feedback Alert */}
         {admitMsg && (
           <div
-            className={`p-3 rounded-2xl text-xs font-bold border flex items-center gap-2 animate-fadeIn ${
+            className={`p-3 rounded-xl text-xs font-medium border flex items-center gap-2 animate-fadeIn ${
               admitMsg.type === 'success'
                 ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                : 'bg-red-50 text-red-800 border-red-200'
+                : 'bg-rose-50 text-rose-800 border-rose-200'
             }`}
           >
             {admitMsg.type === 'success' ? (
               <FiCheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
             ) : (
-              <FiXCircle className="w-4 h-4 text-red-600 shrink-0" />
+              <FiXCircle className="w-4 h-4 text-rose-600 shrink-0" />
             )}
             <span>{admitMsg.text}</span>
           </div>
@@ -479,8 +479,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* Real-Time Orders List (Mobile Cards) */}
       <div className="space-y-2.5">
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">
-            Live Transactions ({filteredOrders.length})
+          <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+            Transaksi Masuk ({filteredOrders.length})
           </h3>
 
           {/* Filter Pills */}
@@ -489,10 +489,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <button
                 key={st}
                 onClick={() => setStatusFilter(st)}
-                className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition-all ${
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
                   statusFilter === st
-                    ? 'bg-app-purple text-white shadow-sm'
-                    : 'bg-white text-slate-500 border border-purple-100'
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'
                 }`}
               >
                 {st}
@@ -502,28 +502,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
 
         {filteredOrders.length === 0 ? (
-          <div className="bg-white rounded-[24px] p-8 text-center border border-purple-100 shadow-sm">
-            <p className="text-xs font-bold text-slate-400">No orders found with status {statusFilter}.</p>
+          <div className="bg-white rounded-2xl p-6 text-center border border-slate-200 shadow-sm">
+            <p className="text-xs font-medium text-slate-400">Tidak ada transaksi berstatus {statusFilter}.</p>
           </div>
         ) : (
           <div className="space-y-2">
             {filteredOrders.map((o) => (
               <div
                 key={o.id}
-                className="bg-white rounded-[22px] p-3.5 border border-purple-100 shadow-sm hover:shadow-card transition-all flex items-center justify-between gap-2"
+                className="bg-white rounded-xl p-3 border border-slate-200 shadow-sm hover:border-slate-300 transition-all flex items-center justify-between gap-2"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-[11px] font-extrabold text-app-purple truncate max-w-[120px]">
+                    <span className="font-mono text-[11px] font-bold text-slate-700 truncate max-w-[120px]">
                       {o.id}
                     </span>
                     <span
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
                         o.status === 'CONFIRMED'
                           ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                           : o.status === 'PENDING'
                           ? 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse'
-                          : 'bg-red-50 text-red-700 border border-red-200'
+                          : 'bg-rose-50 text-rose-700 border border-rose-200'
                       }`}
                     >
                       <span
@@ -532,28 +532,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             ? 'bg-emerald-500'
                             : o.status === 'PENDING'
                             ? 'bg-amber-500'
-                            : 'bg-red-500'
+                            : 'bg-rose-500'
                         }`}
                       ></span>
                       {o.status}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-3 text-[10px] text-slate-500">
-                    <span>{o.quantity} Tickets</span>
+                  <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                    <span>{o.quantity} Tiket</span>
                     <span>•</span>
-                    <span className="font-extrabold text-slate-800">{formatPrice(o.totalPrice)}</span>
+                    <span className="font-bold text-slate-800">{formatPrice(o.totalPrice)}</span>
                     <span>•</span>
-                    <span>{new Date(o.createdAt).toLocaleTimeString('en-US')}</span>
+                    <span>{new Date(o.createdAt).toLocaleTimeString('id-ID')}</span>
                   </div>
                 </div>
 
                 <button
                   onClick={() => handleViewLogs(o.id)}
-                  className="px-2.5 py-1.5 bg-[#F8F3FE] hover:bg-purple-100 text-app-purple rounded-xl text-[10px] font-extrabold border border-purple-100 flex items-center gap-1 shrink-0"
+                  className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-semibold border border-slate-200 flex items-center gap-1 shrink-0 transition-colors"
                 >
                   <FiFileText className="w-3 h-3" />
-                  <span>Logs</span>
+                  <span>Log</span>
                 </button>
               </div>
             ))}
@@ -564,33 +564,33 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* 🔍 SIMPLE & CLEAN AUDIT TRAIL MODAL WITH FULL SCREEN BACKDROP VIA PORTAL */}
       {selectedOrderLogs &&
         createPortal(
-          <div className="fixed inset-0 z-[99999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
-            <div className="relative w-full max-w-sm bg-white rounded-[32px] p-5 shadow-2xl border-4 border-white max-h-[85vh] flex flex-col justify-between overflow-hidden">
+          <div className="fixed inset-0 z-[99999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+            <div className="relative w-full max-w-sm bg-white rounded-2xl p-5 shadow-2xl border border-slate-200 max-h-[85vh] flex flex-col justify-between overflow-hidden">
               {/* Header */}
-              <div className="flex items-center justify-between pb-3 border-b border-purple-50">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div>
-                  <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
-                    <FiFileText className="w-4 h-4 text-app-purple" />
-                    <span>Audit Trail Logs</span>
+                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                    <FiFileText className="w-4 h-4 text-indigo-600" />
+                    <span>Audit Trail Log</span>
                   </h3>
-                  <p className="text-[10px] text-slate-400 font-mono mt-0.5 truncate max-w-[220px]">
-                    Order ID: {selectedOrderId}
+                  <p className="text-[10px] text-slate-500 font-mono mt-0.5 truncate max-w-[220px]">
+                    ID Pesanan: {selectedOrderId}
                   </p>
                 </div>
 
                 <button
                   onClick={() => setSelectedOrderLogs(null)}
-                  className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors"
+                  className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors"
                 >
                   <FiX className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Simple Log Items List */}
-              <div className="overflow-y-auto no-scrollbar flex-1 py-3 space-y-2.5">
+              <div className="overflow-y-auto no-scrollbar flex-1 py-3 space-y-2">
                 {selectedOrderLogs.length === 0 ? (
-                  <div className="text-center py-8 text-slate-400 text-xs font-semibold">
-                    No audit logs recorded for this order yet.
+                  <div className="text-center py-8 text-slate-400 text-xs font-medium">
+                    Belum ada audit log tercatat untuk pesanan ini.
                   </div>
                 ) : (
                   selectedOrderLogs.map((log, index) => {
@@ -598,19 +598,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     return (
                       <div
                         key={log.id}
-                        className="bg-[#F8F3FE] rounded-2xl p-3 border border-purple-100/80 space-y-1"
+                        className="bg-slate-50 rounded-xl p-3 border border-slate-200 space-y-1"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-extrabold text-[10px] text-app-purple bg-white px-2 py-0.5 rounded-md border border-purple-100">
+                          <span className="font-mono font-bold text-[10px] text-indigo-700 bg-white px-2 py-0.5 rounded border border-slate-200">
                             {index + 1}. {log.eventType}
                           </span>
-                          <span className="text-[10px] font-bold text-slate-400 flex items-center gap-0.5">
+                          <span className="text-[10px] font-medium text-slate-500 flex items-center gap-0.5">
                             <FiClock className="w-2.5 h-2.5" />
-                            {new Date(log.createdAt).toLocaleTimeString('en-US')}
+                            {new Date(log.createdAt).toLocaleTimeString('id-ID')}
                           </span>
                         </div>
 
-                        <p className="text-[11px] text-slate-600 font-medium leading-relaxed pt-0.5">
+                        <p className="text-[11px] text-slate-600 font-normal leading-relaxed pt-0.5">
                           {meta.desc}
                         </p>
                       </div>
@@ -620,12 +620,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
 
               {/* Footer */}
-              <div className="pt-2 border-t border-purple-50">
+              <div className="pt-2 border-t border-slate-100">
                 <button
                   onClick={() => setSelectedOrderLogs(null)}
-                  className="w-full py-3 bg-purple-btn hover:opacity-95 text-white rounded-full text-xs font-black transition-all shadow-btn"
+                  className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors"
                 >
-                  Close Audit Log
+                  Tutup Audit Log
                 </button>
               </div>
             </div>
