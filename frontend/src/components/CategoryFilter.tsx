@@ -6,12 +6,12 @@ interface CategoryFilterProps {
 }
 
 const categories = [
-  { id: 'all', label: 'See All' },
-  { id: 'concerts', label: 'Concerts' },
-  { id: 'festivals', label: 'Festivals' },
-  { id: 'cinema', label: 'Cinema' },
-  { id: 'sports', label: 'Sports' },
-  { id: 'social', label: 'Social' },
+  { id: 'all', label: 'Semua Kategori' },
+  { id: 'concerts', label: 'Konser Musik' },
+  { id: 'festivals', label: 'Festival' },
+  { id: 'cinema', label: 'Bioskop' },
+  { id: 'sports', label: 'Olahraga' },
+  { id: 'social', label: 'Seminar & Workshop' },
 ];
 
 export const CategoryFilter: React.FC<CategoryFilterProps> = ({
@@ -19,17 +19,17 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
   onSelectCategory,
 }) => {
   return (
-    <div className="flex items-center gap-2 overflow-x-auto py-2 px-1 no-scrollbar">
+    <div className="flex items-center gap-2 overflow-x-auto py-2 no-scrollbar">
       {categories.map((cat) => {
         const isActive = selectedCategory === cat.id;
         return (
           <button
             key={cat.id}
             onClick={() => onSelectCategory(cat.id)}
-            className={`px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-300 ${
+            className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
               isActive
-                ? 'bg-pill-active text-white shadow-btn scale-[1.03]'
-                : 'bg-white/90 hover:bg-white text-slate-600 border border-purple-100/70 shadow-sm hover:border-purple-200'
+                ? 'bg-slate-900 text-white shadow-sm'
+                : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200/90'
             }`}
           >
             {cat.label}

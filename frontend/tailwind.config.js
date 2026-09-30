@@ -7,30 +7,44 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
       colors: {
+        brand: {
+          50: '#EEF2FF',
+          100: '#E0E7FF',
+          200: '#C7D2FE',
+          300: '#A5B4FC',
+          400: '#818CF8',
+          500: '#6366F1',
+          600: '#4F46E5', // Primary Brand Color
+          700: '#4338CA',
+          800: '#3730A3',
+          900: '#312E81',
+          950: '#1E1B4B',
+        },
         app: {
-          bg: '#EFE5FB',
+          bg: '#F8FAFC',
           card: '#FFFFFF',
-          purple: '#A855F7',
-          violet: '#C084FC',
-          pink: '#E879F9',
-          magenta: '#D946EF',
-          dark: '#1E1B4B',
+          purple: '#4F46E5', // Repurposed to Electric Indigo
+          violet: '#6366F1',
+          pink: '#E11D48',
+          magenta: '#4338CA',
+          dark: '#0F172A',
           muted: '#64748B',
         },
       },
       backgroundImage: {
-        'header-gradient': 'linear-gradient(135deg, #9333EA 0%, #A855F7 40%, #C084FC 75%, #E879F9 100%)',
-        'purple-btn': 'linear-gradient(135deg, #A855F7 0%, #C026D3 100%)',
-        'pill-active': 'linear-gradient(135deg, #C026D3 0%, #D946EF 100%)',
-        'soft-glow': 'radial-gradient(circle at center, rgba(192, 132, 252, 0.25) 0%, rgba(239, 229, 251, 0) 70%)',
+        'header-gradient': 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+        'purple-btn': 'linear-gradient(135deg, #4F46E5 0%, #4338CA 100%)',
+        'pill-active': 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+        'soft-glow': 'none',
       },
       boxShadow: {
-        'card': '0 12px 35px -10px rgba(168, 85, 247, 0.15)',
-        'btn': '0 8px 25px -5px rgba(192, 38, 211, 0.4)',
-        'dock': '0 15px 40px -5px rgba(107, 33, 168, 0.15)',
+        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05)',
+        'card-hover': '0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04)',
+        'btn': '0 4px 14px 0 rgba(79, 70, 229, 0.25)',
+        'dock': '0 10px 30px -5px rgba(15, 23, 42, 0.12)',
       },
     },
   },

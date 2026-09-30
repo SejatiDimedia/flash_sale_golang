@@ -42,10 +42,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       setOrder(updatedOrder);
       if (updatedOrder.status === 'CONFIRMED') {
         confetti({
-          particleCount: 150,
-          spread: 80,
+          particleCount: 100,
+          spread: 70,
           origin: { y: 0.6 },
-          colors: ['#a855f7', '#d946ef', '#c084fc', '#e879f9'],
+          colors: ['#4F46E5', '#10B981', '#6366F1', '#38BDF8'],
         });
         onSuccess();
       }
@@ -71,7 +71,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
       if (res.status === 'CONFIRMED') {
         confetti({
-          particleCount: 120,
+          particleCount: 100,
           spread: 70,
           origin: { y: 0.6 },
         });
@@ -92,81 +92,82 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[99999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
-      <div className="relative w-full max-w-sm bg-white rounded-[36px] p-6 shadow-2xl border-4 border-white overflow-hidden">
+    <div className="fixed inset-0 z-[99999] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+      <div className="relative w-full max-w-sm bg-white rounded-2xl p-6 shadow-2xl border border-slate-200 overflow-hidden">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors"
+          className="absolute top-4 right-4 w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors"
+          title="Tutup"
         >
           <FiX className="w-4 h-4" />
         </button>
 
         {!order ? (
           <div>
-            <div className="mb-4">
-              <span className="inline-flex items-center gap-1 px-3 py-1 bg-[#F5EEFD] text-app-purple rounded-full text-xs font-black mb-1">
-                <IoFlash className="w-3.5 h-3.5 text-app-purple" />
+            <div className="mb-4 pr-6">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold mb-1.5 border border-indigo-100">
+                <IoFlash className="w-3.5 h-3.5 text-indigo-600" />
                 Express Checkout
               </span>
-              <h2 className="text-xl font-black text-app-dark leading-tight">
+              <h2 className="text-lg font-bold text-slate-900 leading-snug">
                 {event.name}
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Available Stock: <strong className="text-app-purple">{event.availableStock} tickets</strong>
+              <p className="text-xs text-slate-500 mt-1">
+                Sisa Kuota: <strong className="text-indigo-600 font-bold">{event.availableStock} tiket</strong>
               </p>
             </div>
 
-            {/* Quantity Selector */}
-            <div className="bg-[#F8F3FE] rounded-2xl p-4 border border-purple-100 mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-slate-700">Ticket Quantity (Max. {event.maxPerUser}):</span>
-                <div className="flex items-center gap-3 bg-white rounded-xl p-1 border border-purple-200 shadow-sm">
+            {/* Quantity Selector Card */}
+            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-700">Jumlah Tiket (Maks. {event.maxPerUser}):</span>
+                <div className="flex items-center gap-3 bg-white rounded-lg p-1 border border-slate-300 shadow-sm">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-7 h-7 rounded-lg bg-[#F5EEFD] text-app-purple font-black hover:bg-purple-100 flex items-center justify-center text-sm"
+                    className="w-7 h-7 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-sm transition-colors"
                   >
                     -
                   </button>
-                  <span className="font-extrabold text-sm w-4 text-center">{quantity}</span>
+                  <span className="font-bold text-sm w-4 text-center text-slate-900">{quantity}</span>
                   <button
                     onClick={() => setQuantity(Math.min(event.maxPerUser, quantity + 1))}
-                    className="w-7 h-7 rounded-lg bg-[#F5EEFD] text-app-purple font-black hover:bg-purple-100 flex items-center justify-center text-sm"
+                    className="w-7 h-7 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-sm transition-colors"
                   >
                     +
                   </button>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-purple-100">
-                <span className="text-xs text-slate-500 font-semibold">Total Price:</span>
-                <span className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-app-purple to-app-magenta">
+              <div className="flex items-center justify-between pt-2 border-t border-slate-200">
+                <span className="text-xs text-slate-500 font-medium">Total Tagihan:</span>
+                <span className="text-lg font-black text-slate-900 tracking-tight">
                   {formatPrice(totalPrice)}
                 </span>
               </div>
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-2xl text-xs font-bold border border-red-100 flex items-center gap-2">
+              <div className="mb-4 p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold flex items-center gap-2">
                 <FiAlertCircle className="w-4 h-4 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
-            <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400 font-semibold mb-4">
-              <FiShield className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Redis Lua Lock (100% Zero-Oversell)</span>
+            <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 font-medium mb-4">
+              <FiShield className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Redis Lua Lock (100% Zero-Oversell Guaranteed)</span>
             </div>
 
             <button
               onClick={handlePurchase}
               disabled={isProcessing || event.availableStock <= 0}
-              className="w-full py-4 rounded-full font-black text-sm text-white bg-purple-btn hover:opacity-95 shadow-btn transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3 rounded-xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 shadow-btn transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isProcessing ? (
                 <>
-                  <CgSpinner className="w-5 h-5 animate-spin" />
-                  Locking Stock in Redis...
+                  <CgSpinner className="w-4 h-4 animate-spin" />
+                  Mengunci Stok di Redis...
                 </>
               ) : (
                 <>
@@ -178,55 +179,55 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           </div>
         ) : (
           <div className="text-center py-2 animate-fadeIn">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-emerald-400 to-teal-500 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-500/30 text-white">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-3 border border-emerald-200">
               <FiCheckCircle className="w-8 h-8" />
             </div>
 
-            <h3 className="text-xl font-black text-slate-900 mb-1">
-              Ticket Successfully Purchased!
+            <h3 className="text-lg font-bold text-slate-900 mb-1">
+              Tiket Berhasil Dipesan!
             </h3>
             <p className="text-xs text-slate-500 mb-4">
-              Your order is confirmed and stock has been securely reserved.
+              Pesanan Anda telah dikonfirmasi dan stok diamankan secara atomik.
             </p>
 
-            <div className="bg-[#F8F3FE] rounded-2xl p-4 border border-purple-200 text-left mb-6 relative overflow-hidden">
+            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 text-left mb-5">
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div>
-                  <span className="text-[10px] font-black text-app-purple uppercase tracking-widest block">
+                  <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">
                     Official E-Ticket
                   </span>
-                  <h4 className="font-extrabold text-slate-800 text-sm">{event.name}</h4>
+                  <h4 className="font-bold text-slate-900 text-sm">{event.name}</h4>
                 </div>
-                <HiTicket className="w-7 h-7 text-app-purple shrink-0" />
+                <HiTicket className="w-6 h-6 text-indigo-600 shrink-0" />
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-purple-100">
+              <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200">
                 <div>
-                  <span className="text-[10px] text-slate-400 font-bold block">Status</span>
-                  <span className="font-extrabold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full inline-block">
+                  <span className="text-[10px] text-slate-400 font-medium block">Status</span>
+                  <span className="font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md inline-block">
                     {order.status}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 font-bold block">Quantity</span>
-                  <span className="font-extrabold text-slate-700">{order.quantity} Tickets</span>
+                  <span className="text-[10px] text-slate-400 font-medium block">Jumlah</span>
+                  <span className="font-bold text-slate-800">{order.quantity} Tiket</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 font-bold block">Total Paid</span>
-                  <span className="font-extrabold text-app-purple">{formatPrice(order.totalPrice)}</span>
+                  <span className="text-[10px] text-slate-400 font-medium block">Total Pembayaran</span>
+                  <span className="font-bold text-slate-900">{formatPrice(order.totalPrice)}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 font-bold block">Order ID</span>
-                  <span className="font-mono text-[10px] text-slate-500 truncate block">{order.id}</span>
+                  <span className="text-[10px] text-slate-400 font-medium block">Order ID</span>
+                  <span className="font-mono text-[10px] text-slate-600 truncate block">{order.id}</span>
                 </div>
               </div>
             </div>
 
             <button
               onClick={onClose}
-              className="w-full py-3.5 rounded-full text-xs font-black text-white bg-purple-btn hover:opacity-95 shadow-btn transition-all"
+              className="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 transition-colors"
             >
-              Close & Finish
+              Selesai & Tutup
             </button>
           </div>
         )}

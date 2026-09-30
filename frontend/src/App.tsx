@@ -50,8 +50,8 @@ export function App() {
     return [
       {
         id: 'welcome-notif',
-        title: 'Welcome to Flash Sale! 🎉',
-        message: 'Explore upcoming live concert tickets and join flash sale waiting rooms.',
+        title: 'Selamat Datang di Flash Sale Ticket',
+        message: 'Jelajahi konser live dan nikmati proteksi antrean adil Zero-Overselling.',
         timestamp: new Date(Date.now() - 1000 * 60 * 5),
         type: 'stock_alert',
         read: false,
@@ -131,8 +131,8 @@ export function App() {
       const gain = ctx.createGain();
 
       osc1.type = 'sine';
-      osc1.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-      osc1.frequency.setValueAtTime(880, ctx.currentTime + 0.15); // A5
+      osc1.frequency.setValueAtTime(587.33, ctx.currentTime);
+      osc1.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
 
       gain.gain.setValueAtTime(0.18, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
@@ -143,7 +143,7 @@ export function App() {
       osc1.start();
       osc1.stop(ctx.currentTime + 0.6);
     } catch (e) {
-      // Ignore if audio permissions blocked
+      // Ignore if audio blocked
     }
   };
 
@@ -156,7 +156,6 @@ export function App() {
     };
     setNotifications((prev) => [newNotif, ...prev]);
 
-    // Optional browser desktop notification
     if ('Notification' in window && Notification.permission === 'granted') {
       try {
         new Notification(newNotif.title, { body: newNotif.message });
@@ -166,23 +165,21 @@ export function App() {
     }
   };
 
-  // 🔔 SINGLE-SHOT ADMISSION DISPATCHER (Strictly 1x per pass)
+  // 🔔 SINGLE-SHOT ADMISSION DISPATCHER
   const notifyAdmission = (eventId: string, eventName?: string) => {
     const dedupeKey = `${user?.id || 'user'}_${eventId}`;
     if (alertedPassesRef.current.has(dedupeKey)) {
-      return; // Already notified once!
+      return;
     }
     alertedPassesRef.current.add(dedupeKey);
 
-    // Clear active queued item
     localStorage.removeItem('activeQueueEventId');
-
-    const name = eventName || 'the flash sale event';
+    const name = eventName || 'event flash sale';
     playChime();
 
     addNotification({
-      title: "It's Your Turn! 🎉",
-      message: `You've been admitted from the queue for ${name}! Your 5-minute checkout session is active.`,
+      title: "Giliran Anda Tiba!",
+      message: `Anda telah dipersilakan masuk antrean untuk ${name}. Sesi checkout 5 menit Anda sedang aktif.`,
       type: 'admitted',
       eventId,
     });
@@ -237,7 +234,6 @@ export function App() {
       setIsAuthOpen(true);
       return;
     }
-    // Reset deduplication for this new queue entry
     const dedupeKey = `${user.id}_${event.id}`;
     alertedPassesRef.current.delete(dedupeKey);
 
@@ -255,8 +251,6 @@ export function App() {
   const handleAdmitted = (wasWaiting: boolean = false) => {
     setIsWaitingRoomOpen(false);
     setIsCheckoutOpen(true);
-    // ONLY send notification if the user was ACTUALLY waiting in queue!
-    // Instant direct checkout pass does NOT spam notifications.
     if (wasWaiting && selectedEvent) {
       notifyAdmission(selectedEvent.id, selectedEvent.name);
     }
@@ -273,9 +267,25 @@ export function App() {
   const unreadNotifsCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="min-h-screen bg-[#EFE5FB] text-slate-900 font-sans">
-      <div className="max-w-md mx-auto min-h-screen bg-[#FBF9FE] shadow-lg shadow-purple-500/5 relative flex flex-col justify-between pb-28">
-        <div>
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col justify-between antialiased">
+      <div className="w-full">
+        {/* Header Bar */}
+        <Header
+          user={user}
+          onOpenAuth={() => setIsAuthOpen(true)}
+          onLogout={handleLogout}
+          isAdminView={currentView === 'admin'}
+          onToggleAdmin={() => setCurrentView(currentView === 'admin' ? 'home' : 'admin')}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          onOpenNotifications={() => setIsNotificationsOpen(true)}
+          unreadCount={unreadNotifsCount}
+          currentView={currentView}
+          onNavigateView={setCurrentView}
+        />
+
+        {/* Main Content Area (Fluid & Responsive Container) */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* 1. 👤 FULL PAGE: PROFIL & EDIT PROFIL */}
           {currentView === 'profile' ? (
             <ProfilePage
@@ -313,158 +323,135 @@ export function App() {
                 setCurrentView('admin');
               }}
             />
-          ) : (
-            /* 4. 📄 PAGES WITH TOP HEADER (HOME / ADMIN DASHBOARD) */
-            <>
-              <Header
-                user={user}
-                onOpenAuth={() => setIsAuthOpen(true)}
-                onLogout={handleLogout}
-                isAdminView={currentView === 'admin'}
-                onToggleAdmin={() => setCurrentView(currentView === 'admin' ? 'home' : 'admin')}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                onOpenNotifications={() => setIsNotificationsOpen(true)}
-                unreadCount={unreadNotifsCount}
+          ) : isAdmin && currentView === 'admin' ? (
+            /* 4. 📊 ADMIN CONSOLE PAGE VIEW */
+            <main className="space-y-6 animate-fadeIn">
+              <AdminDashboard
+                events={events}
+                onRefreshEvents={fetchEvents}
+                onNavigateCreateEvent={() => setCurrentView('create_event')}
               />
+            </main>
+          ) : (
+            /* 5. 🎟️ USER EXPERIENCE HOME PAGE VIEW (RESPONSIVE GRID) */
+            <main className="space-y-6 animate-fadeIn">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <CategoryFilter
+                  selectedCategory={selectedCategory}
+                  onSelectCategory={setSelectedCategory}
+                />
 
-              {isAdmin && currentView === 'admin' ? (
-                /* 📊 ADMIN CONSOLE PAGE VIEW */
-                <main className="px-4 py-4 space-y-4 animate-fadeIn">
-                  <AdminDashboard
-                    events={events}
-                    onRefreshEvents={fetchEvents}
-                    onNavigateCreateEvent={() => setCurrentView('create_event')}
-                  />
-                </main>
+                <div className="text-xs text-slate-500 font-medium">
+                  Menampilkan <strong className="text-slate-900">{filteredEvents.length}</strong> event aktif
+                </div>
+              </div>
+
+              {isLoadingEvents ? (
+                <div className="flex flex-col items-center justify-center py-24 gap-3 bg-white rounded-2xl border border-slate-200">
+                  <CgSpinner className="w-8 h-8 text-indigo-600 animate-spin" />
+                  <span className="text-xs font-semibold text-slate-500">Memuat katalog event flash sale...</span>
+                </div>
+              ) : filteredEvents.length === 0 ? (
+                <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">
+                  <p className="text-sm font-semibold text-slate-500">Tidak ada event flash sale yang sesuai pencarian.</p>
+                </div>
               ) : (
-                /* 🎟️ USER EXPERIENCE HOME PAGE VIEW */
-                <main className="px-4 py-4 space-y-4 animate-fadeIn">
-                  <CategoryFilter
-                    selectedCategory={selectedCategory}
-                    onSelectCategory={setSelectedCategory}
-                  />
-
-                  <div className="flex items-center justify-between px-1 pt-1">
-                    <h2 className="text-base font-extrabold text-slate-900">
-                      Upcoming Events
-                    </h2>
-                    <button
-                      onClick={() => setSelectedCategory('all')}
-                      className="text-xs font-bold text-slate-400 hover:text-app-purple transition-colors"
-                    >
-                      See All
-                    </button>
-                  </div>
-
-                  {isLoadingEvents ? (
-                    <div className="flex flex-col items-center justify-center py-16 gap-3">
-                      <CgSpinner className="w-8 h-8 text-app-purple animate-spin" />
-                      <span className="text-xs font-bold text-slate-400">Loading live flash sale events...</span>
-                    </div>
-                  ) : filteredEvents.length === 0 ? (
-                    <div className="bg-white rounded-[32px] p-8 text-center border border-purple-100 shadow-sm">
-                      <p className="text-xs font-bold text-slate-400">No active flash sale events found.</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {filteredEvents.map((event) => (
-                        <EventCard
-                          key={event.id}
-                          event={event}
-                          onWarTicket={handleWarTicket}
-                          onViewDetail={handleViewDetail}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </main>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredEvents.map((event) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      onWarTicket={handleWarTicket}
+                      onViewDetail={handleViewDetail}
+                    />
+                  ))}
+                </div>
               )}
-            </>
+            </main>
           )}
         </div>
-
-        {/* 📱 Bottom Navigation Dock (Icon-Only & Uniform) */}
-        <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-full max-w-md px-6 pointer-events-none">
-          <div className="bg-white/95 backdrop-blur-2xl rounded-full p-2 shadow-dock border border-purple-100/90 flex items-center justify-around pointer-events-auto">
-            {/* 1. Home Tab */}
-            <button
-              onClick={() => {
-                setCurrentView('home');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
-                currentView === 'home'
-                  ? 'bg-purple-btn text-white shadow-btn scale-105'
-                  : 'text-slate-400 hover:text-app-purple hover:bg-purple-50'
-              }`}
-              title="Home"
-            >
-              <RiHome5Fill className="w-5 h-5" />
-            </button>
-
-            {/* 2. Admin Console Tab (Only visible for Admin Role) */}
-            {isAdmin && (
-              <button
-                onClick={() => {
-                  setCurrentView('admin');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
-                  currentView === 'admin' || currentView === 'create_event'
-                    ? 'bg-purple-btn text-white shadow-btn scale-105'
-                    : 'text-slate-400 hover:text-app-purple hover:bg-purple-50'
-                }`}
-                title="Admin Dashboard"
-              >
-                <FiShield className="w-5 h-5" />
-              </button>
-            )}
-
-            {/* 3. My Tickets Tab */}
-            <button
-              onClick={() => {
-                if (user) {
-                  setCurrentView('tickets');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                } else {
-                  setIsAuthOpen(true);
-                }
-              }}
-              className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
-                currentView === 'tickets'
-                  ? 'bg-purple-btn text-white shadow-btn scale-105'
-                  : 'text-slate-400 hover:text-app-purple hover:bg-purple-50'
-              }`}
-              title="My Tickets"
-            >
-              <HiTicket className="w-5 h-5" />
-            </button>
-
-            {/* 4. Profile & Edit Profile Tab */}
-            <button
-              onClick={() => {
-                if (user) {
-                  setCurrentView('profile');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                } else {
-                  setIsAuthOpen(true);
-                }
-              }}
-              className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
-                currentView === 'profile'
-                  ? 'bg-purple-btn text-white shadow-btn scale-105'
-                  : 'text-slate-400 hover:text-app-purple hover:bg-purple-50'
-              }`}
-              title={user ? 'Profile & Account Settings' : 'Sign In / Register'}
-            >
-              <RiUser3Line className="w-5 h-5" />
-            </button>
-          </div>
-        </nav>
       </div>
 
-      {/* 🔔 Notification Bell Modal */}
+      {/* 📱 Mobile Bottom Navigation Dock (Disembunyikan di layar Desktop md:) */}
+      <nav className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-full max-w-sm px-4 pointer-events-none">
+        <div className="bg-slate-900/95 backdrop-blur-xl rounded-2xl p-2 shadow-dock border border-slate-700/80 flex items-center justify-around pointer-events-auto">
+          {/* Home Tab */}
+          <button
+            onClick={() => {
+              setCurrentView('home');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+              currentView === 'home'
+                ? 'bg-indigo-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-white'
+            }`}
+            title="Katalog"
+          >
+            <RiHome5Fill className="w-5 h-5" />
+          </button>
+
+          {/* Admin Tab */}
+          {isAdmin && (
+            <button
+              onClick={() => {
+                setCurrentView('admin');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                currentView === 'admin' || currentView === 'create_event'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+              title="Admin Panel"
+            >
+              <FiShield className="w-5 h-5" />
+            </button>
+          )}
+
+          {/* My Tickets Tab */}
+          <button
+            onClick={() => {
+              if (user) {
+                setCurrentView('tickets');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              } else {
+                setIsAuthOpen(true);
+              }
+            }}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+              currentView === 'tickets'
+                ? 'bg-indigo-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-white'
+            }`}
+            title="Tiket Saya"
+          >
+            <HiTicket className="w-5 h-5" />
+          </button>
+
+          {/* Profile Tab */}
+          <button
+            onClick={() => {
+              if (user) {
+                setCurrentView('profile');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              } else {
+                setIsAuthOpen(true);
+              }
+            }}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+              currentView === 'profile'
+                ? 'bg-indigo-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-white'
+            }`}
+            title="Akun Saya"
+          >
+            <RiUser3Line className="w-5 h-5" />
+          </button>
+        </div>
+      </nav>
+
+      {/* Modals Container */}
       <NotificationModal
         isOpen={isNotificationsOpen}
         onClose={() => setIsNotificationsOpen(false)}
@@ -489,7 +476,6 @@ export function App() {
         }}
       />
 
-      {/* Modals for War Ticket Flow */}
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
@@ -517,8 +503,8 @@ export function App() {
         onSuccess={() => {
           fetchEvents();
           addNotification({
-            title: 'Booking Confirmed! 🎫',
-            message: `Your tickets for ${selectedEvent?.name || 'the event'} have been successfully confirmed and stored in your profile.`,
+            title: 'Pesanan Dikonfirmasi! 🎫',
+            message: `Tiket Anda untuk ${selectedEvent?.name || 'event'} berhasil diamankan.`,
             type: 'order_confirmed',
             eventId: selectedEvent?.id,
           });

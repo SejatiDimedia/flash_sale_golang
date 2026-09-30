@@ -1,4 +1,3 @@
-import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { WaitingRoomModal } from './WaitingRoomModal';
@@ -33,8 +32,6 @@ const mockEvent: Event = {
   status: 'ACTIVE',
   category: 'concerts',
   maxPerUser: 4,
-  createdAt: '2026-09-01T00:00:00Z',
-  updatedAt: '2026-09-01T00:00:00Z',
 };
 
 describe('WaitingRoomModal Component Test', () => {
@@ -44,8 +41,6 @@ describe('WaitingRoomModal Component Test', () => {
 
   it('renders queue status position and total in queue', async () => {
     vi.mocked(api.joinWaitingRoom).mockResolvedValueOnce({
-      eventId: 'event-test-1',
-      userId: 'user-1',
       position: 12,
       totalInQueue: 150,
       isAllowedToPurchase: false,
@@ -73,8 +68,6 @@ describe('WaitingRoomModal Component Test', () => {
   it('triggers onAdmitted when isAllowedToPurchase is true on join', async () => {
     const onAdmitted = vi.fn();
     vi.mocked(api.joinWaitingRoom).mockResolvedValueOnce({
-      eventId: 'event-test-1',
-      userId: 'user-1',
       position: 0,
       totalInQueue: 0,
       isAllowedToPurchase: true,
