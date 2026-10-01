@@ -12,7 +12,6 @@ import (
 	"github.com/sejatidimedia/flash_sale_platform/internal/pkg/rabbitmq"
 	"github.com/sejatidimedia/flash_sale_platform/internal/pkg/redisclient"
 	"github.com/sejatidimedia/flash_sale_platform/internal/repository"
-	"github.com/sejatidimedia/flash_sale_platform/internal/worker"
 )
 
 type CheckoutService interface {
@@ -215,30 +214,9 @@ func (s *checkoutService) PurchaseTicketWithIdempotency(ctx context.Context, use
 		}
 	}
 
-	// 10. Publish ke RabbitMQ (Dengan Zero-Stock-Leak Rollback)
-	payload := worker.OrderMessagePayload{
-		OrderID:    createdOrder.ID,
-		UserID:     userID,
-		EventID:    eventID,
-		Quantity:   quantity,
-		TotalPrice: totalPrice,
-	}
-
-	if err := s.rabbitClient.PublishEvent(ctx, rabbitmq.OrderPendingKey, payload); err != nil {
-		log.Printf("❌ [Checkout FAILED] RabbitMQ publish failed: %v. Rolling back stock...", err)
-		// Rollback stok di Redis
-		_ = s.redisClient.IncrStock(ctx, eventID, quantity)
-		// Rollback stok di DB
-		_ = s.eventRepo.RestoreAvailableStock(ctx, eventID, quantity)
-		// Update status order menjadi FAILED
-		_ = s.orderRepo.UpdateOrderStatus(ctx, createdOrder.ID, "FAILED")
-		_ = s.orderRepo.CreateOrderLog(ctx, createdOrder.ID, "ORDER_FAILED", fmt.Sprintf(`{"reason":"broker_publish_failure","error":%q}`, err.Error()))
-
-		if idempotencyKey != "" {
-			_ = s.redisClient.ReleaseIdempotencyLock(ctx, userID, idempotencyKey)
-		}
-		return nil, fmt.Errorf("failed to process order due to queue broker failure, stock has been restored: %w", err)
-	}
+	// 10. Catat status order menunggu pembayaran (Reservasi stok terkunci aman)
+	_ = s.orderRepo.CreateOrderLog(ctx, createdOrder.ID, "ORDER_AWAITING_PAYMENT",
+		fmt.Sprintf(`{"status":"PENDING","total_price":%.2f,"gateway":"midtrans"}`, totalPrice))
 
 	// 11. Simpan hasil sukses ke Idempotency key
 	if idempotencyKey != "" {

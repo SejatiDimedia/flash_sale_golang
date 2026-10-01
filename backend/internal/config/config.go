@@ -29,6 +29,11 @@ type Config struct {
 	// JWT
 	JWTSecret          string
 	JWTExpirationHours string
+
+	// Midtrans Payment Gateway
+	MidtransServerKey   string
+	MidtransClientKey   string
+	MidtransEnvironment string
 }
 
 func LoadConfig() (*Config, error) {
@@ -36,19 +41,22 @@ func LoadConfig() (*Config, error) {
 	_ = godotenv.Load()
 
 	cfg := &Config{
-		ServerPort:         getEnv("SERVER_PORT", "8080"),
-		Environment:        getEnv("ENVIRONMENT", "development"),
-		DBHost:             getEnv("DB_HOST", "localhost"),
-		DBPort:             getEnv("DB_PORT", "5432"),
-		DBUser:             getEnv("DB_USER", "postgres"),
-		DBPassword:         getEnv("DB_PASSWORD", "postgrespassword"),
-		DBName:             getEnv("DB_NAME", "flash_sale_db"),
-		DBSSLMode:          getEnv("DB_SSLMODE", "disable"),
-		RedisAddr:          getEnv("REDIS_ADDR", "localhost:6379"),
-		RedisPassword:      getEnv("REDIS_PASSWORD", ""),
-		RabbitMQURL:        getEnv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/"),
-		JWTSecret:          getEnv("JWT_SECRET", "default_secret_key"),
-		JWTExpirationHours: getEnv("JWT_EXPIRATION_HOURS", "24"),
+		ServerPort:          getEnv("SERVER_PORT", "8080"),
+		Environment:         getEnv("ENVIRONMENT", "development"),
+		DBHost:              getEnv("DB_HOST", "localhost"),
+		DBPort:              getEnv("DB_PORT", "5432"),
+		DBUser:              getEnv("DB_USER", "postgres"),
+		DBPassword:          getEnv("DB_PASSWORD", "postgrespassword"),
+		DBName:              getEnv("DB_NAME", "flash_sale_db"),
+		DBSSLMode:           getEnv("DB_SSLMODE", "disable"),
+		RedisAddr:           getEnv("REDIS_ADDR", "localhost:6379"),
+		RedisPassword:       getEnv("REDIS_PASSWORD", ""),
+		RabbitMQURL:         getEnv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/"),
+		JWTSecret:           getEnv("JWT_SECRET", "default_secret_key"),
+		JWTExpirationHours:  getEnv("JWT_EXPIRATION_HOURS", "24"),
+		MidtransServerKey:   getEnv("MIDTRANS_SERVER_KEY", ""),
+		MidtransClientKey:   getEnv("MIDTRANS_CLIENT_KEY", ""),
+		MidtransEnvironment: getEnv("MIDTRANS_ENVIRONMENT", "sandbox"),
 	}
 
 	return cfg, nil

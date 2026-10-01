@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { FiArrowLeft, FiCalendar, FiCheckCircle, FiClock, FiArrowRight, FiX, FiCopy, FiCheck } from 'react-icons/fi';
+import { FiArrowLeft, FiCheckCircle, FiClock, FiArrowRight, FiX, FiCopy, FiCheck } from 'react-icons/fi';
 import { HiTicket } from 'react-icons/hi2';
 import { IoFlash } from 'react-icons/io5';
 import { CgSpinner } from 'react-icons/cg';
 import { api, type User, type Order, type Event, type QueueStatus } from '../lib/api';
 import { getEventImage } from '../lib/images';
+import { TicketBarcode } from './TicketBarcode';
+import { MidtransPaymentModal } from './MidtransPaymentModal';
 
 interface TicketsPageProps {
   user: User | null;
@@ -26,7 +28,9 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'history'>('upcoming');
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [pendingOrderToPay, setPendingOrderToPay] = useState<Order | null>(null);
 
   // ⏳ Active Waiting Room Queue Pass State
   const [activeQueueEventId, setActiveQueueEventId] = useState<string | null>(() => {
@@ -113,78 +117,6 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
       currency: 'IDR',
       maximumFractionDigits: 0,
     }).format(p);
-  };
-
-  // Reusable crisp SVG QR Code pattern based on order ID
-  const renderQRCode = (_seed: string) => {
-    return (
-      <div className="bg-white p-3.5 rounded-2xl inline-block shadow-md">
-        <svg viewBox="0 0 100 100" className="w-36 h-36 mx-auto text-black fill-current">
-          {/* Top-Left Corner Box */}
-          <rect x="5" y="5" width="28" height="28" rx="4" fill="black" />
-          <rect x="10" y="10" width="18" height="18" rx="2" fill="white" />
-          <rect x="14" y="14" width="10" height="10" rx="1.5" fill="black" />
-
-          {/* Top-Right Corner Box */}
-          <rect x="67" y="5" width="28" height="28" rx="4" fill="black" />
-          <rect x="72" y="10" width="18" height="18" rx="2" fill="white" />
-          <rect x="76" y="14" width="10" height="10" rx="1.5" fill="black" />
-
-          {/* Bottom-Left Corner Box */}
-          <rect x="5" y="67" width="28" height="28" rx="4" fill="black" />
-          <rect x="10" y="72" width="18" height="18" rx="2" fill="white" />
-          <rect x="14" y="76" width="10" height="10" rx="1.5" fill="black" />
-
-          {/* Simulated QR Modules Matrix */}
-          <rect x="38" y="8" width="6" height="6" fill="black" />
-          <rect x="48" y="8" width="6" height="6" fill="black" />
-          <rect x="58" y="8" width="5" height="6" fill="black" />
-          <rect x="38" y="18" width="8" height="6" fill="black" />
-          <rect x="52" y="18" width="8" height="6" fill="black" />
-          <rect x="38" y="28" width="6" height="6" fill="black" />
-          <rect x="48" y="28" width="12" height="6" fill="black" />
-
-          <rect x="8" y="38" width="6" height="6" fill="black" />
-          <rect x="18" y="38" width="8" height="6" fill="black" />
-          <rect x="30" y="38" width="6" height="6" fill="black" />
-          <rect x="40" y="38" width="6" height="6" fill="black" />
-          <rect x="50" y="38" width="8" height="6" fill="black" />
-          <rect x="62" y="38" width="6" height="6" fill="black" />
-          <rect x="72" y="38" width="8" height="6" fill="black" />
-          <rect x="84" y="38" width="8" height="6" fill="black" />
-
-          <rect x="8" y="48" width="12" height="6" fill="black" />
-          <rect x="24" y="48" width="8" height="6" fill="black" />
-          <rect x="36" y="48" width="12" height="6" fill="black" />
-          <rect x="52" y="48" width="6" height="6" fill="black" />
-          <rect x="62" y="48" width="12" height="6" fill="black" />
-          <rect x="78" y="48" width="14" height="6" fill="black" />
-
-          <rect x="8" y="58" width="6" height="6" fill="black" />
-          <rect x="20" y="58" width="10" height="6" fill="black" />
-          <rect x="34" y="58" width="8" height="6" fill="black" />
-          <rect x="46" y="58" width="10" height="6" fill="black" />
-          <rect x="60" y="58" width="8" height="6" fill="black" />
-          <rect x="72" y="58" width="12" height="6" fill="black" />
-          <rect x="88" y="58" width="4" height="6" fill="black" />
-
-          <rect x="38" y="68" width="8" height="6" fill="black" />
-          <rect x="50" y="68" width="10" height="6" fill="black" />
-          <rect x="64" y="68" width="8" height="6" fill="black" />
-          <rect x="76" y="68" width="16" height="6" fill="black" />
-
-          <rect x="38" y="78" width="12" height="6" fill="black" />
-          <rect x="54" y="78" width="6" height="6" fill="black" />
-          <rect x="64" y="78" width="12" height="6" fill="black" />
-          <rect x="80" y="78" width="12" height="6" fill="black" />
-
-          <rect x="38" y="88" width="6" height="6" fill="black" />
-          <rect x="48" y="88" width="14" height="6" fill="black" />
-          <rect x="66" y="88" width="6" height="6" fill="black" />
-          <rect x="76" y="88" width="16" height="6" fill="black" />
-        </svg>
-      </div>
-    );
   };
 
   return (
@@ -338,29 +270,91 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
               </div>
             ) : null}
 
-            {/* If there are confirmed orders, also preview the latest ticket right here in upcoming */}
+            {/* If there are orders, render confirmed ticket or pending payment card */}
             {orders.length > 0 ? (
               <div className="space-y-4">
-                {orders.slice(0, 1).map((latestOrder) => {
-                  const bookingCode = `BLK${latestOrder.id.replace(/[^0-9]/g, '').slice(0, 11) || '21738745123'}`;
+                {(() => {
+                  const confirmedOrders = orders.filter((o) => o.status === 'CONFIRMED');
+                  const pendingOrders = orders.filter((o) => o.status === 'PENDING');
+                  const targetOrder = orders.find((o) => o.id === selectedOrderId) || confirmedOrders[0] || pendingOrders[0];
+
+                  if (!targetOrder) return null;
+
+                  if (targetOrder.status === 'PENDING') {
+                    return (
+                      <div
+                        key={targetOrder.id}
+                        className="bg-dark-800 rounded-3xl p-5 border border-amber-500/40 shadow-dark-card space-y-4 animate-fadeIn"
+                      >
+                        {/* Ticket Header */}
+                        <div className="flex items-start gap-3.5">
+                          <img
+                            src={getEventImage(getEventCategory(targetOrder.eventId))}
+                            alt={getEventName(targetOrder.eventId)}
+                            className="w-16 h-16 rounded-2xl object-cover shrink-0 border border-dark-700"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <span className="inline-block px-2.5 py-0.5 rounded-full bg-amber-950/70 text-amber-400 border border-amber-500/30 text-[10px] font-bold uppercase tracking-wider mb-1">
+                              Awaiting Payment
+                            </span>
+                            <h3 className="text-sm font-bold text-white leading-tight truncate">
+                              {getEventName(targetOrder.eventId)}
+                            </h3>
+                            <p className="text-[11px] text-zinc-400 mt-0.5 truncate">
+                              Gelora Bung Karno Main Stadium, Jakarta
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Payment Due & Info Card */}
+                        <div className="bg-amber-950/30 p-3.5 rounded-2xl border border-amber-500/30 space-y-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-zinc-400 font-medium">Total Amount Due</span>
+                            <span className="text-base font-black text-coral">
+                              {formatPrice(targetOrder.totalPrice)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-amber-500/20 text-zinc-400">
+                            <span>Order ID: <strong className="font-mono text-zinc-200">{targetOrder.id}</strong></span>
+                            <span>Quantity: <strong className="text-zinc-200">{targetOrder.quantity} Tickets</strong></span>
+                          </div>
+                          <p className="text-[11px] text-amber-200/90 leading-relaxed pt-1">
+                            ℹ️ Ticket reservation active. Official entry turnstile barcode will be unlocked as soon as your payment is confirmed by Midtrans.
+                          </p>
+                        </div>
+
+                        {/* Pay Button */}
+                        <button
+                          type="button"
+                          onClick={() => setPendingOrderToPay(targetOrder)}
+                          className="w-full py-3.5 bg-coral hover:bg-coral-hover text-white rounded-full text-xs font-bold shadow-coral transition-all flex items-center justify-center gap-2 active:scale-[0.99]"
+                        >
+                          <IoFlash className="w-4 h-4 text-white" />
+                          <span>Pay Now with Midtrans</span>
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  const bookingCode = `BLK${targetOrder.id.replace(/[^0-9]/g, '').slice(0, 11) || '21738745123'}`;
                   return (
                     <div
-                      key={latestOrder.id}
+                      key={targetOrder.id}
                       className="bg-dark-800 rounded-3xl p-5 border border-dark-700/80 shadow-dark-card space-y-4"
                     >
                       {/* Ticket Header (Reference Screen 2) */}
                       <div className="flex items-start gap-3.5">
                         <img
-                          src={getEventImage(getEventCategory(latestOrder.eventId))}
-                          alt={getEventName(latestOrder.eventId)}
+                          src={getEventImage(getEventCategory(targetOrder.eventId))}
+                          alt={getEventName(targetOrder.eventId)}
                           className="w-16 h-16 rounded-2xl object-cover shrink-0 border border-dark-700"
                         />
                         <div className="flex-1 min-w-0">
                           <span className="inline-block px-2.5 py-0.5 rounded-full bg-dark-750 text-zinc-300 text-[10px] font-bold uppercase tracking-wider mb-1">
-                            {getEventCategory(latestOrder.eventId).toUpperCase()}
+                            {getEventCategory(targetOrder.eventId).toUpperCase()}
                           </span>
                           <h3 className="text-sm font-bold text-white leading-tight truncate">
-                            {getEventName(latestOrder.eventId)}
+                            {getEventName(targetOrder.eventId)}
                           </h3>
                           <p className="text-[11px] text-zinc-400 mt-0.5 truncate">
                             Gelora Bung Karno Main Stadium, Jakarta
@@ -390,7 +384,7 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
                           <div>
                             <span className="text-[10px] font-medium text-zinc-400 block">Date</span>
                             <span className="text-xs font-bold text-white">
-                              {new Date(latestOrder.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              {new Date(targetOrder.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                             </span>
                           </div>
                           <div>
@@ -420,9 +414,9 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
                         </div>
                       </div>
 
-                      {/* ✂️ Dashed Ticket Divider (Screen 2) */}
+                      {/* ✂️ Dashed Ticket Divider with REAL BARCODE */}
                       <div className="ticket-dashed-divider pt-4 text-center">
-                        {renderQRCode(latestOrder.id)}
+                        <TicketBarcode value={bookingCode} orderId={targetOrder.id} />
                       </div>
 
                       {/* Terms and Conditions (Screen 2) */}
@@ -444,7 +438,7 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
                       </button>
                     </div>
                   );
-                })}
+                })()}
               </div>
             ) : !activeQueueEventId ? (
               <div className="bg-dark-800 rounded-3xl p-8 text-center border border-dark-700 space-y-3 shadow-dark-card">
@@ -500,7 +494,12 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
                 return (
                   <div
                     key={o.id}
-                    className="bg-dark-800 rounded-3xl p-4 border border-dark-700/80 shadow-dark-card space-y-3"
+                    onClick={() => {
+                      setSelectedOrderId(o.id);
+                      setActiveTab('upcoming');
+                    }}
+                    className="bg-dark-800 hover:bg-dark-750 transition-all cursor-pointer rounded-3xl p-4 border border-dark-700/80 shadow-dark-card space-y-3 group"
+                    title="Click to view full e-ticket and barcode"
                   >
                     {/* Header Row */}
                     <div className="flex items-start gap-3">
@@ -547,12 +546,11 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
                     </div>
 
                     <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-2 border-t border-dark-700">
-                      <span className="font-mono text-[10px] text-zinc-400 truncate max-w-[150px]">
+                      <span className="font-mono text-[10px] text-zinc-400 truncate max-w-[140px]">
                         Code: {bookingCode}
                       </span>
-                      <span className="flex items-center gap-1 font-medium text-[10px] text-zinc-400">
-                        <FiCalendar className="w-3.5 h-3.5 text-coral" />
-                        {new Date(o.createdAt).toLocaleDateString('en-US')}
+                      <span className="text-[10px] font-bold text-coral group-hover:underline flex items-center gap-1">
+                        View Barcode →
                       </span>
                     </div>
                   </div>
@@ -562,6 +560,21 @@ export const TicketsPage: React.FC<TicketsPageProps> = ({
           </div>
         )}
       </div>
+
+      {/* Midtrans Modal for Pending Orders */}
+      <MidtransPaymentModal
+        isOpen={!!pendingOrderToPay}
+        onClose={() => {
+          setPendingOrderToPay(null);
+        }}
+        order={pendingOrderToPay}
+        event={events.find((e) => e.id === pendingOrderToPay?.eventId) || null}
+        onConfirmSuccess={() => {
+          setPendingOrderToPay(null);
+          // Refetch orders to show newly confirmed ticket
+          window.location.reload();
+        }}
+      />
     </div>
   );
 };

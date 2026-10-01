@@ -78,14 +78,14 @@ func (r *eventRepository) UpdateEvent(ctx context.Context, e *Event) (*Event, er
 	query := `
 		UPDATE events
 		SET name = $1, description = $2, start_sale_at = $3, end_sale_at = $4,
-		    total_stock = $5, price = $6, status = $7, max_per_user = $8, category = $9, updated_at = NOW()
-		WHERE id = $10
+		    total_stock = $5, available_stock = $6, price = $7, status = $8, max_per_user = $9, category = $10, updated_at = NOW()
+		WHERE id = $11
 		RETURNING id, name, description, start_sale_at, end_sale_at, total_stock, available_stock, price, status, max_per_user, category, created_at, updated_at
 	`
 
 	var updated Event
 	err := r.db.QueryRow(ctx, query,
-		e.Name, e.Description, e.StartSaleAt, e.EndSaleAt, e.TotalStock, e.Price, e.Status, e.MaxPerUser, e.Category, e.ID,
+		e.Name, e.Description, e.StartSaleAt, e.EndSaleAt, e.TotalStock, e.AvailableStock, e.Price, e.Status, e.MaxPerUser, e.Category, e.ID,
 	).Scan(
 		&updated.ID, &updated.Name, &updated.Description, &updated.StartSaleAt, &updated.EndSaleAt,
 		&updated.TotalStock, &updated.AvailableStock, &updated.Price, &updated.Status, &updated.MaxPerUser,

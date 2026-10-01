@@ -123,12 +123,20 @@ func (p *OrderWorkerPool) processMessage(workerID int, msg amqp.Delivery) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// 0. Idempotency Check: Jika order sudah CONFIRMED, jangan proses ulang (cegah duplikasi)
+	// 0. Idempotency & Payment Gate Check:
 	existingOrder, err := p.orderRepo.GetOrderByID(ctx, payload.OrderID)
-	if err == nil && existingOrder != nil && existingOrder.Status == "CONFIRMED" {
-		log.Printf("ℹ️ [Worker %d] Order %s is already CONFIRMED (Idempotent bypass). Acknowledging.", workerID, payload.OrderID)
-		_ = msg.Ack(false)
-		return
+	if err == nil && existingOrder != nil {
+		if existingOrder.Status == "CONFIRMED" {
+			log.Printf("ℹ️ [Worker %d] Order %s is already CONFIRMED (Idempotent bypass). Acknowledging.", workerID, payload.OrderID)
+			_ = msg.Ack(false)
+			return
+		}
+		// ⚠️ JANGAN auto-confirm order yang berstatus PENDING! Order PENDING harus menunggu konfirmasi pembayaran Midtrans.
+		if existingOrder.Status == "PENDING" {
+			log.Printf("ℹ️ [Worker %d] Order %s is PENDING awaiting Midtrans payment. Acknowledging without auto-confirming.", workerID, payload.OrderID)
+			_ = msg.Ack(false)
+			return
+		}
 	}
 
 	// 1. Update status order menjadi CONFIRMED di PostgreSQL

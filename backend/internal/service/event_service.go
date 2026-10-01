@@ -126,20 +126,40 @@ func (s *eventService) UpdateEvent(ctx context.Context, actorRole string, req Up
 		req.Category = "concerts"
 	}
 
-	event := &repository.Event{
-		ID:          req.ID,
-		Name:        req.Name,
-		Description: req.Description,
-		StartSaleAt: req.StartSaleAt,
-		EndSaleAt:   req.EndSaleAt,
-		TotalStock:  req.TotalStock,
-		Price:       req.Price,
-		Status:      req.Status,
-		Category:    req.Category,
-		MaxPerUser:  req.MaxPerUser,
+	// Hitung perubahan stok jika totalStock diubah
+	soldCount := existing.TotalStock - existing.AvailableStock
+	if soldCount < 0 {
+		soldCount = 0
+	}
+	newAvailableStock := req.TotalStock - soldCount
+	if newAvailableStock < 0 {
+		newAvailableStock = 0
 	}
 
-	return s.eventRepo.UpdateEvent(ctx, event)
+	event := &repository.Event{
+		ID:             req.ID,
+		Name:           req.Name,
+		Description:    req.Description,
+		StartSaleAt:    req.StartSaleAt,
+		EndSaleAt:      req.EndSaleAt,
+		TotalStock:     req.TotalStock,
+		AvailableStock: newAvailableStock,
+		Price:          req.Price,
+		Status:         req.Status,
+		Category:       req.Category,
+		MaxPerUser:     req.MaxPerUser,
+	}
+
+	updated, err := s.eventRepo.UpdateEvent(ctx, event)
+	if err != nil {
+		return nil, err
+	}
+
+	if s.redisClient != nil {
+		_ = s.redisClient.SetStock(ctx, updated.ID, newAvailableStock)
+	}
+
+	return updated, nil
 }
 
 func (s *eventService) GetEventByID(ctx context.Context, id string) (*repository.Event, error) {

@@ -11,6 +11,7 @@ import { TicketsPage } from './components/TicketsPage';
 import { CreateEventPage } from './components/CreateEventPage';
 import { AdminDashboard } from './components/AdminDashboard';
 import { NotificationModal, type AppNotification } from './components/NotificationModal';
+import { SplashScreen } from './components/SplashScreen';
 import { api, type Event, type User } from './lib/api';
 import { subscribeStock } from './lib/ws';
 import { RiHome5Fill, RiUser3Line } from 'react-icons/ri';
@@ -27,6 +28,14 @@ export function App() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentView, setCurrentView] = useState<AppView>('home');
+  const [showSplash, setShowSplash] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const isTest = window.navigator.userAgent.includes('Playwright') || window.location.search.includes('nosplash');
+      if (isTest) return false;
+      return !sessionStorage.getItem('flash_sale_splash_shown');
+    }
+    return true;
+  });
 
   // Modals state (For War Ticket & Auth)
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -273,6 +282,16 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-dark-950 text-white font-sans flex justify-center antialiased">
+      {/* 🚀 Native App Splash Screen (Impeccable & Anti-Slop) */}
+      {showSplash && (
+        <SplashScreen
+          onComplete={() => {
+            setShowSplash(false);
+            sessionStorage.setItem('flash_sale_splash_shown', 'true');
+          }}
+        />
+      )}
+
       {/* 📱 MOBILE FRAME CONTAINER (Centering on Desktop & Full View on Mobile) */}
       <div className="w-full max-w-md min-h-screen bg-dark-900 shadow-2xl border-x border-dark-700/70 relative flex flex-col justify-between pb-24">
         <div>
@@ -287,6 +306,7 @@ export function App() {
                 setUser(updated);
                 localStorage.setItem('user', JSON.stringify(updated));
               }}
+              onReplaySplash={() => setShowSplash(true)}
             />
           ) : currentView === 'tickets' ? (
             /* 2. 🎟️ FULL PAGE: MY TICKETS */

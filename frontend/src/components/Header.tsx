@@ -87,10 +87,16 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-2.5">
           <button
             onClick={user ? undefined : onOpenAuth}
-            className="w-10 h-10 rounded-full bg-gradient-to-br from-coral to-amber-500 flex items-center justify-center text-white text-xs font-black shadow-coral-sm border-2 border-dark-700 shrink-0 overflow-hidden"
+            className="w-10 h-10 rounded-full bg-dark-800 flex items-center justify-center text-white text-xs font-black shadow-coral-sm border-2 border-dark-700 shrink-0 overflow-hidden"
             title={user ? user.name : 'Sign In'}
           >
-            {user ? getInitials(user.name) : '👑'}
+            {user ? (
+              <span className="w-full h-full bg-gradient-to-br from-coral to-amber-500 flex items-center justify-center">
+                {getInitials(user.name)}
+              </span>
+            ) : (
+              <img src="/logo.png" alt="Flash Sale Logo" className="w-full h-full object-cover" />
+            )}
           </button>
           <div className="leading-tight">
             <span className="text-xs font-bold text-white block tracking-tight">
@@ -153,7 +159,7 @@ export const Header: React.FC<HeaderProps> = ({
           Discover Live Concerts &amp; War Your Exclusive Tickets
         </h1>
         <p className="text-xs text-zinc-400 mt-1 font-medium leading-relaxed">
-          Secure instant access to top live shows with fair virtual queue protection.
+          Secure instant access to top live shows with fair booking protection.
         </p>
       </div>
 

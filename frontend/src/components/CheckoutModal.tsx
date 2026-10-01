@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { FiX, FiCheckCircle, FiAlertCircle, FiShield } from 'react-icons/fi';
+import { FiX, FiCheckCircle, FiAlertCircle, FiShield, FiClock } from 'react-icons/fi';
 import { IoFlash } from 'react-icons/io5';
 import { CgSpinner } from 'react-icons/cg';
 import { HiTicket } from 'react-icons/hi2';
 import confetti from 'canvas-confetti';
 import { api, type Event, type Order } from '../lib/api';
 import { subscribeOrderStatus } from '../lib/ws';
+import { MidtransPaymentModal } from './MidtransPaymentModal';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isMidtransOpen, setIsMidtransOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -32,6 +34,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       setIsProcessing(false);
       setOrder(null);
       setError(null);
+      setIsMidtransOpen(false);
     }
   }, [isOpen]);
 
@@ -68,6 +71,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       const res = await api.purchaseTicket(event.id, quantity);
       setOrder(res);
       setIsProcessing(false);
+      setIsMidtransOpen(true);
 
       if (res.status === 'CONFIRMED') {
         confetti({
@@ -147,6 +151,24 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               </div>
             </div>
 
+            {/* Midtrans Payment Gateway Info */}
+            <div className="bg-dark-800 rounded-2xl p-3 border border-dark-700 mb-4 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-5 h-5 rounded-md bg-[#002855] border border-blue-400/40 flex items-center justify-center shadow-xs">
+                    <span className="font-black text-[8px] text-white">mid</span>
+                  </div>
+                  <span className="text-xs font-bold text-white">Midtrans Payment</span>
+                </div>
+                <span className="text-[9px] font-bold text-emerald-400 bg-emerald-950/70 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                  Instant & Secure
+                </span>
+              </div>
+              <p className="text-[10px] text-zinc-400 leading-tight">
+                Supports QRIS (GoPay, OVO, ShopeePay), BCA Virtual Account & Mandiri Bill.
+              </p>
+            </div>
+
             {error && (
               <div className="mb-4 p-3 bg-rose-950/60 border border-rose-500/40 text-rose-300 rounded-2xl text-xs font-semibold flex items-center gap-2">
                 <FiAlertCircle className="w-4 h-4 shrink-0" />
@@ -177,7 +199,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               )}
             </button>
           </div>
-        ) : (
+        ) : order.status === 'CONFIRMED' ? (
+          /* ✅ ORDER CONFIRMED VIEW (ONLY AFTER PAYMENT IS VERIFIED) */
           <div className="text-center py-2 animate-fadeIn">
             <div className="w-14 h-14 rounded-2xl bg-emerald-950/80 text-emerald-400 flex items-center justify-center mx-auto mb-3 border border-emerald-500/40">
               <FiCheckCircle className="w-8 h-8" />
@@ -190,7 +213,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               Your ticket purchase is confirmed and your booking is complete.
             </p>
 
-            <div className="bg-dark-800 rounded-2xl p-4 border border-dark-700 text-left mb-5">
+            <div className="bg-dark-800 rounded-2xl p-4 border border-dark-700 text-left mb-3">
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div>
                   <span className="text-[10px] font-bold text-coral uppercase tracking-wider block">
@@ -205,7 +228,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <div>
                   <span className="text-[10px] text-zinc-500 font-medium block">Status</span>
                   <span className="font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-500/40 px-2 py-0.5 rounded-md inline-block">
-                    {order.status}
+                    CONFIRMED
                   </span>
                 </div>
                 <div>
@@ -230,8 +253,89 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               Done & Close
             </button>
           </div>
+        ) : (
+          /* ⏳ ORDER PENDING VIEW (AWAITING MIDTRANS PAYMENT) */
+          <div className="text-center py-2 animate-fadeIn">
+            <div className="w-14 h-14 rounded-2xl bg-amber-950/80 text-amber-400 flex items-center justify-center mx-auto mb-3 border border-amber-500/40 animate-pulse">
+              <FiClock className="w-8 h-8" />
+            </div>
+
+            <h3 className="text-lg font-bold text-white mb-1">
+              Awaiting Payment
+            </h3>
+            <p className="text-xs text-zinc-400 mb-4">
+              Tickets successfully reserved. Please complete payment via Midtrans.
+            </p>
+
+            <div className="bg-dark-800 rounded-2xl p-4 border border-amber-500/30 text-left mb-3">
+              <div className="flex items-start justify-between gap-2 mb-3">
+                <div>
+                  <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">
+                    Flash Sale Reservation
+                  </span>
+                  <h4 className="font-bold text-white text-sm">{event.name}</h4>
+                </div>
+                <HiTicket className="w-6 h-6 text-amber-400 shrink-0" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-dark-700">
+                <div>
+                  <span className="text-[10px] text-zinc-500 font-medium block">Status</span>
+                  <span className="font-bold text-amber-400 bg-amber-950/80 border border-amber-500/40 px-2 py-0.5 rounded-md inline-block">
+                    PENDING (Payment Due)
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-zinc-500 font-medium block">Quantity</span>
+                  <span className="font-bold text-white">{order.quantity} Tickets</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-zinc-500 font-medium block">Total Due</span>
+                  <span className="font-bold text-coral">{formatPrice(order.totalPrice)}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-zinc-500 font-medium block">Order ID</span>
+                  <span className="font-mono text-[10px] text-zinc-400 truncate block">{order.id}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* View Midtrans Payment Information Button */}
+            <button
+              type="button"
+              onClick={() => setIsMidtransOpen(true)}
+              className="w-full py-3 px-4 mb-2 rounded-full text-xs font-bold text-white bg-coral hover:bg-coral-hover shadow-coral transition-all flex items-center justify-center gap-2"
+            >
+              <div className="w-4 h-4 rounded bg-[#002855] text-[7px] text-white font-black flex items-center justify-center">mid</div>
+              <span>Pay Now with Midtrans</span>
+            </button>
+
+            <button
+              onClick={onClose}
+              className="w-full py-2.5 rounded-full text-xs font-bold text-zinc-400 hover:text-white bg-dark-750 hover:bg-dark-700 border border-dark-700 transition-colors"
+            >
+              Pay Later in "My Tickets"
+            </button>
+          </div>
         )}
       </div>
+
+      {/* Midtrans Payment Gateway Modal */}
+      <MidtransPaymentModal
+        isOpen={isMidtransOpen}
+        onClose={() => setIsMidtransOpen(false)}
+        order={order}
+        event={event}
+        onConfirmSuccess={() => {
+          setOrder((prev) => (prev ? { ...prev, status: 'CONFIRMED' } : null));
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+          });
+          onSuccess();
+        }}
+      />
     </div>,
     document.body
   );

@@ -153,6 +153,30 @@ export const api = {
     return data.createEvent;
   },
 
+  updateEvent: async (
+    id: string,
+    input: {
+      name: string;
+      description?: string;
+      category?: string;
+      startSaleAt: string;
+      endSaleAt: string;
+      totalStock: number;
+      price: number;
+      status: 'DRAFT' | 'SCHEDULED' | 'ACTIVE' | 'CLOSED';
+      maxPerUser: number;
+    }
+  ) => {
+    const data = await graphqlFetch<{ updateEvent: Event }>(`
+      mutation UpdateEvent($id: ID!, $input: UpdateEventInput!) {
+        updateEvent(id: $id, input: $input) {
+          id name description category totalStock availableStock price maxPerUser status startSaleAt endSaleAt
+        }
+      }
+    `, { id, input });
+    return data.updateEvent;
+  },
+
   // Waiting Room
   joinWaitingRoom: async (eventId: string) => {
     const data = await graphqlFetch<{ joinWaitingRoom: QueueStatus }>(`
@@ -247,5 +271,64 @@ export const api = {
       }
     `, { orderId });
     return data.orderLogs;
+  },
+
+  // 💳 Midtrans Payment Gateway API
+  getMidtransSnapToken: async (params: {
+    orderId: string;
+    eventId: string;
+    eventName: string;
+    quantity: number;
+    totalPrice: number;
+    userName?: string;
+    userEmail?: string;
+  }) => {
+    const res = await fetch('http://localhost:8080/api/midtrans/snap-token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        order_id: params.orderId,
+        event_id: params.eventId,
+        event_name: params.eventName,
+        quantity: params.quantity,
+        total_price: params.totalPrice,
+        user_name: params.userName || 'Customer',
+        user_email: params.userEmail || 'customer@example.com',
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to generate Midtrans Snap token');
+    }
+
+    return (await res.json()) as { token: string; redirect_url: string };
+  },
+
+  confirmMidtransPayment: async (params: {
+    orderId: string;
+    paymentType?: string;
+    transactionId?: string;
+  }) => {
+    const res = await fetch('http://localhost:8080/api/midtrans/confirm-payment', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        order_id: params.orderId,
+        payment_type: params.paymentType || 'midtrans_snap',
+        transaction_id: params.transactionId || `TX-${Date.now()}`,
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to confirm Midtrans payment');
+    }
+
+    return (await res.json()) as { status: string; order: Order };
   },
 };

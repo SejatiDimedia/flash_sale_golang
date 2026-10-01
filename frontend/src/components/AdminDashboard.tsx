@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { FiShield, FiUsers, FiDollarSign, FiActivity, FiRefreshCw, FiFileText, FiCheckCircle, FiXCircle, FiX, FiPlus, FiClock } from 'react-icons/fi';
+import { FiShield, FiUsers, FiDollarSign, FiActivity, FiRefreshCw, FiFileText, FiCheckCircle, FiXCircle, FiX, FiPlus, FiClock, FiEdit2 } from 'react-icons/fi';
 import { HiTicket } from 'react-icons/hi2';
 import { IoFlash } from 'react-icons/io5';
 import { CgSpinner } from 'react-icons/cg';
 import { api, type Order, type Event, type OrderLog } from '../lib/api';
+import { EditEventModal } from './EditEventModal';
 
 interface AdminDashboardProps {
   events: Event[];
@@ -29,6 +30,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const [selectedOrderLogs, setSelectedOrderLogs] = useState<OrderLog[] | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string>('');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editSuccessMsg, setEditSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (events.length > 0 && !selectedEventId) {
@@ -201,7 +204,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <select
           value={selectedEventId}
           onChange={(e) => setSelectedEventId(e.target.value)}
-          className="w-full px-3 py-2.5 bg-dark-750 border border-dark-700 rounded-xl text-xs font-semibold text-white outline-none focus:border-coral cursor-pointer mb-3"
+          className="w-full px-3 py-2.5 bg-dark-750 border border-dark-700 rounded-xl text-xs font-semibold text-white outline-none focus:border-coral cursor-pointer mb-2.5"
         >
           {events.map((e) => (
             <option key={e.id} value={e.id} className="bg-dark-800 text-white">
@@ -210,14 +213,57 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           ))}
         </select>
 
-        {/* ➕ Navigate to Create Event Page */}
-        <button
-          onClick={onNavigateCreateEvent}
-          className="w-full py-2.5 bg-coral hover:bg-coral-hover text-white rounded-full text-xs font-bold shadow-coral transition-colors flex items-center justify-center gap-1.5"
-        >
-          <FiPlus className="w-3.5 h-3.5" />
-          <span>Create New Flash Sale Event</span>
-        </button>
+        {currentEvent && (
+          <div className="flex flex-wrap items-center justify-between gap-1.5 px-3 py-2 bg-dark-750/70 rounded-xl border border-dark-700/80 mb-3 text-[11px]">
+            <div className="flex items-center gap-1.5">
+              <span
+                className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
+                  currentEvent.status === 'ACTIVE'
+                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                    : currentEvent.status === 'SCHEDULED'
+                    ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                    : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/30'
+                }`}
+              >
+                {currentEvent.status}
+              </span>
+              <span className="text-zinc-400 capitalize">{currentEvent.category || 'Concerts'}</span>
+            </div>
+            <div className="flex items-center gap-2 font-mono">
+              <span className="text-coral font-bold">{formatPrice(currentEvent.price)}</span>
+              <span className="text-zinc-600">•</span>
+              <span className="text-zinc-300">Max {currentEvent.maxPerUser || 1}/user</span>
+            </div>
+          </div>
+        )}
+
+        {editSuccessMsg && (
+          <div className="mb-3 p-2.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 animate-fadeIn">
+            <FiCheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span>{editSuccessMsg}</span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-2">
+          {/* ✏️ Edit Selected Event */}
+          <button
+            onClick={() => setIsEditModalOpen(true)}
+            disabled={!currentEvent}
+            className="w-full py-2.5 bg-dark-750 hover:bg-dark-700 text-white rounded-full text-xs font-bold border border-dark-700 hover:border-dark-600 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+          >
+            <FiEdit2 className="w-3.5 h-3.5 text-coral" />
+            <span>Edit Ticket & Event</span>
+          </button>
+
+          {/* ➕ Navigate to Create Event Page */}
+          <button
+            onClick={onNavigateCreateEvent}
+            className="w-full py-2.5 bg-coral hover:bg-coral-hover text-white rounded-full text-xs font-bold shadow-coral transition-colors flex items-center justify-center gap-1.5"
+          >
+            <FiPlus className="w-3.5 h-3.5" />
+            <span>New Flash Sale</span>
+          </button>
+        </div>
       </div>
 
       {/* 2x2 Mobile KPI Grid */}
@@ -632,6 +678,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>,
           document.body
         )}
+
+      {/* ✏️ EDIT EVENT / TICKET MODAL */}
+      <EditEventModal
+        isOpen={isEditModalOpen}
+        event={currentEvent || null}
+        onClose={() => setIsEditModalOpen(false)}
+        onSuccess={() => {
+          onRefreshEvents();
+          fetchOrders();
+          setEditSuccessMsg('Event and ticket updated successfully!');
+          setTimeout(() => setEditSuccessMsg(null), 4000);
+        }}
+      />
     </div>
   );
 };

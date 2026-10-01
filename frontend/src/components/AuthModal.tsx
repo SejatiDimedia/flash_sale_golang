@@ -70,8 +70,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         </button>
 
         <div className="text-center mb-5">
-          <div className="w-12 h-12 rounded-2xl bg-dark-800 text-coral flex items-center justify-center mx-auto mb-2.5 border border-dark-700 shadow-sm">
-            <FiUser className="w-6 h-6" />
+          <div className="w-12 h-12 rounded-2xl bg-dark-800 flex items-center justify-center mx-auto mb-2.5 border border-dark-700 shadow-sm overflow-hidden p-1">
+            <img src="/logo.png" alt="Flash Sale" className="w-full h-full object-contain rounded-xl" />
           </div>
           <h3 className="text-lg font-bold text-white">
             {isLogin ? 'Sign In to Account' : 'Create New Account'}

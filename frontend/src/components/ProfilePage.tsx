@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiArrowLeft, FiMail, FiShield, FiLogOut, FiCheckCircle, FiUser, FiLock, FiHelpCircle } from 'react-icons/fi';
 import { HiTicket } from 'react-icons/hi2';
+import { IoFlash } from 'react-icons/io5';
 import { CgSpinner } from 'react-icons/cg';
 import { api, type User } from '../lib/api';
 
@@ -10,6 +11,7 @@ interface ProfilePageProps {
   onLogout: () => void;
   onNavigateTickets: () => void;
   onUpdateUser: (user: User) => void;
+  onReplaySplash?: () => void;
 }
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({
@@ -18,6 +20,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   onLogout,
   onNavigateTickets,
   onUpdateUser,
+  onReplaySplash,
 }) => {
   const [editName, setEditName] = useState(user?.name || '');
   const [editEmail, setEditEmail] = useState(user?.email || '');
@@ -252,6 +255,20 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Splash Screen Replay Preview */}
+        {onReplaySplash && (
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={onReplaySplash}
+              className="w-full py-2.5 bg-dark-800 hover:bg-dark-750 text-zinc-300 hover:text-white rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-2 border border-dark-700 shadow-sm"
+            >
+              <IoFlash className="w-3.5 h-3.5 text-coral" />
+              <span>Preview Splash Screen</span>
+            </button>
+          </div>
+        )}
 
         {/* Logout Button */}
         <div className="pt-1">
