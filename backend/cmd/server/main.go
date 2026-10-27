@@ -77,7 +77,7 @@ func main() {
 	}
 
 	// ⚖️ Start Reconciliation Worker (Audit konsistensi setiap 1 menit)
-	reconciliationWorker := worker.NewReconciliationWorker(eventRepo, orderRepo, redisClient, 1*time.Minute)
+	reconciliationWorker := worker.NewReconciliationWorker(checkoutService, eventRepo, orderRepo, redisClient, 1*time.Minute)
 	reconciliationWorker.Start(workerCtx)
 
 	// 📦 Start Transactional Outbox Relay Worker (Guaranteed Delivery ke RabbitMQ setiap 1 detik - US-15)
