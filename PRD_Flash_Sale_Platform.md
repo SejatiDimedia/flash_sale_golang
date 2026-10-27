@@ -82,6 +82,7 @@ Membangun platform flash sale dan ticketing skala enterprise yang:
 | US-12 | Sistem mencegah Cache Stampede saat lonjakan pembacaan | 1.000 pembacaan bersamaan hanya menghasilkan 1 query database via singleflight | Must |
 | US-13 | Sistem mengatur laju antrean secara adaptif | Batch size waiting room mengecil jika latency DB > 50ms, dan membesar jika sistem sehat | Should |
 | US-14 | Sistem melindungi goroutine dari payment timeout (Circuit Breaker) | Circuit terbuka jika error rate > 30%, mengembalikan fallback tanpa menggantung | Should |
+| US-15 | Sistem menjamin pesan asinkron tidak hilang (Transactional Outbox) | Order dan event antrean disimpan atomik dalam 1 transaksi SQL; outbox worker menjamin At-Least-Once Delivery ke RabbitMQ | Must |
 
 ---
 
@@ -126,6 +127,18 @@ Membangun platform flash sale dan ticketing skala enterprise yang:
                                                                                              │ (Stok Terkunci)
                                                                                              ▼
                                                                            ┌───────────────────────────────────┐
+                                                                           │   PostgreSQL ACID Transaction     │
+                                                                           │   orders + outbox_events (Atomic) │
+                                                                           └─────────────────┬─────────────────┘
+                                                                                             │
+                                                                                             ▼
+                                                                           ┌───────────────────────────────────┐
+                                                                           │   Outbox Relay Worker (Publisher) │
+                                                                           │   Poller / Guaranteed Delivery    │
+                                                                           └─────────────────┬─────────────────┘
+                                                                                             │
+                                                                                             ▼
+                                                                           ┌───────────────────────────────────┐
                                                                            │   RabbitMQ Topic Exchange         │
                                                                            │   Durable Queue + DLQ Routing     │
                                                                            └─────────────────┬─────────────────┘
@@ -150,6 +163,8 @@ Membangun platform flash sale dan ticketing skala enterprise yang:
    Setelah stok aman, order disimpan dengan status `PENDING`. Worker pool Go memproses penulisan audit log dan integrasi pembayaran secara teratur. Jika terjadi error berulang 3 kali, pesan dialihkan ke antrean `order_processing_dlq` dengan header `x-failure-reason` untuk audit manual.
 5. **Jalur Toleransi Kegagalan (Circuit Breaker)**:
    Panggilan HTTP ke layanan eksternal (Midtrans API) dibungkus oleh Circuit Breaker. Jika layanan eksternal mengalami timeout atau lonjakan error di atas ambang batas, sirkuit akan terbuka (*OPEN*) sehingga request berikutnya langsung menerima fallback cepat tanpa menggantung goroutine server.
+6. **Jalur Keandalan Pesan (Transactional Outbox Pattern)**:
+   Mengeliminasi *Dual-Write Problem*. Penulisan pesanan (`orders`) dan payload event (`outbox_events`) dijalankan dalam satu transaksi SQL atomik (`BEGIN ... COMMIT`). Outbox relay worker Go secara berkala membaca event berstatus `PENDING` dan meneruskannya ke RabbitMQ dengan jaminan *At-Least-Once Delivery*, mencegah event hilang jika koneksi message broker sempat terputus.
 
 ---
 
@@ -162,6 +177,7 @@ Membangun platform flash sale dan ticketing skala enterprise yang:
 | **Pencegahan Bot** | Token Bucket / Sliding Window di Redis | Membatasi laju request per IP/User di layer middleware |
 | **Waiting Room Gate** | Adaptive Controller via `time.Ticker` | Mengatur ukuran batch lolos antrean berdasarkan latensi database riil |
 | **Panggilan Downstream** | Circuit Breaker (`sony/gobreaker`) | Memutus koneksi macet ke pihak ketiga untuk mencegah kebocoran goroutine |
+| **Outbox Relay Publisher** | Transactional Outbox + Background Publisher Goroutine | Menghilangkan Dual-Write Problem antara database SQL dan message broker RabbitMQ |
 | **Graceful Shutdown** | `context.Context` + `sync.WaitGroup` + OS Signals | Menunggu worker menyelesaikan transaksi yang berjalan sebelum server mati |
 | **Real-time Push** | Goroutine per WebSocket Client + Redis Pub/Sub | Mendorong update status order dan kuota secara instan tanpa polling berat |
 | **Auto-Reconciliation** | Background Daemon Goroutine (`time.Ticker`) | Membersihkan order kedaluwarsa dan mengaudit integritas kuota setiap menit |
@@ -175,6 +191,7 @@ Membangun platform flash sale dan ticketing skala enterprise yang:
 - **events**: `id` (UUID), `name`, `description`, `category`, `price`, `total_stock`, `available_stock`, `start_sale_at`, `end_sale_at`, `status`
 - **orders**: `id` (UUID), `user_id`, `event_id`, `quantity`, `total_price`, `status` (PENDING/CONFIRMED/CANCELLED), `created_at`, `updated_at`
 - **order_logs**: `id` (UUID), `order_id`, `action`, `payload` (JSONB), `created_at`
+- **outbox_events**: `id` (UUID), `aggregate_type` (ORDER), `aggregate_id` (UUID), `event_type` (ORDER_CREATED/ORDER_PAID), `payload` (JSONB), `status` (PENDING/PUBLISHED/FAILED), `retry_count` (INT), `created_at`, `processed_at`
 
 ### 6.2 Pola Penyimpanan Redis
 - `stock:{event_id}`: Integer kuota tiket aktif.
@@ -202,6 +219,7 @@ Membangun platform flash sale dan ticketing skala enterprise yang:
 | **Ketahanan Bot** | Memblokir > 95% request spam sebelum menyentuh antrean kritis | Simulasi penembakan request agresif per IP |
 | **Mitigasi Stampede** | Maksimal 1 query ke database saat kunci cache kadaluwarsa di bawah 1.000 pembaca | Unit test konkurensi Go menggunakan mock database counter |
 | **Isolasi Kegagalan** | Goroutine tidak bertambah saat API eksternal timeout | Uji simulasi latensi pihak ketiga dengan Circuit Breaker aktif |
+| **Keandalan Event Asinkron** | 0% Pesan Hilang (Zero Message Loss) antara SQL dan Broker | Transactional Outbox Pattern memastikan pengiriman terjamin meski RabbitMQ restart |
 
 ---
 
@@ -228,5 +246,9 @@ Membangun platform flash sale dan ticketing skala enterprise yang:
    - Menambahkan wrapper `gobreaker.CircuitBreaker` pada pemanggilan HTTP di `backend/internal/pkg/midtrans/client.go`.
 4. **Implementasi Adaptive Waiting Room Controller**:
    - Menambahkan penyesuaian otomatis batch admission di `backend/internal/pkg/redisclient/redis.go` berdasarkan metrik beban sistem.
-5. **Validasi Beban Lanjutan**:
+5. **Implementasi Transactional Outbox Pattern**:
+   - Membuat migrasi tabel `outbox_events` di PostgreSQL.
+   - Mengintegrasikan penulisan order dan outbox event dalam satu transaksi SQL ACID.
+   - Membangun `outbox_worker.go` dengan graceful polling dan publisher ke RabbitMQ.
+6. **Validasi Beban Lanjutan**:
    - Menjalankan k6 stress test untuk memverifikasi penolakan bot, efisiensi singleflight, dan proteksi circuit breaker.

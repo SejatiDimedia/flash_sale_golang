@@ -161,7 +161,7 @@ func (s *checkoutService) PurchaseTicketWithIdempotency(ctx context.Context, use
 
 	totalPrice := event.Price * float64(quantity)
 
-	// 6. Simpan Order PENDING
+	// 6. Simpan Order PENDING bersama Outbox Event secara atomik (Transactional Outbox Pattern - US-15)
 	order := &repository.Order{
 		UserID:     userID,
 		EventID:    eventID,
@@ -170,13 +170,29 @@ func (s *checkoutService) PurchaseTicketWithIdempotency(ctx context.Context, use
 		Status:     "PENDING",
 	}
 
-	createdOrder, err := s.orderRepo.CreateOrder(ctx, order)
+	outboxPayload, _ := json.Marshal(map[string]interface{}{
+		"user_id":     userID,
+		"event_id":    eventID,
+		"quantity":    quantity,
+		"total_price": totalPrice,
+		"event_name":  event.Name,
+		"created_at":  time.Now().Format(time.RFC3339),
+	})
+
+	outbox := &repository.OutboxEvent{
+		AggregateType: "ORDER",
+		EventType:     rabbitmq.OrderPendingKey, // "order.pending"
+		Payload:       string(outboxPayload),
+		Status:        "PENDING",
+	}
+
+	createdOrder, _, err := s.orderRepo.CreateOrderWithOutbox(ctx, order, outbox)
 	if err != nil {
 		_ = s.redisClient.IncrStock(ctx, eventID, quantity)
 		if idempotencyKey != "" {
 			_ = s.redisClient.ReleaseIdempotencyLock(ctx, userID, idempotencyKey)
 		}
-		return nil, fmt.Errorf("failed to save order: %w", err)
+		return nil, fmt.Errorf("failed to save order with outbox: %w", err)
 	}
 
 	// 7. Update available stock di DB secara relatif (mencegah out-of-order overwrite)

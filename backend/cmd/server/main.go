@@ -80,6 +80,10 @@ func main() {
 	reconciliationWorker := worker.NewReconciliationWorker(eventRepo, orderRepo, redisClient, 1*time.Minute)
 	reconciliationWorker.Start(workerCtx)
 
+	// 📦 Start Transactional Outbox Relay Worker (Guaranteed Delivery ke RabbitMQ setiap 1 detik - US-15)
+	outboxWorker := worker.NewOutboxWorker(orderRepo, rabbitClient, 1*time.Second, 50)
+	outboxWorker.Start(workerCtx)
+
 	// 7. Setup Handlers & Centralized Router
 	midtransClient := midtrans.NewClient(cfg)
 	midtransHandler := handler.NewMidtransHandler(midtransClient, orderRepo, redisClient, rabbitClient)
@@ -123,6 +127,7 @@ func main() {
 
 	workerCancel()
 	workerPool.Stop()
+	outboxWorker.Wait()
 
 	log.Println("✅ Server & Workers shut down gracefully. Goodbye!")
 }

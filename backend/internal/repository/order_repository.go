@@ -29,8 +29,25 @@ type OrderLog struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+// OutboxEvent merepresentasikan event yang disimpan secara atomik bersama order (Transactional Outbox Pattern)
+type OutboxEvent struct {
+	ID            string     `json:"id"`
+	AggregateType string     `json:"aggregate_type"`
+	AggregateID   string     `json:"aggregate_id"`
+	EventType     string     `json:"event_type"`
+	Payload       string     `json:"payload"`
+	Status        string     `json:"status"` // PENDING, PUBLISHED, FAILED
+	RetryCount    int        `json:"retry_count"`
+	CreatedAt     time.Time  `json:"created_at"`
+	ProcessedAt   *time.Time `json:"processed_at"`
+}
+
 type OrderRepository interface {
 	CreateOrder(ctx context.Context, order *Order) (*Order, error)
+	CreateOrderWithOutbox(ctx context.Context, order *Order, outbox *OutboxEvent) (*Order, *OutboxEvent, error)
+	GetPendingOutboxEvents(ctx context.Context, limit int) ([]*OutboxEvent, error)
+	MarkOutboxEventPublished(ctx context.Context, id string) error
+	MarkOutboxEventFailed(ctx context.Context, id string, maxRetries int) error
 	GetOrderByID(ctx context.Context, id string) (*Order, error)
 	GetOrdersByUserID(ctx context.Context, userID string) ([]*Order, error)
 	GetAllOrders(ctx context.Context, eventID *string) ([]*Order, error)
@@ -291,5 +308,121 @@ func (r *orderRepository) HasRecentOrders(ctx context.Context, eventID string, w
 		return false, err
 	}
 	return exists, nil
+}
+
+// CreateOrderWithOutbox menyimpan pesanan dan event outbox dalam satu transaksi SQL ACID tunggal (US-15)
+func (r *orderRepository) CreateOrderWithOutbox(ctx context.Context, o *Order, outbox *OutboxEvent) (*Order, *OutboxEvent, error) {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to begin tx for order and outbox: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	// 1. Simpan order
+	orderQuery := `
+		INSERT INTO orders (user_id, event_id, quantity, total_price, status)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, user_id, event_id, quantity, total_price, status, created_at, confirmed_at
+	`
+	var createdOrder Order
+	err = tx.QueryRow(ctx, orderQuery, o.UserID, o.EventID, o.Quantity, o.TotalPrice, o.Status).Scan(
+		&createdOrder.ID, &createdOrder.UserID, &createdOrder.EventID, &createdOrder.Quantity,
+		&createdOrder.TotalPrice, &createdOrder.Status, &createdOrder.CreatedAt, &createdOrder.ConfirmedAt,
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to insert order in tx: %w", err)
+	}
+
+	// 2. Simpan outbox event
+	outboxQuery := `
+		INSERT INTO outbox_events (aggregate_type, aggregate_id, event_type, payload, status)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, aggregate_type, aggregate_id, event_type, payload, status, retry_count, created_at, processed_at
+	`
+	aggID := createdOrder.ID
+	if outbox.AggregateID != "" {
+		aggID = outbox.AggregateID
+	}
+	status := "PENDING"
+	if outbox.Status != "" {
+		status = outbox.Status
+	}
+
+	var createdOutbox OutboxEvent
+	err = tx.QueryRow(ctx, outboxQuery, outbox.AggregateType, aggID, outbox.EventType, outbox.Payload, status).Scan(
+		&createdOutbox.ID, &createdOutbox.AggregateType, &createdOutbox.AggregateID, &createdOutbox.EventType,
+		&createdOutbox.Payload, &createdOutbox.Status, &createdOutbox.RetryCount, &createdOutbox.CreatedAt, &createdOutbox.ProcessedAt,
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to insert outbox event in tx: %w", err)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, nil, fmt.Errorf("failed to commit order and outbox transaction: %w", err)
+	}
+
+	return &createdOrder, &createdOutbox, nil
+}
+
+// GetPendingOutboxEvents mengambil sejumlah event outbox yang belum terkirim ke message broker
+func (r *orderRepository) GetPendingOutboxEvents(ctx context.Context, limit int) ([]*OutboxEvent, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+
+	query := `
+		SELECT id, aggregate_type, aggregate_id, event_type, payload, status, retry_count, created_at, processed_at
+		FROM outbox_events
+		WHERE status = 'PENDING'
+		ORDER BY created_at ASC
+		LIMIT $1
+	`
+
+	rows, err := r.db.Query(ctx, query, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query pending outbox events: %w", err)
+	}
+	defer rows.Close()
+
+	var events []*OutboxEvent
+	for rows.Next() {
+		var e OutboxEvent
+		if err := rows.Scan(
+			&e.ID, &e.AggregateType, &e.AggregateID, &e.EventType,
+			&e.Payload, &e.Status, &e.RetryCount, &e.CreatedAt, &e.ProcessedAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan outbox event: %w", err)
+		}
+		events = append(events, &e)
+	}
+
+	return events, rows.Err()
+}
+
+// MarkOutboxEventPublished menandai bahwa event outbox sukses dikirimkan ke RabbitMQ
+func (r *orderRepository) MarkOutboxEventPublished(ctx context.Context, id string) error {
+	query := `
+		UPDATE outbox_events
+		SET status = 'PUBLISHED', processed_at = NOW()
+		WHERE id = $1
+	`
+	_, err := r.db.Exec(ctx, query, id)
+	return err
+}
+
+// MarkOutboxEventFailed menaikkan counter percobaan pengiriman event dan menandai FAILED jika melebihi batas
+func (r *orderRepository) MarkOutboxEventFailed(ctx context.Context, id string, maxRetries int) error {
+	if maxRetries <= 0 {
+		maxRetries = 3
+	}
+	query := `
+		UPDATE outbox_events
+		SET retry_count = retry_count + 1,
+		    status = CASE WHEN retry_count + 1 >= $2 THEN 'FAILED' ELSE 'PENDING' END,
+		    processed_at = CASE WHEN retry_count + 1 >= $2 THEN NOW() ELSE processed_at END
+		WHERE id = $1
+	`
+	_, err := r.db.Exec(ctx, query, id, maxRetries)
+	return err
 }
 
