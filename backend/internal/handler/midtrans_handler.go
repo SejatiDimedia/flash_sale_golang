@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -80,6 +81,14 @@ func (h *MidtransHandler) CreateSnapToken(c *gin.Context) {
 	snapResp, err := h.midtransClient.CreateSnapTransaction(c.Request.Context(), snapReq)
 	if err != nil {
 		log.Printf("❌ Failed to create Snap transaction: %v", err)
+		if strings.Contains(err.Error(), "circuit open") {
+			c.Header("Retry-After", "5")
+			c.JSON(http.StatusServiceUnavailable, gin.H{
+				"error":               "Payment gateway is currently experiencing degradation (circuit open). Please try again shortly or use payment simulation.",
+				"retry_after_seconds": 5,
+			})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
