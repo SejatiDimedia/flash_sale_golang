@@ -52,6 +52,10 @@ func (m *mockEventRepo) RestoreAvailableStock(ctx context.Context, id string, qt
 	return nil
 }
 
+func (m *mockEventRepo) Ping(ctx context.Context) error {
+	return nil
+}
+
 // TestEventService_Singleflight_PreventsCacheStampede memverifikasi bahwa ketika 50 goroutine
 // memanggil GetEventByID secara bersamaan, database HANYA dipanggil 1 KALI oleh singleflight.Group!
 func TestEventService_Singleflight_PreventsCacheStampede(t *testing.T) {

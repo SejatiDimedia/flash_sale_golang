@@ -263,13 +263,16 @@ func (r *mutationResolver) AdmitUsers(ctx context.Context, eventID string, batch
 		batchSize = 50
 	}
 
-	admittedUsers, err := r.RedisClient.AdmitNextBatch(ctx, eventID, int64(batchSize), 5*time.Minute)
+	// 🛡️ Menggunakan Adaptive Concurrency Control (US-13)
+	// Menyesuaikan ukuran batch dengan latensi dan kesehatan PostgreSQL agar database tidak overload
+	result, err := r.RedisClient.AdmitNextBatchAdaptive(ctx, eventID, int64(batchSize), 5*time.Minute, r.EventRepo)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Printf("🎟️ [Waiting Room] Admitted %d users for event %s", len(admittedUsers), eventID)
-	return admittedUsers, nil
+	log.Printf("🎟️ [Waiting Room Adaptive Gate] Event: %s | Status: %s | Latency: %v | Target: %d -> Admitted: %d users",
+		eventID, result.HealthStatus, result.DownstreamLatency, result.OriginalBatchSize, len(result.AdmittedUsers))
+	return result.AdmittedUsers, nil
 }
 
 // SetGateMode is the resolver for the setGateMode field.

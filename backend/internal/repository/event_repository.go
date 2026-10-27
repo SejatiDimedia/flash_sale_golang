@@ -34,6 +34,7 @@ type EventRepository interface {
 	UpdateAvailableStock(ctx context.Context, id string, newStock int) error
 	DeductAvailableStock(ctx context.Context, id string, qty int) error
 	RestoreAvailableStock(ctx context.Context, id string, qty int) error
+	Ping(ctx context.Context) error
 }
 
 type eventRepository struct {
@@ -195,5 +196,10 @@ func (r *eventRepository) RestoreAvailableStock(ctx context.Context, id string, 
 	`
 	_, err := r.db.Exec(ctx, query, qty, id)
 	return err
+}
+
+// Ping memeriksa konektivitas dan latensi ke pool database PostgreSQL
+func (r *eventRepository) Ping(ctx context.Context) error {
+	return r.db.Ping(ctx)
 }
 

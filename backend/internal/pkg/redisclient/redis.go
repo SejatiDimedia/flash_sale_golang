@@ -230,6 +230,114 @@ func (r *RedisClient) AdmitNextBatch(ctx context.Context, eventID string, batchS
 	return userIDs, nil
 }
 
+// SystemHealthStatus melambangkan kondisi beban database downstream
+type SystemHealthStatus string
+
+const (
+	StatusOptimal  SystemHealthStatus = "OPTIMAL"  // Latency < 20ms: DB sangat lega, scale-up batch size (1.5x)
+	StatusNominal  SystemHealthStatus = "NOMINAL"  // 20ms <= Latency <= 50ms: DB normal, gunakan base batch size
+	StatusDegraded SystemHealthStatus = "DEGRADED" // 50ms < Latency <= 100ms: DB mulai tertekan, kurangi batch size (50%)
+	StatusCritical SystemHealthStatus = "CRITICAL" // Latency > 100ms atau DB Error: Proteksi darurat, throttle ke batas minimum
+)
+
+// AdaptiveBatchResult merangkum hasil penyesuaian dinamis gerbang antrean
+type AdaptiveBatchResult struct {
+	AdmittedUsers     []string           `json:"admitted_users"`
+	OriginalBatchSize int64              `json:"original_batch_size"`
+	AdaptedBatchSize  int64              `json:"adapted_batch_size"`
+	DownstreamLatency time.Duration      `json:"downstream_latency"`
+	HealthStatus      SystemHealthStatus `json:"health_status"`
+	ScaleFactor       float64            `json:"scale_factor"`
+}
+
+// DBPinger merepresentasikan komponen downstream (seperti PostgreSQL pool atau repository) yang dapat di-ping
+type DBPinger interface {
+	Ping(ctx context.Context) error
+}
+
+// CalculateAdaptiveBatch menghitung ukuran batch dinamis berdasarkan latensi dan error status downstream (US-13)
+func CalculateAdaptiveBatch(baseBatch int64, latency time.Duration, hasError bool) (int64, SystemHealthStatus, float64) {
+	if baseBatch <= 0 {
+		baseBatch = 50
+	}
+
+	minBatch := int64(10)
+	if baseBatch < minBatch {
+		minBatch = baseBatch
+	}
+	maxBatch := baseBatch * 2
+
+	if hasError || latency > 100*time.Millisecond {
+		scaleFactor := float64(minBatch) / float64(baseBatch)
+		return minBatch, StatusCritical, scaleFactor
+	}
+
+	if latency > 50*time.Millisecond {
+		adapted := baseBatch / 2
+		if adapted < minBatch {
+			adapted = minBatch
+		}
+		scaleFactor := float64(adapted) / float64(baseBatch)
+		return adapted, StatusDegraded, scaleFactor
+	}
+
+	if latency > 20*time.Millisecond {
+		return baseBatch, StatusNominal, 1.0
+	}
+
+	// Latency <= 20ms: Kondisi optimal, tingkatkan throughput antrean (150% kapasitas)
+	adapted := int64(float64(baseBatch) * 1.5)
+	if adapted > maxBatch {
+		adapted = maxBatch
+	}
+	scaleFactor := float64(adapted) / float64(baseBatch)
+	return adapted, StatusOptimal, scaleFactor
+}
+
+// AdmitNextBatchAdaptive meloloskan user dengan ukuran batch yang disesuaikan secara dinamis
+// berdasarkan kesehatan dan latensi database (Adaptive Concurrency Control).
+func (r *RedisClient) AdmitNextBatchAdaptive(
+	ctx context.Context,
+	eventID string,
+	baseBatch int64,
+	passTTL time.Duration,
+	pinger DBPinger,
+) (*AdaptiveBatchResult, error) {
+	var latency time.Duration
+	var hasError bool
+
+	if pinger != nil {
+		start := time.Now()
+		pingCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+		err := pinger.Ping(pingCtx)
+		cancel()
+		latency = time.Since(start)
+		if err != nil {
+			hasError = true
+		}
+	} else {
+		// Jika pinger tidak diberikan, asumsikan nominal latency
+		latency = 30 * time.Millisecond
+	}
+
+	adaptedBatch, healthStatus, scaleFactor := CalculateAdaptiveBatch(baseBatch, latency, hasError)
+
+	admittedUsers, err := r.AdmitNextBatch(ctx, eventID, adaptedBatch, passTTL)
+	if err != nil {
+		return nil, err
+	}
+
+	return &AdaptiveBatchResult{
+		AdmittedUsers:     admittedUsers,
+		OriginalBatchSize: baseBatch,
+		AdaptedBatchSize:  adaptedBatch,
+		DownstreamLatency: latency,
+		HealthStatus:      healthStatus,
+		ScaleFactor:       scaleFactor,
+	}, nil
+}
+
+
 // SetGateMode menyimpan mode Waiting Room untuk suatu event ("AUTO" atau "MANUAL")
 func (r *RedisClient) SetGateMode(ctx context.Context, eventID, mode string) error {
 	key := fmt.Sprintf("waiting_room:gate_mode:%s", eventID)
