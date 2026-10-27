@@ -1,362 +1,232 @@
 # Product Requirements Document (PRD)
 ## Flash Sale / Event Ticketing Platform
 
-**Versi:** 1.0
-**Tanggal:** 24 Agustus 2026
-**Status:** Draft
-**Tech Stack:** Golang, GraphQL, React, TanStack Query, PostgreSQL, Redis, RabbitMQ
+**Versi:** 2.0 (High-Concurrency & Scalability Hardening)  
+**Tanggal:** 27 Oktober 2026  
+**Status:** In Progress  
+**Tech Stack:** Golang, GraphQL (gqlgen), React, TanStack Query, PostgreSQL 16, Redis 7, RabbitMQ 3, Prometheus, Grafana, Midtrans Snap  
 
 ---
 
 ## 1. Latar Belakang & Tujuan
 
 ### 1.1 Problem Statement
-Penjualan tiket event/produk dengan stok terbatas (flash sale) sering menghadapi masalah:
-- **Overselling** — stok terjual melebihi kapasitas karena race condition saat traffic tinggi.
-- **Latency tinggi** saat lonjakan trafik bersamaan (thundering herd).
-- **User experience buruk** — user tidak tahu posisi antrian, checkout gagal tanpa penjelasan jelas.
-- **Sistem tidak tangguh** terhadap bot/scalper yang memborong stok.
+Penjualan tiket konser atau produk edisi terbatas (flash sale) memiliki karakteristik trafik yang ekstrem (*Thundering Herd* / *Flash Crowd*):
+- **Overselling**: Stok fisik terjual melebihi kapasitas riil karena *race condition* saat ribuan request masuk di milidetik yang sama.
+- **Database Lock Contention**: Database relasional kolaps akibat antrean *row lock* (`SELECT ... FOR UPDATE`) dan kehabisan *connection pool*.
+- **Cache Stampede / Dogpiling**: Saat cache kedaluwarsa pada detik ke nol, ribuan request membaca katalog secara bersamaan dan langsung membebani database utama.
+- **Serangan Bot & Calo (Scalper)**: Skrip otomatis menembakkan puluhan request per milidetik, menghabiskan kuota dan menyingkirkan pembeli manusia.
+- **Cascading Failure**: Keterlambatan respons dari pihak ketiga (Payment Gateway) menahan ribuan goroutine hingga server kehabisan memori (*OOM*).
 
 ### 1.2 Tujuan Produk
-Membangun platform flash sale yang:
-1. Menjamin **konsistensi stok** (tidak ada oversell) meski diakses ribuan user bersamaan.
-2. Memberikan **update status real-time** (antrian, stok, status order) ke user.
-3. Memisahkan proses **kritikal (locking stok)** dari proses **non-kritikal (notifikasi, invoice)** menggunakan arsitektur event-driven.
-4. Menjadi showcase teknis: Go concurrency, GraphQL API/subscription, Redis caching & locking, RabbitMQ async processing.
+Membangun platform flash sale dan ticketing skala enterprise yang:
+1. Menjamin **konsistensi stok 100% (Zero-Overselling)** di bawah beban ribuan hingga puluhan ribu request per detik.
+2. Menerapkan **Virtual Waiting Room Adaptif** berbasis Redis ZSET untuk menertibkan trafik lonjakan tanpa menumbangkan database.
+3. Melindungi pembacaan katalog dari **Cache Stampede** menggunakan utilitas konkurensi Go `sync/singleflight`.
+4. Menerapkan **Distributed Rate Limiting** untuk memfilter bot dan calo sebelum request masuk ke antrean kritis.
+5. Memiliki ketahanan terhadap kegagalan downstream menggunakan **Circuit Breaker** dan **Dead-Letter Queue (DLQ)**.
+6. Menyediakan update status pesanan dan kuota secara **real-time** melalui WebSocket GraphQL Subscription.
 
 ### 1.3 Target Pengguna
-- **End User** — membeli tiket/produk flash sale.
-- **Admin/Organizer** — membuat event, mengatur stok, memantau penjualan.
+- **End User**: Membeli tiket konser atau produk flash sale dengan pengalaman antrean yang transparan dan bebas pesanan ganda.
+- **Admin/Organizer**: Mengelola jadwal event, kuota tiket, mengendalikan gerbang antrean (manual/auto), dan memantau analitik secara real-time.
 
 ---
 
 ## 2. Scope
 
-### 2.1 In Scope (MVP)
-- Manajemen event & produk (CRUD oleh admin).
-- Mekanisme antrian & flash sale checkout dengan stok terbatas.
-- Real-time update status stok & antrian ke frontend.
-- Order processing asynchronous (payment simulasi, invoice, notifikasi).
-- Autentikasi user (register/login, JWT).
-- Dashboard admin sederhana (statistik penjualan real-time).
+### 2.1 Fitur yang Sudah Selesai (Fase 1 - 4)
+- Autentikasi pengguna berbasis JWT dengan auto-seeding akun admin.
+- Manajemen event dan kuota tiket dengan proteksi anti-scalping (maksimal tiket per akun).
+- Virtual Waiting Room berbasis Redis Sorted Set (ZSET FIFO) dengan *Single-Use Checkout Pass*.
+- Dual-Layer Stock Protection: Pengurangan stok atomik via Redis Lua Script + SQL conditional update di PostgreSQL.
+- Idempotency Key Guard berbasis Redis SetNX untuk mencegah pesanan dan tagihan duplikat.
+- Pemrosesan asinkron RabbitMQ dengan Worker Pool 10 goroutine, retry exponential backoff, dan routing ke Dead-Letter Queue (DLQ).
+- Siklus pembayaran Midtrans Snap simulator dengan dukungan multi-channel (QRIS dinamis, Virtual Account, Kartu Kredit).
+- Penerbitan E-Tiket otomatis dengan dual scanner: 1D Barcode (Code-128) dan 2D QR Code verifikasi.
+- Worker Rekonsiliasi Otomatis untuk mengaudit integritas stok dan membatalkan pesanan kedaluwarsa (> 10 menit).
+- Monitoring terintegrasi dengan Prometheus Metrics dan Grafana Dashboard.
 
-### 2.2 Out of Scope (MVP)
-- Payment gateway asli (pakai payment simulasi/sandbox dulu).
-- Sistem refund kompleks.
-- Multi-tenant / multi-organizer marketplace.
-- Native mobile app (fokus web/React dulu).
-- Sistem anti-bot canggih (captcha dasar saja).
+### 2.2 Fitur Baru: Enterprise Scalability & Hardening (Fase 5)
+- **Distributed Rate Limiting (Token Bucket / Sliding Window)**: Membatasi frekuensi request per IP/User ID via Redis untuk menangkis bot calo.
+- **Cache Stampede Protection (`sync/singleflight`)**: Mengonsolidasikan ribuan request pembacaan event yang terjadi bersamaan menjadi satu query database tunggal.
+- **Adaptive Waiting Room Admission**: Mengatur laju pelepasan antrean secara dinamis berdasarkan metrik kesehatan database dan antrean pesan (*congestion control*).
+- **Circuit Breaker Pattern (`sony/gobreaker`)**: Memutus sementara panggilan ke Payment Gateway jika terjadi degradasi atau timeout ekstrem untuk mengisolasi risiko.
 
 ---
 
-## 3. User Stories & Fitur
+## 3. User Stories & Kriteria Penerimaan
 
 ### 3.1 End User
+| ID | User Story | Kriteria Penerimaan | Prioritas |
+|---|---|---|---|
+| US-01 | Sebagai user, saya bisa melihat katalog event flash sale | Data tersaji cepat dari cache Redis dengan proteksi singleflight | Must |
+| US-02 | Sebagai user, saya masuk ke ruang tunggu (waiting room) saat trafik padat | Mendapatkan nomor antrean FIFO yang diperbarui live | Must |
+| US-03 | Sebagai user, saya menerima checkout pass saat giliran tiba | Pass bertipe one-time token dengan masa kedaluwarsa singkat | Must |
+| US-04 | Sebagai user, saya bisa membeli tiket dengan jaminan tidak oversold | Stok terpotong atomik, respons instan berstatus PENDING | Must |
+| US-05 | Sebagai user, saya tidak akan ditagih ganda jika klik berulang kali | Idempotency guard mengembalikan ID order yang sama | Must |
+| US-06 | Sebagai user, saya bisa membayar via Midtrans (QRIS/VA/Card) | Pembayaran terverifikasi langsung via webhook atau simulator | Must |
+| US-07 | Sebagai user, saya menerima e-tiket dengan Barcode & QR Code | Barcode Code-128 dan QR Code bisa di-scan di gate fisik | Must |
 
-| ID | User Story | Prioritas |
-|----|------------|-----------|
-| US-01 | Sebagai user, saya bisa melihat daftar event flash sale yang akan datang | Must |
-| US-02 | Sebagai user, saya bisa melihat detail event (waktu mulai, stok, harga) | Must |
-| US-03 | Sebagai user, saya bisa masuk ke "waiting room" beberapa saat sebelum sale dimulai | Must |
-| US-04 | Sebagai user, saya menerima update real-time posisi antrian saya | Must |
-| US-05 | Sebagai user, saya bisa melakukan checkout saat giliran saya tiba | Must |
-| US-06 | Sebagai user, saya mendapat notifikasi jika checkout berhasil/gagal (stok habis) | Must |
-| US-07 | Sebagai user, saya bisa melihat riwayat order saya | Should |
-| US-08 | Sebagai user, saya menerima invoice/e-tiket via notifikasi in-app/email | Should |
-| US-09 | Sebagai user, saya dibatasi maksimal N tiket per akun untuk mencegah scalping | Should |
+### 3.2 Admin & Organizer
+| ID | User Story | Kriteria Penerimaan | Prioritas |
+|---|---|---|---|
+| US-08 | Sebagai admin, saya bisa membuat dan mengedit event | CRUD event tersimpan di PostgreSQL dan otomatis sinkron ke Redis | Must |
+| US-09 | Sebagai admin, saya bisa mengontrol gerbang antrean (Auto vs Manual) | Admin bisa membuka atau menahan batch antrean waiting room | Must |
+| US-10 | Sebagai admin, saya bisa memantau metrik penjualan real-time | Grafik kuota, throughput checkout, dan latency tersaji di dashboard | Should |
 
-### 3.2 Admin/Organizer
-
-| ID | User Story | Prioritas |
-|----|------------|-----------|
-| US-10 | Sebagai admin, saya bisa membuat event baru beserta stok & jadwal sale | Must |
-| US-11 | Sebagai admin, saya bisa mengubah/menutup event sebelum sale dimulai | Must |
-| US-12 | Sebagai admin, saya bisa memantau jumlah stok terjual secara real-time | Must |
-| US-13 | Sebagai admin, saya bisa melihat log antrian & order untuk audit | Should |
-| US-14 | Sebagai admin, saya bisa export laporan penjualan | Could |
+### 3.3 Sistem & Resiliensi (Fase 5 Hardening)
+| ID | System Story | Kriteria Penerimaan | Prioritas |
+|---|---|---|---|
+| US-11 | Sistem membatasi request per IP/User (Rate Limiter) | Request melebihi batas (misal > 10 req/s) menerima HTTP 429 | Must |
+| US-12 | Sistem mencegah Cache Stampede saat lonjakan pembacaan | 1.000 pembacaan bersamaan hanya menghasilkan 1 query database via singleflight | Must |
+| US-13 | Sistem mengatur laju antrean secara adaptif | Batch size waiting room mengecil jika latency DB > 50ms, dan membesar jika sistem sehat | Should |
+| US-14 | Sistem melindungi goroutine dari payment timeout (Circuit Breaker) | Circuit terbuka jika error rate > 30%, mengembalikan fallback tanpa menggantung | Should |
 
 ---
 
-## 4. Arsitektur Sistem
+## 4. Arsitektur Sistem Skala Tinggi
 
-### 4.1 High-Level Architecture
+### 4.1 Diagram Alur Data Enterprise
 
 ```
-┌─────────────┐      GraphQL Query/Mutation      ┌──────────────────┐
-│   React     │ ───────────────────────────────► │   Go Backend      │
-│  Frontend   │ ◄─────────────────────────────── │  (gqlgen server)  │
-│             │      GraphQL Subscription (WS)    │                   │
-└─────────────┘                                    └───────┬───────────┘
-                                                             │
-                        ┌────────────────────────────────────┼──────────────────────┐
-                        │                                    │                      │
-                        ▼                                    ▼                      ▼
-                ┌───────────────┐                  ┌──────────────────┐   ┌──────────────────┐
-                │  PostgreSQL    │                  │      Redis        │   │    RabbitMQ       │
-                │ (source of     │                  │ - Stock counter   │   │ - order.created    │
-                │  truth: order, │                  │   (atomic decr)   │   │ - order.confirmed  │
-                │  event, user)  │                  │ - Distributed lock│   │ - notification.send│
-                └───────────────┘                  │ - Pub/Sub (fan-out│   └─────────┬────────┘
-                                                     │   subscription)   │             │
-                                                     └────────────────────┘             ▼
-                                                                                ┌──────────────────┐
-                                                                                │  Worker Pool       │
-                                                                                │ (goroutines)       │
-                                                                                │ - Process order     │
-                                                                                │ - Generate invoice  │
-                                                                                │ - Send notification │
-                                                                                └──────────────────┘
+                               ┌────────────────────────────────────────────────────────┐
+                               │                    KLIEN / PENGGUNA                    │
+                               └───────────────────────────┬────────────────────────────┘
+                                                           │
+                                                           ▼
+                                         ┌───────────────────────────────────┐
+                                         │   Rate Limiter (Token Bucket)     │
+                                         │   Filter Bot & Request Spam (429) │
+                                         └─────────────────┬─────────────────┘
+                                                           │ (Lolos)
+                                                           ▼
+                                         ┌───────────────────────────────────┐
+                                         │   Virtual Waiting Room (ZSET)     │
+                                         │   Antrean FIFO + Adaptive Gate    │
+                                         └─────────────────┬─────────────────┘
+                                                           │ (Batch Admission)
+                                                           ▼
+                                         ┌───────────────────────────────────┐
+                                         │   GraphQL Inbound Controller      │
+                                         │   (Query, Mutation, Subscription) │
+                                         └─────────┬───────────────┬─────────┘
+                                                   │               │
+                         ┌─────────────────────────┘               └─────────────────────────┐
+                         ▼                                                                   ▼
+       ┌───────────────────────────────────┐                               ┌───────────────────────────────────┐
+       │   Jalur Baca (Query Katalog)      │                               │   Jalur Tulis (Checkout Mutasi)   │
+       │   sync/singleflight + Cache Redis │                               │   Idempotency Lock (Redis SetNX)  │
+       └─────────────────┬─────────────────┘                               └─────────────────┬─────────────────┘
+                         │                                                                   │
+                         ▼                                                                   ▼
+       ┌───────────────────────────────────┐                               ┌───────────────────────────────────┐
+       │   PostgreSQL (Replica / Cache)    │                               │   Atomic Stock Decr (Redis Lua)   │
+       └───────────────────────────────────┘                               └─────────────────┬─────────────────┘
+                                                                                             │ (Stok Terkunci)
+                                                                                             ▼
+                                                                           ┌───────────────────────────────────┐
+                                                                           │   RabbitMQ Topic Exchange         │
+                                                                           │   Durable Queue + DLQ Routing     │
+                                                                           └─────────────────┬─────────────────┘
+                                                                                             │
+                                                                                             ▼
+                                                                           ┌───────────────────────────────────┐
+                                                                           │   Worker Pool (10 Goroutines)     │
+                                                                           │   PostgreSQL Write + Circuit Breaker│
+                                                                           └───────────────────────────────────┘
 ```
 
-### 4.2 Alur Kritikal: Checkout Flash Sale
+### 4.2 Rincian Mekanisme Proteksi Konkurensi
 
-1. User klik "Buy" → GraphQL mutation `purchaseTicket(eventId, qty)`.
-2. Resolver mengecek rate limit user di Redis (cegah spam klik).
-3. Resolver melakukan **atomic decrement** stok di Redis (`DECRBY`), bukan langsung ke Postgres, untuk menghindari lock contention di database saat traffic tinggi.
-   - Jika hasil decrement < 0 → rollback (`INCRBY`) → return error "stok habis".
-   - Jika berhasil → lanjut ke step 4.
-4. Backend publish event `order.pending` ke RabbitMQ (exchange type: `direct` atau `topic`).
-5. Response cepat dikirim ke user: **"Order sedang diproses"** (status: PENDING) — request awal tidak menunggu proses DB penuh, sehingga latency checkout tetap rendah.
-6. **Worker pool** (goroutines, jumlah worker dikontrol via config) consume queue `order.pending`:
-   - Insert order ke PostgreSQL (source of truth) dalam transaksi.
-   - Publish `order.confirmed` → trigger notifikasi & invoice generation (consumer terpisah).
-7. GraphQL Subscription `orderStatusChanged(orderId)` mem-push update ke frontend secara real-time (dari Redis Pub/Sub yang di-relay ke WebSocket subscriber), sehingga user melihat status berubah dari PENDING → CONFIRMED tanpa refresh.
+1. **Jalur Masuk (Rate Limiting Layer)**:
+   Mencegah bot membanjiri server dengan memvalidasi kuota token di Redis. Request yang melanggar batas langsung ditolak sebelum menghabiskan alokasi memori aplikasi.
+2. **Jalur Pembacaan (Singleflight Cache Stampede)**:
+   Menggunakan `singleflight.Group` di Go. Jika kunci cache `event:{id}` habis masa berlakunya tepat saat lonjakan trafik, ribuan pembacaan hanya mengeksekusi 1 pemanggilan database. Hasil pemanggilan tersebut dibagikan secara serentak ke semua pemanggil.
+3. **Jalur Transaksi (Dual-Layer Locking)**:
+   - *Layer 1 (Memori)*: `DecrStockAtomic` via Redis Lua Script. Eksekusi atomik single-threaded memastikan tidak ada dua transaksi yang membaca sisa kuota yang sama.
+   - *Layer 2 (Database)*: SQL update bersyarat `UPDATE events SET available_stock = available_stock - $1 WHERE id = $2 AND available_stock >= $1`. Jika terjadi selisih, sistem memicu *compensating rollback* ke Redis.
+4. **Jalur Asinkron (Worker Pool & DLQ)**:
+   Setelah stok aman, order disimpan dengan status `PENDING`. Worker pool Go memproses penulisan audit log dan integrasi pembayaran secara teratur. Jika terjadi error berulang 3 kali, pesan dialihkan ke antrean `order_processing_dlq` dengan header `x-failure-reason` untuk audit manual.
+5. **Jalur Toleransi Kegagalan (Circuit Breaker)**:
+   Panggilan HTTP ke layanan eksternal (Midtrans API) dibungkus oleh Circuit Breaker. Jika layanan eksternal mengalami timeout atau lonjakan error di atas ambang batas, sirkuit akan terbuka (*OPEN*) sehingga request berikutnya langsung menerima fallback cepat tanpa menggantung goroutine server.
 
-### 4.3 Kenapa Redis untuk Stock Lock (bukan langsung DB)
-- Redis single-threaded per command → operasi `DECRBY` atomik secara natural, cocok untuk high-concurrency counter tanpa perlu row-level lock di Postgres yang bisa jadi bottleneck.
-- Postgres tetap jadi source of truth final — job worker yang menuliskan hasil final ke DB dalam transaksi, dengan reconciliation job berkala untuk memastikan Redis counter selalu sinkron dengan DB.
+---
 
-### 4.4 Kenapa RabbitMQ (bukan langsung proses sync)
-- Memisahkan **critical path** (validasi stok, respon cepat ke user) dari **non-critical path** (simpan ke DB, generate invoice, kirim notifikasi) → checkout tetap responsif meski proses downstream lambat.
-- Kalau service notifikasi/invoice down sementara, order tidak hilang — tetap ada di queue, bisa diproses ulang (durable queue + retry + dead-letter queue).
+## 5. Matriks Pola Konkurensi Go
 
-### 4.5 Frontend Data Layer
-
-Frontend menggunakan kombinasi dua client library, dipisah sesuai jenis komunikasi ke backend:
-
-| Layer | Library | Fungsi |
+| Komponen | Pola Konkurensi Go | Fungsi & Keuntungan |
 |---|---|---|
-| Query & Mutation (request-response) | **TanStack Query** + `graphql-request` | Fetch daftar event, detail event, riwayat order, mutation `purchaseTicket` — dengan caching otomatis, retry, loading/error state bawaan, dan optimistic update saat checkout |
-| Subscription (real-time push) | **`graphql-ws`** (WebSocket client) | Menerima update `orderStatusChanged` dan `stockUpdated` dari server secara real-time |
-| Tabel data (dashboard admin) | **TanStack Table** | Sorting, filtering, pagination untuk log order/antrian di dashboard admin |
-
-**Alasan pemilihan:**
-- `graphql-request` dipilih sebagai GraphQL client dasar karena ringan (dibanding Apollo Client yang membawa banyak fitur bawaan yang belum tentu terpakai di MVP ini).
-- **TanStack Query** menjadi state management layer di atas `graphql-request` — menghandle caching, stale-while-revalidate, `refetchInterval` (berguna sebagai fallback polling stok jika koneksi WebSocket subscription terputus), serta optimistic UI saat user klik "Buy" (state langsung berubah, rollback otomatis kalau mutation gagal).
-- Subscription **tidak dihandle oleh TanStack Query** (bukan cakupannya) — sehingga tetap perlu client WebSocket terpisah (`graphql-ws`) khusus untuk fitur real-time.
-- Routing menggunakan **React Router** (bukan TanStack Router) — dipilih karena lebih standar dan dokumentasinya lebih luas, sehingga fokus belajar bisa lebih diarahkan ke sisi backend (concurrency, Redis, RabbitMQ) yang menjadi centerpiece project ini. TanStack Router tetap bisa jadi opsi eksplorasi lanjutan di luar MVP.
-
----
-
-## 5. Desain Concurrency (Go)
-
-| Komponen | Pola Concurrency |
-|----------|-------------------|
-| Worker pool untuk consume RabbitMQ | Fixed-size goroutine pool (misal 10–50 worker), diambil dari channel job queue |
-| Graceful shutdown | `context.Context` + `sync.WaitGroup` untuk memastikan job yang sedang jalan selesai sebelum service mati |
-| Rate limiting per user | Token bucket / sliding window di Redis, dicek sebelum masuk proses checkout |
-| GraphQL Subscription fan-out | Goroutine per koneksi WebSocket, broadcast via channel yang di-subscribe dari Redis Pub/Sub |
-| Reconciliation job | Goroutine terpisah (cron-like, via `time.Ticker`) untuk sinkronisasi stok Redis vs Postgres berkala |
+| **Pembacaan Katalog** | `golang.org/x/sync/singleflight` | Mencegah Cache Stampede (Dogpiling) pada database saat lonjakan pembacaan |
+| **Worker Pemrosesan Order** | Bounded Goroutine Pool (10 workers) + Channel | Membatasi konkurensi agar tidak membanjiri koneksi database relasional |
+| **Pencegahan Bot** | Token Bucket / Sliding Window di Redis | Membatasi laju request per IP/User di layer middleware |
+| **Waiting Room Gate** | Adaptive Controller via `time.Ticker` | Mengatur ukuran batch lolos antrean berdasarkan latensi database riil |
+| **Panggilan Downstream** | Circuit Breaker (`sony/gobreaker`) | Memutus koneksi macet ke pihak ketiga untuk mencegah kebocoran goroutine |
+| **Graceful Shutdown** | `context.Context` + `sync.WaitGroup` + OS Signals | Menunggu worker menyelesaikan transaksi yang berjalan sebelum server mati |
+| **Real-time Push** | Goroutine per WebSocket Client + Redis Pub/Sub | Mendorong update status order dan kuota secara instan tanpa polling berat |
+| **Auto-Reconciliation** | Background Daemon Goroutine (`time.Ticker`) | Membersihkan order kedaluwarsa dan mengaudit integritas kuota setiap menit |
 
 ---
 
-## 6. Data Model (Ringkas)
+## 6. Model Data & Skema Database
 
-### 6.1 Entities
+### 6.1 Relasional (PostgreSQL 16)
+- **users**: `id` (UUID), `name`, `email`, `password_hash`, `role` (admin/user), `created_at`
+- **events**: `id` (UUID), `name`, `description`, `category`, `price`, `total_stock`, `available_stock`, `start_sale_at`, `end_sale_at`, `status`
+- **orders**: `id` (UUID), `user_id`, `event_id`, `quantity`, `total_price`, `status` (PENDING/CONFIRMED/CANCELLED), `created_at`, `updated_at`
+- **order_logs**: `id` (UUID), `order_id`, `action`, `payload` (JSONB), `created_at`
 
-**User**
-- id, name, email, password_hash, created_at
+### 6.2 Pola Penyimpanan Redis
+- `stock:{event_id}`: Integer kuota tiket aktif.
+- `waiting_room:{event_id}`: Sorted Set (ZSET) dengan score milidetik kedatangan untuk antrean FIFO.
+- `checkout_pass:{event_id}:{user_id}`: Kunci izin checkout sekali pakai dengan masa berlaku 5 menit.
+- `idempotency:{key}`: Kunci pencegahan transaksi duplikat dengan status PROCESSING/COMPLETED (TTL 24 jam).
+- `rate_limit:{ip}:{endpoint}`: Counter frekuensi akses dengan jendela waktu geser (*sliding window*).
 
-**Event**
-- id, name, description, start_sale_at, end_sale_at, total_stock, price, status (draft/scheduled/active/closed)
-
-**Order**
-- id, user_id, event_id, quantity, status (PENDING/CONFIRMED/FAILED/CANCELLED), created_at, confirmed_at
-
-**OrderLog / AuditLog**
-- id, order_id, event_type, payload, created_at
-
-### 6.2 Redis Keys (contoh)
-- `stock:{event_id}` → integer counter stok tersedia
-- `rate_limit:{user_id}:{event_id}` → counter dengan TTL untuk anti-spam
-- `queue_position:{event_id}:{user_id}` → posisi antrian (opsional, untuk waiting room)
-
-### 6.3 RabbitMQ Exchanges/Queues (contoh)
-- Exchange: `order_events` (topic)
-  - Routing key `order.pending` → queue `order_processing`
-  - Routing key `order.confirmed` → queue `notification_queue`, `invoice_queue`
-  - Dead-letter queue: `order_processing_dlq` (untuk order yang gagal diproses berkali-kali)
+### 6.3 Topologi RabbitMQ
+- **Exchange Utama**: `order_events` (Topic Exchange, durable: true).
+  - Routing Key `order.created` -> Queue `order_processing`
+  - Routing Key `order.confirmed` -> Event downstream untuk tiket dan analitik
+- **Dead-Letter Exchange**: `order_events_dlx` (Direct Exchange).
+  - Routing Key `order.dlq` -> Queue `order_processing_dlq`
 
 ---
 
-## 7. GraphQL API (Contoh Skema Tingkat Tinggi)
+## 7. Target Kualitas & Non-Functional Requirements (NFR)
 
-```graphql
-type Event {
-  id: ID!
-  name: String!
-  description: String
-  startSaleAt: Time!
-  endSaleAt: Time!
-  totalStock: Int!
-  availableStock: Int!
-  price: Float!
-  status: EventStatus!
-}
-
-type Order {
-  id: ID!
-  event: Event!
-  quantity: Int!
-  status: OrderStatus!
-  createdAt: Time!
-}
-
-enum OrderStatus {
-  PENDING
-  CONFIRMED
-  FAILED
-  CANCELLED
-}
-
-type Query {
-  events(status: EventStatus): [Event!]!
-  event(id: ID!): Event
-  myOrders: [Order!]!
-}
-
-type Mutation {
-  purchaseTicket(eventId: ID!, quantity: Int!): Order!
-}
-
-type Subscription {
-  orderStatusChanged(orderId: ID!): Order!
-  stockUpdated(eventId: ID!): Event!
-}
-```
+| Kategori | Target Spesifikasi | Metode Pengujian |
+|---|---|---|
+| **Konsistensi Stok** | 0% Overselling (Tepat 100 tiket teralokasi dari 2.000+ request serentak) | k6 Concurrent Stress Test & Integration Test |
+| **Ketersediaan & Stabilitas** | 0.00% Server Crash / HTTP 500 Error di bawah beban puncak | Pengujian beban k6 dengan ambang batas failure rate |
+| **Latensi Transaksi** | p95 Latency < 200ms pada mutasi checkout berbeban tinggi | Metrik Prometheus `http_request_duration_seconds` |
+| **Ketahanan Bot** | Memblokir > 95% request spam sebelum menyentuh antrean kritis | Simulasi penembakan request agresif per IP |
+| **Mitigasi Stampede** | Maksimal 1 query ke database saat kunci cache kadaluwarsa di bawah 1.000 pembaca | Unit test konkurensi Go menggunakan mock database counter |
+| **Isolasi Kegagalan** | Goroutine tidak bertambah saat API eksternal timeout | Uji simulasi latensi pihak ketiga dengan Circuit Breaker aktif |
 
 ---
 
-## 8. Non-Functional Requirements
+## 8. Roadmap Pengembangan
 
-| Kategori | Requirement |
-|----------|-------------|
-| Performance | Response time mutation `purchaseTicket` < 300ms (p95) pada beban simulasi 1000 concurrent user |
-| Consistency | Zero oversell — stok akhir di DB tidak boleh melebihi total_stock, diverifikasi via automated test |
-| Scalability | Backend stateless, bisa di-scale horizontal (state antrian/lock disimpan di Redis, bukan in-memory app) |
-| Reliability | Order tidak boleh hilang jika worker crash — queue durable, message acknowledgment manual |
-| Observability | Structured logging, metrics dasar (jumlah order/detik, queue length, error rate) |
-| Security | Password hashing (bcrypt/argon2), JWT auth, rate limiting, input validation di resolver |
-
----
-
-## 9. Testing & Validasi
-
-- **Unit test** — logika bisnis inti (validasi stok, kalkulasi, dsb).
-- **Integration test** — resolver GraphQL + Redis + RabbitMQ (bisa pakai `testcontainers-go`).
-- **Load test** — simulasi flash sale nyata menggunakan `k6` atau `hey`, contoh skenario: 2000 virtual user checkout stok 100 tiket dalam 1 menit, verifikasi stok akhir = 0 dan order confirmed = 100 (tidak lebih).
-- **Chaos test (opsional)** — matikan worker/consumer di tengah proses untuk memastikan message tidak hilang (requeue bekerja).
+| Fase | Target Utama | Status |
+|---|---|---|
+| **Fase 1: Core Foundation** | Inisialisasi arsitektur, auth JWT, model PostgreSQL, Redis stock lock dasar, RabbitMQ worker | Selesai |
+| **Fase 2: Real-Time Experience** | Integrasi GraphQL Subscriptions (WebSocket), Virtual Waiting Room ZSET, Single-Use Pass | Selesai |
+| **Fase 3: Idempotency & Resiliency** | Idempotency Key Guard, Retry Exponential Backoff, Dead-Letter Queue (DLQ), Auto-Reconciliation Worker | Selesai |
+| **Fase 4: End-to-End Delivery** | Midtrans Payment Simulator, Penerbitan E-Tiket Barcode/QR, Refactoring HTTP Handlers modular | Selesai |
+| **Fase 5: Scalability & Hardening** | Distributed Rate Limiter, Cache Stampede Mitigation (`singleflight`), Adaptive Waiting Room, Circuit Breaker | **Fokus Saat Ini** |
 
 ---
 
-## 10. CI/CD & DevOps
+## 9. Rencana Implementasi Fase 5
 
-### 10.1 Tujuan
-Memastikan setiap perubahan kode teruji otomatis (terutama logika concurrency & stock consistency) sebelum masuk ke branch utama, serta deployment yang konsisten dan repeatable.
-
-### 10.2 Tools
-| Kebutuhan | Tools |
-|---|---|
-| CI/CD Runner | GitHub Actions (gratis untuk public repo) |
-| Containerization | Docker & Docker Compose |
-| Container Registry | GitHub Container Registry (GHCR) |
-| Deployment Backend | Railway / Render / Fly.io |
-| Deployment Frontend | Vercel / Netlify (auto-deploy dari Git) |
-| DB Migration | `golang-migrate` |
-
-### 10.3 Continuous Integration (CI) — jalan tiap push/PR
-
-| Stage | Detail |
-|---|---|
-| Lint | `golangci-lint` (Go), `eslint` (React) |
-| Unit Test | `go test ./...`, `npm test` |
-| Integration Test | Service containers Postgres, Redis, RabbitMQ di GitHub Actions runner → test resolver GraphQL end-to-end, termasuk skenario race condition (misal N goroutine checkout stok terbatas secara bersamaan, verifikasi tidak ada oversell) |
-| Build | `go build`, `npm run build` — memastikan tidak ada error compile |
-| Docker Image Build | Build & push image backend/frontend ke GHCR (hanya di branch `main`) |
-
-### 10.4 Continuous Deployment (CD) — jalan setelah CI sukses di `main`
-
-| Stage | Detail |
-|---|---|
-| DB Migration | Jalankan migration otomatis sebelum versi baru live |
-| Deploy Backend | Push image ke Railway/Render/Fly.io |
-| Deploy Frontend | Auto-deploy via Vercel/Netlify (connect ke repo) |
-| Smoke Test | Hit endpoint health-check pasca deploy untuk verifikasi service up dan terkoneksi ke Redis/RabbitMQ/Postgres |
-
-### 10.5 Struktur Workflow (Contoh)
-
-```
-.github/workflows/
-├── backend-ci.yml     # lint, unit test, integration test, build Go
-├── frontend-ci.yml    # lint, unit test, build React
-└── deploy.yml         # build & push docker image, migration, trigger deploy
-```
-
-### 10.6 Branching Strategy (Sederhana)
-- `main` — selalu deployable, trigger CD otomatis.
-- `develop` — integrasi fitur sebelum ke `main` (opsional untuk MVP, bisa disederhanakan langsung feature branch → `main` via PR).
-- `feature/*` — satu branch per fitur/user story, wajib lolos CI sebelum merge (branch protection rule).
-
-### 10.7 Manfaat Tambahan untuk Portfolio
-Pipeline CI yang menjalankan test konsistensi stok otomatis pada tiap PR menjadi bukti konkret kualitas engineering — bisa didemokan langsung saat interview (screenshot/link ke Actions run yang hijau, atau video singkat proses race condition ke-detect sebelum merge).
-
----
-
-## 11. Metodologi & Pendekatan Pengerjaan
-
-### 11.1 Pendekatan Development
-Project ini dikerjakan secara **hands-on oleh developer sendiri**, dengan bantuan **Antigravity** (AI coding assistant) sebagai **pemandu/guide**, bukan sebagai eksekutor otomatis. Prinsip yang dipegang:
-
-- **Antigravity berperan sebagai mentor/pair-programmer** — memberi arahan flow, best practice, dan penjelasan konsep (misalnya kenapa pakai Redis atomic decrement, kenapa worker pool perlu graceful shutdown), tapi **eksekusi kode dilakukan sendiri** oleh developer.
-- Tujuannya adalah **pembelajaran mendalam**, bukan sekadar menghasilkan project jadi — sehingga developer benar-benar memahami setiap keputusan arsitektur dan bisa menjelaskannya secara mandiri (penting untuk konteks interview/portfolio).
-- Setiap fitur dikerjakan dengan alur: **pahami requirement → diskusi/tanya flow ke Antigravity → tulis kode sendiri → review & debug sendiri → validasi dengan test**.
-
-### 11.2 Implikasi ke Roadmap
-- Kecepatan pengerjaan mengikuti ritme belajar, bukan dikejar output maksimal secepatnya — roadmap di bawah bersifat fleksibel dan bisa disesuaikan ulang.
-- Dokumentasi proses (catatan belajar, keputusan teknis, trade-off yang diambil) sebaiknya dicatat berjalan seiring — ini juga jadi bahan berharga untuk storytelling di CV/portfolio/interview nantinya.
-
----
-
-## 12. Roadmap (Bertahap)
-
-| Fase | Fokus |
-|------|-------|
-| **Fase 1 — Core MVP** | Auth, CRUD event (admin), checkout dasar dengan Redis stock lock, order via RabbitMQ worker, GraphQL query/mutation |
-| **Fase 2 — Real-time UX** | GraphQL Subscription untuk status order & stok, waiting room/antrian |
-| **Fase 3 — Hardening** | Rate limiting, dead-letter queue & retry mechanism, reconciliation job, load testing |
-| **Fase 4 — Polish** | Dashboard admin analytics, export laporan, payment gateway sandbox (Midtrans) |
-
----
-
-## 13. Metrik Keberhasilan (untuk konteks portfolio/demo)
-
-- Tidak ada oversell dalam load test dengan berbagai skenario concurrency.
-- Latency checkout tetap stabil meski traffic dinaikkan bertahap (100 → 1000 → 5000 concurrent user).
-- Dokumentasi arsitektur & trade-off jelas (bisa dijelaskan saat interview).
-- Demo end-to-end: dari admin membuat event → user checkout → notifikasi diterima, semua real-time.
-
----
-
-## 14. Lampiran: Asumsi & Risiko
-
-**Asumsi:**
-- Payment diasumsikan sukses otomatis (simulasi) pada MVP, integrasi payment gateway asli menyusul di fase lanjutan.
-- Single event server (bisa di-scale multi-instance karena state disimpan di Redis, bukan lokal).
-
-**Risiko:**
-- Redis sebagai single point of failure untuk stock lock — mitigasi: Redis Sentinel/Cluster di fase produksi, atau minimal snapshot/backup berkala untuk keperluan demo.
-- Reconciliation antara Redis dan Postgres bisa drift jika ada bug — mitigasi: reconciliation job berjalan berkala + alert jika ada selisih.
-
----
-
-*Dokumen ini adalah working draft dan dapat disesuaikan seiring perkembangan implementasi.*
+1. **Implementasi Distributed Rate Limiter**:
+   - Menambahkan middleware rate limiter berbasis Token Bucket / Sliding Window di `backend/internal/middleware/rate_limiter.go`.
+   - Mengonfigurasi batas akses per IP dan per user untuk endpoint kritis checkout dan antrean.
+2. **Implementasi `sync/singleflight` pada Event Service**:
+   - Membungkus pembacaan event di `backend/internal/service/event_service.go` dengan `singleflight.Group` untuk mencegah *Cache Stampede*.
+3. **Implementasi Circuit Breaker pada Klien Midtrans**:
+   - Menambahkan wrapper `gobreaker.CircuitBreaker` pada pemanggilan HTTP di `backend/internal/pkg/midtrans/client.go`.
+4. **Implementasi Adaptive Waiting Room Controller**:
+   - Menambahkan penyesuaian otomatis batch admission di `backend/internal/pkg/redisclient/redis.go` berdasarkan metrik beban sistem.
+5. **Validasi Beban Lanjutan**:
+   - Menjalankan k6 stress test untuk memverifikasi penolakan bot, efisiensi singleflight, dan proteksi circuit breaker.

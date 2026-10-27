@@ -304,3 +304,57 @@ func (r *RedisClient) ReleaseIdempotencyLock(ctx context.Context, userID, key st
 	redisKey := fmt.Sprintf("idempotency:%s:%s", userID, key)
 	return r.Client.Del(ctx, redisKey).Err()
 }
+
+// ==========================================
+// 🛡️ DISTRIBUTED RATE LIMITER (SLIDING WINDOW)
+// ==========================================
+
+// rateLimiterScript adalah skrip Lua atomik untuk algoritma Sliding Window Log berbasis Redis Sorted Set (ZSET).
+// Menghilangkan race condition antar-instance backend saat menghitung kuota request dalam window waktu.
+var rateLimiterScript = redis.NewScript(`
+	local key = KEYS[1]
+	local now = tonumber(ARGV[1])
+	local window = tonumber(ARGV[2])
+	local limit = tonumber(ARGV[3])
+	local clearBefore = now - window
+
+	-- 1. Hapus catatan request yang sudah kadaluwarsa di luar window
+	redis.call('ZREMRANGEBYSCORE', key, '-inf', clearBefore)
+
+	-- 2. Hitung jumlah request aktif dalam window saat ini
+	local currentRequests = redis.call('ZCARD', key)
+
+	-- 3. Jika masih di bawah batas limit, izinkan dan tambahkan timestamp request ini
+	if currentRequests < limit then
+		redis.call('ZADD', key, now, now)
+		redis.call('PEXPIRE', key, window)
+		return {1, limit - currentRequests - 1}
+	else
+		return {0, 0}
+	end
+`)
+
+// AllowRateLimit mengecek apakah request diizinkan berdasarkan Sliding Window Log di Redis.
+// Mengembalikan:
+// - allowed (bool): true jika request diizinkan, false jika melebihi batas.
+// - remaining (int64): sisa kuota request yang tersisa di dalam window saat ini.
+// - err (error): kegagalan koneksi ke Redis (bisa dijadikan acuan untuk fail-open).
+func (r *RedisClient) AllowRateLimit(ctx context.Context, key string, limit int, window time.Duration) (bool, int64, error) {
+	if r == nil || r.Client == nil {
+		return true, int64(limit), nil // Fail-open jika redis client tidak terpasang
+	}
+
+	nowMs := time.Now().UnixNano() / int64(time.Millisecond)
+	windowMs := window.Milliseconds()
+
+	res, err := rateLimiterScript.Run(ctx, r.Client, []string{key}, nowMs, windowMs, limit).Slice()
+	if err != nil {
+		return true, 0, fmt.Errorf("rate limiter redis error: %w", err)
+	}
+
+	allowedInt, _ := res[0].(int64)
+	remaining, _ := res[1].(int64)
+
+	return allowedInt == 1, remaining, nil
+}
+

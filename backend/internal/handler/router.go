@@ -57,6 +57,9 @@ func SetupRouter(deps RouterDependencies) *gin.Engine {
 	r.Use(middleware.RequestIDMiddleware())
 	r.Use(middleware.AuthMiddleware(deps.AuthService))
 	r.Use(metrics.PrometheusMiddleware())
+	// 🛡️ Pasang Distributed Rate Limiter (Anti-Bot & Flooding Guard: batas 30 req/detik per IP atau User)
+	r.Use(middleware.RateLimiterMiddleware(deps.RedisClient, 30, time.Second))
+
 
 	// 🏥 Health & Observability Endpoints
 	r.GET("/health", func(c *gin.Context) {
